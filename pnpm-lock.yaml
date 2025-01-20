@@ -106,7 +106,7 @@ importers:
         specifier: ^0.2.1
         version: 0.2.1(next@15.1.4(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       novel:
-        specifier: ^1.0.0
+        specifier: ^1.0.2
         version: 1.0.2(@tiptap/extension-code-block@2.11.2(@tiptap/core@2.11.2(@tiptap/pm@2.11.2))(@tiptap/pm@2.11.2))(@types/react-dom@18.2.19)(@types/react@18.3.18)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       openai:
         specifier: ^4.28.4
