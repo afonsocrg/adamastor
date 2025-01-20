@@ -1,5 +1,4 @@
 "use client";
-import { urenoContent } from "@/lib/customContent";
 import {
   type EditorInstance,
   type JSONContent,
@@ -7,15 +6,19 @@ import {
   handleImageDrop,
   handleImagePaste,
 } from "novel";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { uploadFn } from "./image-upload";
 import RichTextEditor from "./rich-text-editor";
 
 const hljs = require("highlight.js");
 
-const TailwindAdvancedEditor = () => {
-  const [initialContent, setInitialContent] = useState<null | JSONContent>(null);
+interface TailwindAdvancedEditorProps {
+  initialContent: JSONContent;
+  savePost: (content: JSONContent) => void;
+}
+
+const TailwindAdvancedEditor = ({ initialContent, savePost }: TailwindAdvancedEditorProps) => {
   const [saveStatus, setSaveStatus] = useState("Saved");
   const [charsCount, setCharsCount] = useState();
 
@@ -33,17 +36,12 @@ const TailwindAdvancedEditor = () => {
   const debouncedUpdates = useDebouncedCallback(async (editor: EditorInstance) => {
     const json = editor.getJSON();
     setCharsCount(editor.storage.characterCount.words());
-    window.localStorage.setItem("html-content", highlightCodeblocks(editor.getHTML()));
-    window.localStorage.setItem("novel-content", JSON.stringify(json));
-    window.localStorage.setItem("markdown", editor.storage.markdown.getMarkdown());
+    // window.localStorage.setItem("html-content", highlightCodeblocks(editor.getHTML()));
+    // window.localStorage.setItem("novel-content", JSON.stringify(json));
+    // window.localStorage.setItem("markdown", editor.storage.markdown.getMarkdown());
+    savePost(json);
     setSaveStatus("Saved");
   }, 500);
-
-  useEffect(() => {
-    const content = window.localStorage.getItem("novel-content");
-    if (content) setInitialContent(JSON.parse(content));
-    else setInitialContent(urenoContent);
-  }, []);
 
   if (!initialContent) return null;
 
