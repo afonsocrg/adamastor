@@ -1,3 +1,4 @@
+import type { Extension, Mark, Node } from "@tiptap/core";
 import {
   AIHighlight,
   CharacterCount,
@@ -159,7 +160,7 @@ const markdownExtension = Markdown.configure({
   transformCopiedText: false,
 });
 
-export const defaultExtensions = [
+export const defaultExtensions: (Extension | Node | Mark)[] = [
   starterKit,
   placeholder,
   tiptapLink,
