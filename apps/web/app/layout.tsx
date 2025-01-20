@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 import "@/styles/prosemirror.css";
 import "katex/dist/katex.min.css";
 
+import Navbar from "@/components/navbar";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Providers from "./providers";
@@ -33,7 +34,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <div>
+            <Navbar />
+            <main className="max-w-screen-lg mx-auto p-4">{children}</main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

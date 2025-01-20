@@ -1,40 +1,25 @@
-import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
-import PostPreview from "@/components/tailwind/post-preview";
-import Menu from "@/components/tailwind/ui/menu";
+import Link from "next/link";
 
-export default function Page() {
+// Dummy data - replace with your actual data structure
+const DUMMY_POSTS = [
+  { id: 1, title: "Getting Started with Next.js", date: "2024-03-20" },
+  { id: 2, title: "Understanding TypeScript", date: "2024-03-19" },
+  { id: 3, title: "React Best Practices", date: "2024-03-18" },
+];
+
+export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center gap-4 py-4 sm:px-5">
-      <div className="flex w-full max-w-screen-lg items-center gap-2 px-4">
-        {/* <Button size="icon" variant="outline">
-          <a href="https://github.com/steven-tey/novel" target="_blank" rel="noreferrer">
-            <Github />
-          </a>
-        </Button> */}
-        {/* <Dialog>
-          <DialogTrigger asChild>
-            <Button className="ml gap-2">
-              <BookOpen className="h-4 w-4" />
-              Usage in dialog
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="flex max-w-3xl h-[calc(100vh-24px)]">
-            <ScrollArea className="max-h-screen">
-              <TailwindAdvancedEditor />
-            </ScrollArea>
-          </DialogContent>
-        </Dialog> */}
-        {/* <Link href="/docs" className="ml-auto">
-          <Button variant="ghost">Documentation</Button>
-        </Link> */}
-        <div className="ml-auto">
-          <Menu />
-        </div>
-      </div>
-
-      <TailwindAdvancedEditor />
-      <h1>Hello</h1>
-      <PostPreview />
+    <div className="space-y-4">
+      {DUMMY_POSTS.map((post) => (
+        <Link
+          key={post.id}
+          href={`/post/${post.id}`}
+          className="block p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+        >
+          <h2 className="text-xl font-semibold">{post.title}</h2>
+          <p className="text-muted-foreground">{post.date}</p>
+        </Link>
+      ))}
     </div>
   );
 }
