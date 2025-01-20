@@ -1,8 +1,5 @@
 import { EditorBubble, removeAIHighlight, useEditor } from "novel";
 import { Fragment, type ReactNode, useEffect } from "react";
-import { Button } from "../ui/button";
-import Magic from "../ui/icons/magic";
-import { AISelector } from "./ai-selector";
 
 interface GenerativeMenuSwitchProps {
   children: ReactNode;
@@ -26,7 +23,8 @@ const GenerativeMenuSwitch = ({ children, open, onOpenChange }: GenerativeMenuSw
       }}
       className="flex w-fit max-w-[90vw] overflow-hidden rounded-md border border-muted bg-background shadow-xl"
     >
-      {open && <AISelector open={open} onOpenChange={onOpenChange} />}
+      {/* The lines below enable the AI feature */}
+      {/* {open && <AISelector open={open} onOpenChange={onOpenChange} />}
       {!open && (
         <Fragment>
           <Button
@@ -40,7 +38,8 @@ const GenerativeMenuSwitch = ({ children, open, onOpenChange }: GenerativeMenuSw
           </Button>
           {children}
         </Fragment>
-      )}
+      )} */}
+      <Fragment>{children}</Fragment>
     </EditorBubble>
   );
 };

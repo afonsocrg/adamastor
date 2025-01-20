@@ -25,10 +25,10 @@ const extensions = [...defaultExtensions, slashCommand];
 interface CoreEditorProps extends Omit<EditorContentProps, "extensions" | "slotAfter" | "slotBefore" | "className"> {}
 
 const RichTextEditor = (props: CoreEditorProps) => {
-  const [openNode, setOpenNode] = useState(false);
+  const [openNodeTypeDropdown, setOpenNodeTypeDropdown] = useState(false);
   const [openColor, setOpenColor] = useState(false);
   const [openLink, setOpenLink] = useState(false);
-  const [openAI, setOpenAI] = useState(false);
+  const [openBubbleMenu, setOpenBubbleMenu] = useState(false);
 
   if (!props.initialContent) return null;
 
@@ -69,9 +69,9 @@ const RichTextEditor = (props: CoreEditorProps) => {
           </EditorCommandList>
         </EditorCommand>
 
-        <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI}>
+        <GenerativeMenuSwitch open={openBubbleMenu} onOpenChange={setOpenBubbleMenu}>
           <Separator orientation="vertical" />
-          <NodeSelector open={openNode} onOpenChange={setOpenNode} />
+          <NodeSelector open={openNodeTypeDropdown} onOpenChange={setOpenNodeTypeDropdown} />
           <Separator orientation="vertical" />
 
           <LinkSelector open={openLink} onOpenChange={setOpenLink} />
