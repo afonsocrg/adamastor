@@ -4,9 +4,10 @@ import { Button } from "@/components/tailwind/ui/button";
 import { postsService } from "@/lib/posts";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type Usable, use } from "react";
+import { use } from "react";
+
 interface PostPageProps {
-  params: Usable<{ id: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default function PostPage({ params }: PostPageProps) {

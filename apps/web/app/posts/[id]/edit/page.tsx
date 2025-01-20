@@ -4,10 +4,10 @@ import { Button } from "@/components/tailwind/ui/button";
 import { postsService } from "@/lib/posts";
 import { useRouter } from "next/navigation";
 import type { JSONContent } from "novel";
-import { type Usable, use } from "react";
+import { use } from "react";
 
 interface EditPostPageProps {
-  params: Usable<{ id: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default function EditPostPage({ params }: EditPostPageProps) {
