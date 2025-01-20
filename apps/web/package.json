@@ -34,7 +34,7 @@
     "lucide-react": "^0.358.0",
     "next": "15.1.4",
     "next-themes": "^0.2.1",
-    "novel": "workspace:^",
+    "novel": "^1.0.2",
     "openai": "^4.28.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -43,6 +43,7 @@
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "tippy.js": "^6.3.7",
+    "tiptap-markdown": "^0.8.10",
     "ts-pattern": "^5.0.8",
     "typescript": "^5.4.2",
     "use-debounce": "^10.0.0"
