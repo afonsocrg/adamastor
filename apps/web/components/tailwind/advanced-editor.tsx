@@ -1,5 +1,5 @@
 "use client";
-import { defaultEditorContent } from "@/lib/content";
+import { urenoContent } from "@/lib/customContent";
 import {
   type EditorInstance,
   type JSONContent,
@@ -42,7 +42,7 @@ const TailwindAdvancedEditor = () => {
   useEffect(() => {
     const content = window.localStorage.getItem("novel-content");
     if (content) setInitialContent(JSON.parse(content));
-    else setInitialContent(defaultEditorContent);
+    else setInitialContent(urenoContent);
   }, []);
 
   if (!initialContent) return null;

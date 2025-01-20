@@ -1,6 +1,6 @@
 "use client";
 
-import { defaultEditorContent } from "@/lib/content";
+import { urenoContent } from "@/lib/customContent";
 import type { JSONContent } from "novel";
 import { useEffect, useState } from "react";
 import RichTextEditor from "./rich-text-editor";
@@ -11,7 +11,7 @@ const PostPreview = () => {
   useEffect(() => {
     const content = window.localStorage.getItem("novel-content");
     if (content) setInitialContent(JSON.parse(content));
-    else setInitialContent(defaultEditorContent);
+    else setInitialContent(urenoContent);
   }, []);
 
   if (!initialContent) return null;

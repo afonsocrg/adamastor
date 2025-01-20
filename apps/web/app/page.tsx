@@ -1,22 +1,17 @@
 import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
 import PostPreview from "@/components/tailwind/post-preview";
-import { Button } from "@/components/tailwind/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/tailwind/ui/dialog";
 import Menu from "@/components/tailwind/ui/menu";
-import { ScrollArea } from "@/components/tailwind/ui/scroll-area";
-import { BookOpen } from "lucide-react";
-import Link from "next/link";
 
 export default function Page() {
   return (
     <div className="flex min-h-screen flex-col items-center gap-4 py-4 sm:px-5">
-      <div className="flex w-full max-w-screen-lg items-center gap-2 px-4 sm:mb-[calc(20vh)]">
+      <div className="flex w-full max-w-screen-lg items-center gap-2 px-4">
         {/* <Button size="icon" variant="outline">
           <a href="https://github.com/steven-tey/novel" target="_blank" rel="noreferrer">
             <Github />
           </a>
         </Button> */}
-        <Dialog>
+        {/* <Dialog>
           <DialogTrigger asChild>
             <Button className="ml gap-2">
               <BookOpen className="h-4 w-4" />
@@ -28,11 +23,13 @@ export default function Page() {
               <TailwindAdvancedEditor />
             </ScrollArea>
           </DialogContent>
-        </Dialog>
-        <Link href="/docs" className="ml-auto">
+        </Dialog> */}
+        {/* <Link href="/docs" className="ml-auto">
           <Button variant="ghost">Documentation</Button>
-        </Link>
-        <Menu />
+        </Link> */}
+        <div className="ml-auto">
+          <Menu />
+        </div>
       </div>
 
       <TailwindAdvancedEditor />
