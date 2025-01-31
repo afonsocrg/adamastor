@@ -1,5 +1,4 @@
 import type { JSONContent } from "novel";
-import { urenoContent } from "./customContent";
 
 export interface Post {
   id: string;
@@ -8,65 +7,80 @@ export interface Post {
   content: JSONContent;
 }
 
-const STORAGE_KEY = "blog_posts";
+interface CreatePostArgs {
+  title: string;
+  content: JSONContent;
+}
+export async function createPost({ title, content }: CreatePostArgs) {
+  const response = await fetch('/api/posts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ title, content }),
+  });
 
-export const postsService = {
-  initialize: () => {
-    // Check if we already have posts in localStorage
-    const existingPosts = localStorage.getItem(STORAGE_KEY);
-    if (!existingPosts) {
-      // Initialize with the default post
-      const defaultPost: Post = {
-        id: "1",
-        title: "Olá, Carlos!",
-        date: "2024-01-20",
-        content: urenoContent,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([defaultPost]));
-    }
-  },
+  if (!response.ok) {
+    throw new Error('Failed to publish post');
+  }
 
-  getAllPosts: (): Post[] => {
-    const posts = localStorage.getItem(STORAGE_KEY);
-    return posts ? JSON.parse(posts) : [];
-  },
+  return response
+}
 
-  getPost: (id: string): Post | null => {
-    const posts = postsService.getAllPosts();
-    return posts.find((post) => post.id === id) || null;
-  },
+interface UpdatePostArgs {
+  id: string;
+  title?: string;
+  content?: JSONContent;
+}
+export async function updatePost({ id, title, content }: UpdatePostArgs) {
+  const response = await fetch(`/api/posts/${id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, content }),
+  });
 
-  createPost: (): Post => {
-    const posts = postsService.getAllPosts();
-    const newPost: Post = {
-      id: Date.now().toString(),
-      title: "New Post",
-      date: new Date().toISOString().split("T")[0],
-      content: {
-        type: "doc",
-        content: [{ type: "paragraph", content: [{ type: "text", text: "" }] }],
-      },
-    };
-    posts.push(newPost);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-    return newPost;
-  },
+  if (!response.ok) {
+    throw new Error('Failed to update post');
+  }
 
-  updatePost: (post: Post) => {
-    const posts = postsService.getAllPosts();
-    const index = posts.findIndex((p) => p.id === post.id);
-    if (index !== -1) {
-      posts[index] = post;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-    }
-  },
+  return response;
+}
 
-  deletePost: (id: string) => {
-    const posts = postsService.getAllPosts();
-    const index = posts.findIndex((p) => p.id === id);
-    if (index !== -1) {
-      posts.splice(index, 1);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-    }
-  },
-};
+interface PublishPostArgs {
+  id: string;
+}
+export async function publishPost({ id }: PublishPostArgs) {
+  const response = await fetch(`/api/posts/${id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_public: true }),
+  });
+}
+
+interface UnpublishPostArgs {
+  id: string;
+}
+export async function unpublishPost({ id }: UnpublishPostArgs) {
+  const response = await fetch(`/api/posts/${id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_public: false }),
+  });
+}
+
+interface DeletePostArgs {
+  id: string;
+}
+export async function deletePost({ id }: DeletePostArgs) {
+  try {
+    const response = await fetch(`/api/posts/${id}`, {
+      method: 'DELETE',
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    throw error;
+  }
+}
+

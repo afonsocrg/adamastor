@@ -4,7 +4,7 @@ import { type Dispatch, type ReactNode, type SetStateAction, createContext } fro
 import { ThemeProvider, useTheme } from "next-themes";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
-import useLocalStorage from "@/hooks/use-local-storage";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 export const AppContext = createContext<{
   font: string;

@@ -20,6 +20,7 @@ import GenerativeMenuSwitch from "./generative/generative-menu-switch";
 import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
 
+// const extensions = [...defaultExtensions, slashCommand];
 const extensions = [...defaultExtensions, slashCommand];
 
 interface CoreEditorProps extends Omit<EditorContentProps, "extensions" | "slotAfter" | "slotBefore" | "className"> {}
@@ -43,6 +44,7 @@ const RichTextEditor = (props: CoreEditorProps) => {
           },
           ...props.editorProps,
         }}
+        immediatelyRender={false}
         extensions={extensions}
         className="relative min-h-[500px] w-full max-w-screen-lg border-muted bg-background sm:mb-[calc(20vh)] sm:rounded-lg sm:border sm:shadow-lg"
         slotAfter={<ImageResizer />}

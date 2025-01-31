@@ -1,4 +1,5 @@
 "use client";
+
 import type { JSONContent } from "novel";
 import RichTextEditor from "./rich-text-editor";
 

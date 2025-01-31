@@ -16,9 +16,11 @@ const hljs = require("highlight.js");
 interface TailwindAdvancedEditorProps {
   initialContent: JSONContent;
   savePost: (content: JSONContent) => void;
+  showSaveStatus?: boolean;
+  showCharsCount?: boolean;
 }
 
-const TailwindAdvancedEditor = ({ initialContent, savePost }: TailwindAdvancedEditorProps) => {
+const TailwindAdvancedEditor = ({ initialContent, savePost, showSaveStatus = true, showCharsCount = true }: TailwindAdvancedEditorProps) => {
   const [saveStatus, setSaveStatus] = useState("Saved");
   const [charsCount, setCharsCount] = useState();
 
@@ -48,10 +50,10 @@ const TailwindAdvancedEditor = ({ initialContent, savePost }: TailwindAdvancedEd
   return (
     <div className="relative w-full">
       <div className="flex absolute right-5 top-5 z-10 mb-5 gap-2">
-        <div className="rounded-lg bg-accent px-2 py-1 text-sm text-muted-foreground">{saveStatus}</div>
-        <div className={charsCount ? "rounded-lg bg-accent px-2 py-1 text-sm text-muted-foreground" : "hidden"}>
+        {showSaveStatus && <div className="rounded-lg bg-accent px-2 py-1 text-sm text-muted-foreground">{saveStatus}</div>}
+        {showCharsCount && <div className={charsCount ? "rounded-lg bg-accent px-2 py-1 text-sm text-muted-foreground" : "hidden"}>
           {charsCount} Words
-        </div>
+        </div>}
       </div>
       <RichTextEditor
         initialContent={initialContent}

@@ -1,33 +1,29 @@
-"use client";
-import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
-import { Button } from "@/components/tailwind/ui/button";
-import { postsService } from "@/lib/posts";
-import { useRouter } from "next/navigation";
-import type { JSONContent } from "novel";
-import { use } from "react";
+import { createClient } from "@/lib/supabase/server";
+import { notFound, redirect } from "next/navigation";
+import EditPostClient from "./edit-post-client";
 
 interface EditPostPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
-export default function EditPostPage({ params }: EditPostPageProps) {
-  const { id } = use<{ id: string }>(params);
-  const router = useRouter();
+export default async function EditPostPage({ params }: EditPostPageProps) {
+  const { id } = await params;
+  const supabase = await createClient();
+  
+  const { data: post, error } = await supabase
+    .from('posts')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  const post = postsService.getPost(id);
+  if (error || !post) {
+    notFound();
+  }
 
-  const handleSavePost = (content: JSONContent) => {
-    postsService.updatePost({ ...post, content });
-  };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || post.author_id !== user.id) {
+    redirect(`/posts/${id}`);
+  }
 
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="mb-4 flex gap-2 justify-end">
-        <Button onClick={() => router.push(`/posts/${id}`)} variant="outline">
-          Done editing
-        </Button>
-      </div>
-      <TailwindAdvancedEditor initialContent={post.content} savePost={handleSavePost} />
-    </div>
-  );
+  return <EditPostClient postId={post.id} initialContent={post.content} title={post.title} />;
 }
