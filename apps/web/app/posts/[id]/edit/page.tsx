@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import EditPostClient from "./edit-post-client";
 
 interface EditPostPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditPostPage({ params }: EditPostPageProps) {

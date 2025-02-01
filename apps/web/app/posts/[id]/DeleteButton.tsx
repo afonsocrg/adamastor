@@ -11,7 +11,6 @@ export function DeleteButton({id}: DeleteButtonProps) {
   const router = useRouter();
   const handleDeletePost = async () => {
     const response = await deletePost({ id });
-    console.log({data: await response.json()});
     if (response.ok) {
       router.push('/');
     }

@@ -13,8 +13,6 @@ export default async function ProfilePage() {
 
   const user = await assertAuthenticated(supabase);
   const { data: posts, error } = await supabase.from('posts').select('*').eq('author_id', user.id).order('created_at', { ascending: false });
-
-  console.log(posts);
   
   return (
     <div className="max-w-4xl mx-auto p-6">

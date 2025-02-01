@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/datetime";
 import { DeleteButton } from "./DeleteButton";
 
 interface PostPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function PostPage({ params }: PostPageProps) {

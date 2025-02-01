@@ -23,7 +23,6 @@ export default function EditPostClient({ postId, title, initialContent }: EditPo
 
   const handleSavePost = () => {
     const response = updatePost({ id: postId, title: titleState, content });
-    // console.log({response});
   };
 
 

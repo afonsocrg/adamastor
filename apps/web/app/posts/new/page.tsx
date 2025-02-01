@@ -4,7 +4,7 @@ import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
 import { Button } from "@/components/tailwind/ui/button";
 import { useRouter } from "next/navigation";
 import type { JSONContent } from "novel";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { createPost } from "@/lib/posts";
 
 const SAVED_DRAFT_KEY = 'savedDraft';

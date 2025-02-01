@@ -5,9 +5,9 @@ import { NotFoundError, handleError, UnauthorizedError, InternalServerError, Bad
 import { assertAuthenticated } from '@/lib/supabase/authentication'
 
 export interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export interface UpdatePostBody {
@@ -28,9 +28,6 @@ export async function POST(request: Request, routeParams: RouteParams) {
     const { title, content, is_public }: UpdatePostBody = await request.json();
 
     const updatePayload = { content, title, is_public }
-    console.log({updatePayload})
-
-    console.log({id})
 
     // 5. Update post
     const { data: updatedPost, error: updateError } = await supabase
@@ -69,11 +66,8 @@ export async function DELETE(_request: Request, routeParams: RouteParams) {
       .eq('id', id)
       .single();
 
-    console.log('result', result );
-
     const { data: post, error: postError } = result;
 
-    console.log({ post, postError });
     if (postError || !post) {
       console.error('Failed to delete post', { postError });
       throw new BadRequestError('Failed to delete post');
