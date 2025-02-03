@@ -1,11 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
 import { Button } from "@/components/tailwind/ui/button";
-import { useRouter } from "next/navigation";
 import type { JSONContent } from "novel";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { createPost } from "@/lib/posts";
+import { publishPost, saveDraft } from "./actions";
 
 const SAVED_DRAFT_KEY = 'savedDraft';
 const SAVED_TITLE_KEY = 'savedTitle';
@@ -15,22 +15,34 @@ export default function NewPostPage() {
   const [savedDraft, setSavedDraft] = useLocalStorage<JSONContent>(SAVED_DRAFT_KEY, {});
   const router = useRouter();
 
-  const handleSavePost = (content: JSONContent) => {
+  const handleSaveLocalContent = (content: JSONContent) => {
     setSavedDraft(content);
   };
 
+  const handleSaveDraft = async () => {
+    await saveDraft(title, savedDraft);
+    setTitle('');
+    setSavedDraft({});
+    router.push(`/profile`, { });
+  };
+
   const handlePublishPost = async () => {
-    try {
-      createPost({ title, content: savedDraft });
+    // try {
+    //   await createPost(title, savedDraft);
 
-      setTitle('');
-      setSavedDraft({});
+    //   setTitle('');
+    //   setSavedDraft({});
 
-      router.push(`/`);
-    } catch (error) {
-      console.error('Error publishing post:', error);
-      // Add error handling (e.g., show an error message to the user)
-    }
+    //   // router.push(`/`, { });
+    // } catch (error) {
+    //   console.error('Error publishing post:', error);
+    //   // Add error handling (e.g., show an error message to the user)
+    // }
+    const post = await publishPost(title, savedDraft);
+    console.log('Post published successfully', post);
+    setTitle('');
+    setSavedDraft({});
+    router.push(`/`, { });
   };
 
   return (
@@ -43,16 +55,16 @@ export default function NewPostPage() {
             onChange={(e) => setTitle(e.target.value)} 
             className="flex-1 p-2 rounded-md border border-gray-300 text-3xl font-bold border-none focused:border-none"
           />
-        {/* <Button onClick={handleSaveDraft} variant="outline">
+        <Button onClick={handleSaveDraft} variant="outline">
           Save Draft
-        </Button> */}
+        </Button>
         <Button onClick={handlePublishPost} variant="outline">
           Publish
         </Button>
       </div>
       <TailwindAdvancedEditor
         initialContent={savedDraft}
-        savePost={handleSavePost}
+        savePost={handleSaveLocalContent}
         showSaveStatus={false}
       />
     </div>
