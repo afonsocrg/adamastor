@@ -1,14 +1,8 @@
-import { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { NotFoundError, handleError, UnauthorizedError, InternalServerError, BadRequestError } from '@/lib/errors';
+import { handleError, BadRequestError } from '@/lib/errors';
 import { assertAuthenticated } from '@/lib/supabase/authentication'
-
-export interface RouteParams {
-  params: Promise<{
-    id: string;
-  }>;
-}
+import type { RouteParams } from './types';
 
 export interface UpdatePostBody {
   title?: string;

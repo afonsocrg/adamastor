@@ -7,6 +7,7 @@ import { assertAuthenticated } from '@/lib/supabase/authentication'
 import Link from "next/link";
 import { PublishButton } from "./PublishButton";
 import { DeleteButton } from "./DeleteButton";
+import { CopyButton } from "./CopyButton";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -54,7 +55,9 @@ export default async function ProfilePage() {
                 >
                   Edit
                 </Link>
-                
+                <CopyButton
+                  postId={post.id}
+                />
                 <PublishButton
                   postId={post.id}
                   isPublic={post.is_public}

@@ -84,3 +84,20 @@ export async function deletePost({ id }: DeletePostArgs) {
   }
 }
 
+
+interface CopyPostArgs {
+  id: string;
+}
+export async function copyPost({ id }: CopyPostArgs) {
+  try {
+    const response = await fetch(`/api/posts/${id}/copy`, {
+      method: 'POST',
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Error copying post:', error);
+    throw error;
+  }
+}
+
