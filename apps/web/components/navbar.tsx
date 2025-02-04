@@ -26,7 +26,7 @@ const Navbar = async () => {
             <Link href="/profile" className="text-xl font-bold hover:underline hover:text-primary">
               Profile
             </Link>
-            <Link href="/logout" className="text-xl font-bold hover:underline hover:text-primary">
+            <Link prefetch={false} href="/logout" className="text-xl font-bold hover:underline hover:text-primary">
               Logout
             </Link>
           </div>
