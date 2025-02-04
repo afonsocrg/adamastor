@@ -37,6 +37,8 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log('middleware', { user, request })
+
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
