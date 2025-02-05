@@ -5,6 +5,7 @@ export interface Post {
   title: string;
   date: string;
   content: JSONContent;
+  is_public: boolean;
 }
 
 interface CreatePostArgs {
@@ -31,12 +32,13 @@ interface UpdatePostArgs {
   id: string;
   title?: string;
   content?: JSONContent;
+  is_public?: boolean;
 }
-export async function updatePost({ id, title, content }: UpdatePostArgs) {
+export async function updatePost({ id, title, content, is_public }: UpdatePostArgs) {
   const response = await fetch(`/api/posts/${id}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content }),
+    body: JSON.stringify({ title, content, is_public }),
   });
 
   if (!response.ok) {

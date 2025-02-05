@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { formatDate } from "@/lib/datetime";
 import { DeleteButton } from "./DeleteButton";
+import { PublishButton } from "@/app/profile/PublishButton";
 
 interface PostPageProps {
   params: Promise<{ id: string }>;
@@ -33,6 +34,7 @@ export default async function PostPage({ params }: PostPageProps) {
             <Button variant="outline" asChild>
               <a href={`/posts/${id}/edit`}>Edit Post</a>
             </Button>
+            <PublishButton postId={id} isPublic={post.is_public} />
             <DeleteButton id={id} />
           </>
         )}

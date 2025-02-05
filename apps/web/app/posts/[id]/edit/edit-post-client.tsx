@@ -1,30 +1,43 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/tailwind/ui/button";
 import type { JSONContent } from "novel";
-import { updatePost } from "@/lib/posts";
+import { updatePost, type Post } from "@/lib/posts";
 
 interface EditPostClientProps {
-  postId: string;
-  title: string;
-  initialContent: JSONContent;
+  post: Post
 }
 
-export default function EditPostClient({ postId, title, initialContent }: EditPostClientProps) {
-  const router = useRouter();
-  const supabase = createClient();
+export default function EditPostClient({ post }: EditPostClientProps) {
+  const [titleState, setTitleState] = useState(post.title);
+  const [content, setContent] = useState(post.content);
+  const [editorSaved, setEditorSaved] = useState(true);
+  const [changesSinceLastSave, setChangesSinceLastSave] = useState(false);
 
-  const [titleState, setTitleState] = useState(title);
-  const [content, setContent] = useState(initialContent);
-
-  const handleSavePost = () => {
-    const response = updatePost({ id: postId, title: titleState, content });
+  const handleSavePost = async () => {
+    const response = await updatePost({ id: post.id, title: titleState, content });
+    setChangesSinceLastSave(false);
   };
 
+  const handlePublishPost = async () => {
+    const response = await updatePost({ id: post.id, title: titleState, content, is_public: true });
+    setChangesSinceLastSave(false);
+  };
+
+  const handleEditorUpdate = () => {
+    setEditorSaved(false);
+    setChangesSinceLastSave(true);
+  }
+
+  const handleEditorSave = (content: JSONContent) => {
+    setContent(content);
+    setEditorSaved(true);
+    setChangesSinceLastSave(true);
+  };
+
+  const buttonsDisabled = !editorSaved || !changesSinceLastSave;
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,16 +49,26 @@ export default function EditPostClient({ postId, title, initialContent }: EditPo
             onChange={(e) => setTitleState(e.target.value)} 
             className="flex-1 p-2 rounded-md border border-gray-300 text-3xl font-bold border-none focused:border-none"
           />
-        <Button onClick={handleSavePost} variant="outline">
-          Save
-        </Button>
+        {!post.is_public ? (
+          <>
+            <Button onClick={handleSavePost} variant="outline" disabled={buttonsDisabled}>
+              Save Draft
+            </Button>
+            <Button onClick={handlePublishPost} variant="outline" disabled={buttonsDisabled}>
+              Publish
+            </Button>
+          </>
+        ) : (
+          <Button onClick={handleSavePost} variant="outline" disabled={buttonsDisabled}>
+            Save
+          </Button>
+        )}
       </div>
       <TailwindAdvancedEditor 
         initialContent={content} 
-        savePost={(newContent) => {
-          setContent(newContent);
-        }} 
-        // showSaveStatus={false}
+        savePost={handleEditorSave}
+        onUpdate={handleEditorUpdate}
+        showSaveStatus={false}
       />
     </div>
   );

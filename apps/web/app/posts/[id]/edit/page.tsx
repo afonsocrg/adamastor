@@ -25,5 +25,5 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     redirect(`/posts/${id}`);
   }
 
-  return <EditPostClient postId={post.id} initialContent={post.content} title={post.title} />;
+  return <EditPostClient post={post} />;
 }

@@ -15,25 +15,26 @@ const hljs = require("highlight.js");
 
 interface TailwindAdvancedEditorProps {
   initialContent: JSONContent;
-  savePost: (content: JSONContent) => void;
+  savePost?: (content: JSONContent) => void;
+  onUpdate?: (content: JSONContent) => void;
   showSaveStatus?: boolean;
   showCharsCount?: boolean;
 }
 
-const TailwindAdvancedEditor = ({ initialContent, savePost, showSaveStatus = true, showCharsCount = true }: TailwindAdvancedEditorProps) => {
+const TailwindAdvancedEditor = ({ initialContent, savePost, onUpdate, showSaveStatus = true, showCharsCount = true }: TailwindAdvancedEditorProps) => {
   const [saveStatus, setSaveStatus] = useState("Saved");
   const [charsCount, setCharsCount] = useState();
 
-  //Apply Codeblock Highlighting on the HTML from editor.getHTML()
-  const highlightCodeblocks = (content: string) => {
-    const doc = new DOMParser().parseFromString(content, "text/html");
-    doc.querySelectorAll("pre code").forEach((el) => {
-      // @ts-ignore
-      // https://highlightjs.readthedocs.io/en/latest/api.html?highlight=highlightElement#highlightelement
-      hljs.highlightElement(el);
-    });
-    return new XMLSerializer().serializeToString(doc);
-  };
+  // Apply Codeblock Highlighting on the HTML from editor.getHTML()
+  // const highlightCodeblocks = (content: string) => {
+  //   const doc = new DOMParser().parseFromString(content, "text/html");
+  //   doc.querySelectorAll("pre code").forEach((el) => {
+  //     // @ts-ignore
+  //     // https://highlightjs.readthedocs.io/en/latest/api.html?highlight=highlightElement#highlightelement
+  //     hljs.highlightElement(el);
+  //   });
+  //   return new XMLSerializer().serializeToString(doc);
+  // };
 
   const debouncedUpdates = useDebouncedCallback(async (editor: EditorInstance) => {
     const json = editor.getJSON();
@@ -41,7 +42,7 @@ const TailwindAdvancedEditor = ({ initialContent, savePost, showSaveStatus = tru
     // window.localStorage.setItem("html-content", highlightCodeblocks(editor.getHTML()));
     // window.localStorage.setItem("novel-content", JSON.stringify(json));
     // window.localStorage.setItem("markdown", editor.storage.markdown.getMarkdown());
-    savePost(json);
+    savePost?.(json);
     setSaveStatus("Saved");
   }, 500);
 
@@ -67,6 +68,7 @@ const TailwindAdvancedEditor = ({ initialContent, savePost, showSaveStatus = tru
         onUpdate={({ editor }) => {
           debouncedUpdates(editor);
           setSaveStatus("Unsaved");
+          onUpdate?.(editor);
         }}
       />
     </div>
