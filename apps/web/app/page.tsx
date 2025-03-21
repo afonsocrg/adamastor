@@ -2,19 +2,21 @@ import Link from "next/link";
 import { formatDate } from "@/lib/datetime";
 import { createClient } from "@/lib/supabase/server";
 
-
 export default async function Home() {
   const supabase = await createClient();
-  const { data: posts, error, status } = await supabase
-    .from('posts')
-    .select('*')
-    .eq('is_public', true)
-    .order('created_at', { ascending: false });
-  
-  if (error && status !== 200) {
-    console.log('error', error);
-  }
+  const {
+    data: posts,
+    error,
+    status,
+  } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("is_public", true)
+    .order("created_at", { ascending: false });
 
+  if (error && status !== 200) {
+    console.log("error", error);
+  }
 
   return (
     <div className="space-y-4">

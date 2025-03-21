@@ -10,23 +10,35 @@ const Navbar = async () => {
   // };
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <nav className="bg-accent p-4 mb-6">
       <div className="max-w-screen-lg mx-auto flex justify-between items-center">
         <Link href="/" className="text-xl font-bold">
-          Home
+          Adamastor
         </Link>
         {user && (
           <div className="flex gap-3">
-            <Link href="/posts/new" className="text-xl font-bold hover:underline hover:text-primary">
+            <Link
+              href="/posts/new"
+              className="text-xl font-bold hover:underline hover:text-primary"
+            >
               New Post
             </Link>
-            <Link href="/profile" className="text-xl font-bold hover:underline hover:text-primary">
+            <Link
+              href="/profile"
+              className="text-xl font-bold hover:underline hover:text-primary"
+            >
               Profile
             </Link>
-            <Link prefetch={false} href="/logout" className="text-xl font-bold hover:underline hover:text-primary">
+            <Link
+              prefetch={false}
+              href="/logout"
+              className="text-xl font-bold hover:underline hover:text-primary"
+            >
               Logout
             </Link>
           </div>
