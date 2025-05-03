@@ -1,24 +1,24 @@
-import PostPreview from "@/components/tailwind/post-preview";
-import { Button } from "@/components/tailwind/ui/button";
+import { assertAuthenticated } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
-import { formatDate } from "@/lib/datetime";
-import { assertAuthenticated } from '@/lib/supabase/authentication'
 import Link from "next/link";
-import { PublishButton } from "./PublishButton";
-import { DeleteButton } from "./DeleteButton";
 import { CopyButton } from "./CopyButton";
+import { DeleteButton } from "./DeleteButton";
+import { PublishButton } from "./PublishButton";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
 
   const user = await assertAuthenticated(supabase);
-  const { data: posts, error } = await supabase.from('posts').select('*').eq('author_id', user.id).order('created_at', { ascending: false });
-  
+  const { data: posts, error } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("author_id", user.id)
+    .order("created_at", { ascending: false });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <p className="text-gray-900 dark:text-white">Logged in as {user.email}</p>
-      <br/>
+      <br />
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Posts</h2>
         <Link
@@ -31,9 +31,7 @@ export default async function ProfilePage() {
 
       <div className="space-y-4">
         {posts.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
-            You haven't created any posts yet.
-          </p>
+          <p className="text-gray-500 text-center py-8">You haven't created any posts yet.</p>
         ) : (
           posts.map((post) => (
             <div
@@ -41,7 +39,7 @@ export default async function ProfilePage() {
               className="bg-white shadow rounded-lg p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
             >
               <h2 className="text-xl font-medium text-gray-900">{post.title}</h2>
-              
+
               <div className="flex flex-wrap gap-2">
                 <Link
                   href={`/posts/${post.id}`}
@@ -55,17 +53,10 @@ export default async function ProfilePage() {
                 >
                   Edit
                 </Link>
-                <CopyButton
-                  postId={post.id}
-                />
-                <PublishButton
-                  postId={post.id}
-                  isPublic={post.is_public}
-                />
-                
-                <DeleteButton
-                  postId={post.id}
-                />
+                <CopyButton postId={post.id} />
+                <PublishButton postId={post.id} isPublic={post.is_public} />
+
+                <DeleteButton postId={post.id} />
               </div>
             </div>
           ))

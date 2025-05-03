@@ -7,8 +7,8 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Providers from "./providers";
 
-const title = "Magazine - Portugal Startups Magazine";
-const description = "Here you can find all the information related to the Portuguese Startup ecosystem";
+const title = "Adamastor - All about Startups in Portugal";
+const description = "All about Startups in Portugal";
 
 export const metadata: Metadata = {
   title,
