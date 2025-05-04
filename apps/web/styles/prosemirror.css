@@ -5,7 +5,7 @@
 .ProseMirror .is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: red;
+  color: hsl(var(--muted-foreground));
   pointer-events: none;
   height: 0;
 }
