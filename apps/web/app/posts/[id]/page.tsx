@@ -1,3 +1,4 @@
+import AuthorCard from "@/components/authorCard";
 import PostPreview from "@/components/tailwind/post-preview";
 import { Button } from "@/components/tailwind/ui/button";
 import { formatDate } from "@/lib/datetime";
@@ -35,8 +36,12 @@ export default async function PostPage({ params }: PostPageProps) {
           </>
         )}
       </div>
-      <h2 className="text-3xl font-bold">{post.title}</h2>
-      <small>{formatDate(post.created_at)}</small>
+      <div className="mb-4">
+        <h2 className="text-3xl font-bold">{post.title}</h2>
+        <small>{formatDate(post.created_at)}</small>
+      </div>
+
+      <AuthorCard />
       <PostPreview initialContent={post.content} />
     </div>
   );
