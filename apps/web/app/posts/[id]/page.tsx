@@ -46,3 +46,24 @@ export default async function PostPage({ params }: PostPageProps) {
     </div>
   );
 }
+
+export async function generateMetadata({ params }: PostPageProps) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: post, error } = await supabase.from("posts").select("*").eq("id", id).single();
+
+  if (error || !post) {
+    notFound();
+  }
+
+  // TODO: @afonso I wanted to slice the content but it seems this is an object. Can you help?
+  const contentPreview =
+    typeof post.content === "string" ? post.content.slice(0, 160) : "Check out this post on our blog.";
+
+  // TODO: Generate Open Graph image with post title dynamically @malik.
+  return {
+    title: post.title,
+    description: contentPreview,
+  };
+}
