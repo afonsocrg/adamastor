@@ -6,6 +6,9 @@ import Navbar from "@/components/navbar";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Providers from "./providers";
+import { PostHogProvider } from "./providers";
+
+// TODO: @afonso we're exporting Providers and PostHogProvider. I wonder if we could simplify this?
 
 const title = "Adamastor - All about Startups in Portugal";
 const description = "All about Startups in Portugal";
@@ -34,12 +37,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <Providers>
-          <div>
-            <Navbar />
-            <main className="max-w-screen-lg mx-auto p-4">{children}</main>
-          </div>
-        </Providers>
+        <PostHogProvider>
+          <Providers>
+            <div>
+              <Navbar />
+              <main className="max-w-screen-lg mx-auto p-4">{children}</main>
+            </div>
+          </Providers>
+        </PostHogProvider>
       </body>
     </html>
   );
