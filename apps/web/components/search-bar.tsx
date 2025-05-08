@@ -3,8 +3,10 @@
 import type React from "react";
 
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "./tailwind/ui/input";
+
+import posthog from "posthog-js";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -19,6 +21,21 @@ export default function SearchBar({ placeholder = "Search", onSearch = () => {},
     e.preventDefault();
     onSearch(query);
   };
+
+  // Debounced search tracking (For now, we're not capturing on submission)
+  useEffect(() => {
+    if (!query.trim() || query.length < 3) return;
+
+    const timer = setTimeout(() => {
+      // Track the search query in PostHog
+      posthog.capture("search_query", {
+        query: query.trim(),
+        page: window.location.pathname,
+      });
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   return (
     <form
