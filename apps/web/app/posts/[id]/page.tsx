@@ -24,6 +24,8 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
+  const formattedPublishedDate = formatDate(post.created_at);
+
   return (
     <div className="max-w-[750px] mx-auto md:px-4 animate-in">
       <div className="mb-4 flex gap-2 justify-end">
@@ -37,11 +39,15 @@ export default async function PostPage({ params }: PostPageProps) {
         )}
       </div>
       <div className="mb-4">
-        <h2 className="text-3xl font-bold">{post.title}</h2>
-        <small>{formatDate(post.created_at)}</small>
+        <h2 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357]">
+          {post.title}
+        </h2>
       </div>
 
-      <AuthorCard />
+      <div>
+        <AuthorCard publishedAt={formattedPublishedDate} />
+      </div>
+
       <PostPreview initialContent={post.content} />
     </div>
   );
