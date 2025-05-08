@@ -19,14 +19,23 @@ export const metadata: Metadata = {
   openGraph: {
     title,
     description,
+    images: [
+      {
+        url: "/socialPreview.jpg", // Path to the preview image
+        width: 1200,
+        height: 630,
+        alt: "Adamastor - All about Startups in Portugal",
+      },
+    ],
   },
   twitter: {
     title,
     description,
-    // card: "summary_large_image",
+    card: "summary_large_image",
+    images: ["/socialPreview.jpg"],
     // creator: "@steventey",
   },
-  // metadataBase: new URL("https://novel.sh"),
+  metadataBase: new URL("https://adamastor.blog"),
 };
 
 export const viewport: Viewport = {
