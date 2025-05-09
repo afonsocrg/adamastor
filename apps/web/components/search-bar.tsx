@@ -14,7 +14,11 @@ interface SearchBarProps {
   className?: string;
 }
 
-export default function SearchBar({ placeholder = "Search", onSearch = () => {}, className = "" }: SearchBarProps) {
+export default function SearchBar({
+  placeholder = "Search articles, authors, startups, topics",
+  onSearch = () => {},
+  className = "",
+}: SearchBarProps) {
   const [query, setQuery] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,7 +44,7 @@ export default function SearchBar({ placeholder = "Search", onSearch = () => {},
   return (
     <form
       onSubmit={handleSubmit}
-      className={`flex w-full max-w-sm items-center justify-between space-x-2 ${className}`}
+      className={`flex w-full md:max-w-md items-center justify-between space-x-2 ${className}`}
     >
       <div className="relative flex-1 w-80">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -49,7 +53,7 @@ export default function SearchBar({ placeholder = "Search", onSearch = () => {},
           placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-8 bg-muted border-0 rounded-md"
+          className="pl-8 bg-muted border-0 rounded-lg hover:bg-neutral-100 transition-all !text-lg"
         />
       </div>
     </form>
