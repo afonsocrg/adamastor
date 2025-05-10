@@ -1,4 +1,5 @@
 import AuthorCard from "@/components/authorCard";
+import ShareWidget from "@/components/shareWidget";
 import PostPreview from "@/components/tailwind/post-preview";
 import { Button } from "@/components/tailwind/ui/button";
 import { formatDate } from "@/lib/datetime";
@@ -44,8 +45,9 @@ export default async function PostPage({ params }: PostPageProps) {
         </h2>
       </div>
 
-      <div>
+      <div className="flex justify-between items-start mt-6">
         <AuthorCard publishedAt={formattedPublishedDate} />
+        <ShareWidget />
       </div>
 
       <PostPreview initialContent={post.content} />

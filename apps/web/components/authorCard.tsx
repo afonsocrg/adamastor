@@ -10,7 +10,7 @@ export default function AuthorCard({ publishedAt }: { publishedAt: string }) {
     <>
       <div className="">
         <HoverCard>
-          <HoverCardTrigger asChild className="cursor-pointer w-fit mt-6">
+          <HoverCardTrigger asChild className="cursor-pointer w-fit">
             <div className="flex items-center gap-2 w-fit">
               <div>
                 <Avatar className="size-[45px]">
