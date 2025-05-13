@@ -1,5 +1,6 @@
 "use client";
 import { CatIcon, Link } from "lucide-react";
+import posthog from "posthog-js";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./tailwind/ui/button";
@@ -10,6 +11,12 @@ export default function ShareWidget() {
 
   // Function to copy the current URL to clipboard
   const copyToClipboard = async () => {
+    posthog.capture("shared_post", {
+      share_method: "copy_link",
+      page: window.location.pathname, // Page currently being shared
+      //post_id: "",  // TODO: Get id from DB? @afonso
+      post_title: encodeURIComponent(document.title), // TODO: Get title directly from DB? Also, get id instead? @afonso
+    });
     try {
       await navigator.clipboard.writeText(window.location.href);
       setIsCopied(true);
@@ -26,7 +33,16 @@ export default function ShareWidget() {
   // Function to share to social media
   const shareToSocialMedia = (platform: string) => {
     const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent(document.title);
+    const title = encodeURIComponent(document.title); // TODO: Get title directly from DB?
+
+    posthog.capture("shared_post", {
+      share_method: "social",
+      trigger: "button",
+      channel: platform,
+      page: window.location.pathname, // Page currently being shared
+      //post_id: "",  // TODO: Get id from DB? @afonso
+      post_title: title, // TODO: Get title directly from DB? Also, get id instead? @afonso
+    });
 
     let shareUrl = "";
 
