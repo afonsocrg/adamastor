@@ -23,8 +23,9 @@ const Navbar = async () => {
       <nav className="p-4 mb-2 border-b">
         <div className="max-w-screen-xl mx-auto flex justify-between items-center">
           <div className="w-60 leading-tight font-normal text-muted-foreground text-sm">
-            <p>A digital publication about</p>
-            <p>all things startup in Portugal</p>
+            <Link href="/">
+              <p className="max-w-48">A digital publication about all things startup in Portugal</p>
+            </Link>
           </div>
 
           <div className="flex-1 flex justify-center">
@@ -47,23 +48,27 @@ const Navbar = async () => {
           </div>
 
           <div className="w-60 justify-end">
-            {user && (
-              <div className="flex gap-3 justify-end !text-muted-foreground">
-                <Link href="/posts/new" className="text-xl font-medium hover:underline hover:text-primary">
-                  New Post
-                </Link>
-                <Link href="/profile" className="text-xl font-medium hover:underline hover:text-primary">
-                  Profile
-                </Link>
-                <Link
-                  prefetch={false}
-                  href="/logout"
-                  className="text-xl font-medium hover:underline hover:text-primary"
-                >
-                  Logout
-                </Link>
-              </div>
-            )}
+            <div className="flex gap-3 justify-end !text-muted-foreground">
+              <Link
+                href="https://www.linkedin.com/company/adamastor-magazine/"
+                className="font-medium hover:underline hover:text-primary"
+              >
+                LinkedIn
+              </Link>
+              {user && (
+                <>
+                  <Link href="/posts/new" className="font-medium hover:underline hover:text-primary">
+                    New Post
+                  </Link>
+                  <Link href="/profile" className="font-medium hover:underline hover:text-primary">
+                    Profile
+                  </Link>
+                  <Link prefetch={false} href="/logout" className="font-medium hover:underline hover:text-primary">
+                    Logout
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </nav>
