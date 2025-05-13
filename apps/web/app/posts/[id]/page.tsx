@@ -40,7 +40,7 @@ export default async function PostPage({ params }: PostPageProps) {
         )}
       </div>
       <div className="mb-4">
-        <h2 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357]">
+        <h2 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7]">
           {post.title}
         </h2>
       </div>
