@@ -4,23 +4,20 @@ import Link from "next/link";
 import { CopyButton } from "./CopyButton";
 import { DeleteButton } from "./DeleteButton";
 import { PublishButton } from "./PublishButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tailwind/ui/tabs";
+import { MyPosts } from "./MyPosts";
+import { OthersPosts } from "./OthersPosts";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
-
-  const user = await assertAuthenticated(supabase);
-  const { data: posts, error } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("author_id", user.id)
-    .order("created_at", { ascending: false });
+  const profile = await assertAuthenticated(supabase);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <p className="text-gray-900 dark:text-white">Logged in as {user.email}</p>
+      <p className="text-gray-900 dark:text-white">(Logged in as {profile.email})</p>
       <br />
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Posts</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Posts</h2>
         <Link
           href="/posts/new"
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
@@ -29,39 +26,24 @@ export default async function ProfilePage() {
         </Link>
       </div>
 
-      <div className="space-y-4">
-        {posts.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">You haven't created any posts yet.</p>
-        ) : (
-          posts.map((post) => (
-            <div
-              key={post.id}
-              className="bg-white shadow rounded-lg p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-            >
-              <h2 className="text-xl font-medium text-gray-900">{post.title}</h2>
+      {profile.role === 'admin' ? (
+        <Tabs defaultValue="my-posts" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="my-posts">My Posts</TabsTrigger>
+            <TabsTrigger value="others-posts">Others' Posts</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="my-posts">
+            <MyPosts userId={profile.id} />
+          </TabsContent>
 
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href={`/posts/${post.id}`}
-                  className="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors hover:cursor-pointer hover:underline"
-                >
-                  Preview
-                </Link>
-                <Link
-                  href={`/posts/${post.id}/edit`}
-                  className="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors hover:cursor-pointer hover:underline"
-                >
-                  Edit
-                </Link>
-                <CopyButton postId={post.id} />
-                <PublishButton postId={post.id} isPublic={post.is_public} />
-
-                <DeleteButton postId={post.id} />
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+          <TabsContent value="others-posts">
+            <OthersPosts currentUserId={profile.id} />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <MyPosts userId={profile.id} />
+      )}
     </div>
   );
 }

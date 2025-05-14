@@ -9,7 +9,7 @@ export default async function Home() {
     data: posts,
     error,
     status,
-  } = await supabase.from("posts").select("*").eq("is_public", true).order("created_at", { ascending: false });
+  } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
 
   if (error && status !== 200) {
     console.log("error", error);

@@ -19,6 +19,7 @@ import {
   TiptapLink,
   Youtube,
 } from "novel";
+import { getUserProfile } from '@/lib/supabase/authentication';
 
 interface PostPageProps {
   params: Promise<{ id: string }>;
@@ -27,10 +28,7 @@ interface PostPageProps {
 export default async function PostPage({ params }: PostPageProps) {
   const { id } = await params;
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUserProfile(supabase);
 
   const { data: post, error } = await supabase.from("posts").select("*").eq("id", id).single();
 
@@ -43,7 +41,7 @@ export default async function PostPage({ params }: PostPageProps) {
   return (
     <div className="max-w-[750px] mx-auto md:px-4 animate-in">
       <div className="mb-4 flex gap-2 justify-end">
-        {(user?.id === post.author_id || process.env.NEXT_ALLOW_BAD_UI === "true") && (
+        {((user?.id === post.author_id || user?.role === 'admin' || process.env.NEXT_ALLOW_BAD_UI === "true") && (
           <>
             <Button variant="outline" asChild>
               <a href={`/posts/${id}/edit`}>Edit Post</a>
@@ -51,7 +49,7 @@ export default async function PostPage({ params }: PostPageProps) {
             <PublishButton postId={id} isPublic={post.is_public} />
             <DeleteButton id={id} />
           </>
-        )}
+        ))}
       </div>
       <div className="mb-4">
         <h2 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7]">
@@ -72,8 +70,6 @@ export default async function PostPage({ params }: PostPageProps) {
 export async function generateMetadata({ params }: PostPageProps) {
   const { id } = await params;
   const supabase = await createClient();
-
-  console.log("Generating metadata for post", id);
 
   const { data: post, error } = await supabase.from("posts").select("*").eq("id", id).single();
 
