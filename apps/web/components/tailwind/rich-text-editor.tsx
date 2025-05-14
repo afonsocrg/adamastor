@@ -46,7 +46,7 @@ const RichTextEditor = (props: CoreEditorProps) => {
         }}
         immediatelyRender={false}
         extensions={extensions}
-        className="relative min-h-[500px] w-full max-w-screen-lg border-muted bg-background sm:mb-[calc(20vh)] sm:rounded-lg sm:border sm:shadow-lg"
+        className="relative min-h-[500px] w-full max-w-screen-lg bg-background sm:mb-[calc(20vh)]"
         slotAfter={<ImageResizer />}
       >
         <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">

@@ -13,7 +13,6 @@
     "lint:fix": "turbo lint --continue -- --apply",
     "clean": "turbo clean",
     "release": "turbo run release",
-    "prepare": "husky install",
     "typecheck": "turbo typecheck"
   },
   "dependencies": {
@@ -26,7 +25,6 @@
     "@biomejs/biome": "^1.9.4",
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
-    "husky": "^9.1.7",
     "postcss": "^8.5.1"
   },
   "commitlint": {

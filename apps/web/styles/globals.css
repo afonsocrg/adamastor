@@ -95,7 +95,6 @@
   }
 }
 
-
 pre {
   background: #0d0d0d;
   border-radius: 0.5rem;
@@ -161,4 +160,24 @@ pre {
   .hljs-strong {
     font-weight: 700;
   }
+}
+
+::selection {
+  background-color: #e3f4f7;
+  color: #0f0d2a;
+}
+
+@keyframes animateIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: animateIn 0.3s ease 0.15s both;
 }

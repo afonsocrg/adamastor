@@ -1,10 +1,19 @@
 "use client";
 
-import { type Dispatch, type ReactNode, type SetStateAction, createContext } from "react";
-import { ThemeProvider, useTheme } from "next-themes";
-import { Toaster } from "sonner";
-import { Analytics } from "@vercel/analytics/react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { Analytics } from "@vercel/analytics/react";
+import { ThemeProvider, useTheme } from "next-themes";
+import { type Dispatch, type ReactNode, type SetStateAction, createContext } from "react";
+import { Toaster } from "sonner";
+
+import { usePathname, useSearchParams } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
+import { Suspense, useEffect } from "react";
+
+import posthog from "posthog-js";
+import { PostHogProvider as PHProvider } from "posthog-js/react";
+
+// TODO: @afonso we're exporting Providers and PostHogProvider. I wonder if we could simplify this?
 
 export const AppContext = createContext<{
   font: string;
@@ -37,5 +46,54 @@ export default function Providers({ children }: { children: ReactNode }) {
         <Analytics />
       </AppContext.Provider>
     </ThemeProvider>
+  );
+}
+
+export function PostHogProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY as string, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://eu.i.posthog.com",
+      person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well
+      capture_pageview: false, // Disable automatic pageview capture, as we capture manually
+    });
+  }, []);
+
+  return (
+    <PHProvider client={posthog}>
+      <SuspendedPostHogPageView />
+      {children}
+    </PHProvider>
+  );
+}
+
+function PostHogPageView() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const posthog = usePostHog();
+
+  // Track pageviews
+  useEffect(() => {
+    if (pathname && posthog) {
+      let url = window.origin + pathname;
+      if (searchParams.toString()) {
+        // biome-ignore lint/style/useTemplate: <explanation>
+        url = url + "?" + searchParams.toString();
+      }
+
+      posthog.capture("$pageview", { $current_url: url });
+    }
+  }, [pathname, searchParams, posthog]);
+
+  return null;
+}
+
+// Wrap PostHogPageView in Suspense to avoid the useSearchParams usage above
+// from de-opting the whole app into client-side rendering
+// See: https://nextjs.org/docs/messages/deopted-into-client-rendering
+function SuspendedPostHogPageView() {
+  return (
+    <Suspense fallback={null}>
+      <PostHogPageView />
+    </Suspense>
   );
 }
