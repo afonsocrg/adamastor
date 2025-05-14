@@ -7,6 +7,18 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { DeleteButton } from "./DeleteButton";
 import { PublishButton } from "@/app/profile/PublishButton";
+import { generateText } from '@tiptap/core'
+import {
+  TaskItem,
+  TaskList,
+  TiptapImage,
+  TiptapUnderline,
+  StarterKit,
+  TextStyle,
+  Color,
+  TiptapLink,
+  Youtube,
+} from "novel";
 
 interface PostPageProps {
   params: Promise<{ id: string }>;
@@ -61,6 +73,8 @@ export async function generateMetadata({ params }: PostPageProps) {
   const { id } = await params;
   const supabase = await createClient();
 
+  console.log("Generating metadata for post", id);
+
   const { data: post, error } = await supabase.from("posts").select("*").eq("id", id).single();
 
   if (error || !post) {
@@ -68,10 +82,31 @@ export async function generateMetadata({ params }: PostPageProps) {
   }
 
   // TODO: @afonso I wanted to slice the content but it seems this is an object. Can you help?
-  const contentPreview =
-    typeof post.content === "string" ? post.content.slice(0, 160) : "Check out this post on our blog.";
+  let contentPreview = "Check out this post on our blog.";
+  try {
+    const contentText = generateText(post.content, [
+      StarterKit,
+      TaskItem,
+      TaskList,
+      TiptapImage,
+      TiptapUnderline,
+      TextStyle,
+      Color,
+      TiptapLink,
+      Youtube,
+    ]).slice(0, 160)
+    if (contentText.length > 0) {
+      const lastSpaceIndex = contentText.lastIndexOf(' ');
+      contentPreview = contentText.substring(0, lastSpaceIndex) + '...';
+    }
+  } catch (error) {
+    console.error("Error generating content preview", error);
+    console.log("Continuing with default content preview");
+  }
 
   // TODO: Generate Open Graph image with post title dynamically @malik.
+  // @malik, I think the best here would be to have a default metadata object
+  // exported somewhere, and then override its properties in each page.
   return {
     title: post.title,
     description: contentPreview,
