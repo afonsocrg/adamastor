@@ -1,25 +1,25 @@
+import { PublishButton } from "@/app/profile/PublishButton";
 import AuthorCard from "@/components/authorCard";
 import ShareWidget from "@/components/shareWidget";
 import PostPreview from "@/components/tailwind/post-preview";
 import { Button } from "@/components/tailwind/ui/button";
 import { formatDate } from "@/lib/datetime";
+import { getUserProfile } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
+import { generateText } from "@tiptap/core";
 import { notFound } from "next/navigation";
-import { DeleteButton } from "./DeleteButton";
-import { PublishButton } from "@/app/profile/PublishButton";
-import { generateText } from '@tiptap/core'
 import {
+  Color,
+  StarterKit,
   TaskItem,
   TaskList,
-  TiptapImage,
-  TiptapUnderline,
-  StarterKit,
   TextStyle,
-  Color,
+  TiptapImage,
   TiptapLink,
+  TiptapUnderline,
   Youtube,
 } from "novel";
-import { getUserProfile } from '@/lib/supabase/authentication';
+import { DeleteButton } from "./DeleteButton";
 
 interface PostPageProps {
   params: Promise<{ id: string }>;
@@ -41,7 +41,7 @@ export default async function PostPage({ params }: PostPageProps) {
   return (
     <div className="max-w-[750px] mx-auto md:px-4 animate-in">
       <div className="mb-4 flex gap-2 justify-end">
-        {((user?.id === post.author_id || user?.role === 'admin' || process.env.NEXT_ALLOW_BAD_UI === "true") && (
+        {(user?.id === post.author_id || user?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true") && (
           <>
             <Button variant="outline" asChild>
               <a href={`/posts/${id}/edit`}>Edit Post</a>
@@ -49,7 +49,7 @@ export default async function PostPage({ params }: PostPageProps) {
             <PublishButton postId={id} isPublic={post.is_public} />
             <DeleteButton id={id} />
           </>
-        ))}
+        )}
       </div>
       <div className="mb-4">
         <h2 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7]">
@@ -90,10 +90,10 @@ export async function generateMetadata({ params }: PostPageProps) {
       Color,
       TiptapLink,
       Youtube,
-    ]).slice(0, 160)
+    ]).slice(0, 160);
     if (contentText.length > 0) {
-      const lastSpaceIndex = contentText.lastIndexOf(' ');
-      contentPreview = contentText.substring(0, lastSpaceIndex) + '...';
+      const lastSpaceIndex = contentText.lastIndexOf(" ");
+      contentPreview = `${contentText.substring(0, lastSpaceIndex)}...`;
     }
   } catch (error) {
     console.error("Error generating content preview", error);
