@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function About() {
   return (
     <>
-      <section className="m-12">
+      <section className="m-6">
         <h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7]">
           About Us
         </h1>
@@ -17,8 +17,8 @@ export default function About() {
           source of information for anyone who wants to know what's happening in Portugal.
         </p>
       </section>
-      <section className="m-12">
-        <h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7]">
+      <section className="m-6">
+        <h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7] mb-6">
           Our team
         </h1>
         <div className="flex gap-6">
@@ -50,6 +50,18 @@ export default function About() {
             </Link>
           </div>
         </div>
+      </section>
+      <section className="m-6">
+        <h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7]">
+          Get in touch
+        </h1>
+        <p className="md:text-3xl font-light text-xl text-muted-foreground leading-7 [&:not(:first-child)]:mt-6">
+          {" "}
+          For enquiries or contributions, please get in touch with us at{" "}
+          <a className="underline underline-offset-2" href="mailto:carlos@adamastor.blog">
+            carlos@adamastor.blog
+          </a>
+        </p>
       </section>
     </>
   );

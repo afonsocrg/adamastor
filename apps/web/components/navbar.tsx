@@ -49,6 +49,9 @@ const Navbar = async () => {
 
           <div className="w-60 justify-end">
             <div className="flex gap-3 justify-end !text-muted-foreground">
+              <Link href="/about" className="font-medium hover:underline hover:text-primary">
+                About
+              </Link>
               <Link
                 href="https://www.linkedin.com/company/adamastor-magazine/"
                 className="font-medium hover:underline hover:text-primary"
