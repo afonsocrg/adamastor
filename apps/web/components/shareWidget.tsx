@@ -1,5 +1,6 @@
 "use client";
-import { CatIcon, Link } from "lucide-react";
+import { BlueskyIcon, FacebookIcon, LinkedInIcon, TwitterIcon } from "@/public/social";
+import { Link } from "lucide-react";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -88,7 +89,7 @@ export default function ShareWidget() {
                 className="w-full justify-start flex gap-2"
                 onClick={() => shareToSocialMedia("facebook")}
               >
-                <CatIcon className="mr-2 h-4 w-4 " />
+                <FacebookIcon />
                 Share to Facebook
               </Button>
               <Button
@@ -96,7 +97,7 @@ export default function ShareWidget() {
                 className="w-full justify-start flex gap-2"
                 onClick={() => shareToSocialMedia("linkedin")}
               >
-                <CatIcon className="mr-2 h-4 w-4 " />
+                <LinkedInIcon />
                 Share to LinkedIn
               </Button>
               <Button
@@ -104,7 +105,7 @@ export default function ShareWidget() {
                 className="w-full justify-start flex gap-2"
                 onClick={() => shareToSocialMedia("bluesky")}
               >
-                <CatIcon className="mr-2 h-4 w-4 " />
+                <BlueskyIcon />
                 Share to Bluesky
               </Button>
               <Button
@@ -112,7 +113,7 @@ export default function ShareWidget() {
                 className="w-full justify-start flex gap-2"
                 onClick={() => shareToSocialMedia("twitter")}
               >
-                <CatIcon className="mr-2 h-4 w-4 " />
+                <TwitterIcon />
                 Share to X
               </Button>
             </div>
