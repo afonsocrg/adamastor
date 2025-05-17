@@ -95,6 +95,10 @@
   }
 }
 
+h2 {
+  font-family: inter, ui-sans-serif, system-ui, sans-serif;
+}
+
 pre {
   background: #0d0d0d;
   border-radius: 0.5rem;

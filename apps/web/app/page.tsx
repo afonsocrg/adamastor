@@ -29,7 +29,9 @@ export default async function Home() {
               href={`/posts/${post.id}`}
               className="space-y-4 flex flex-col p-4 border rounded-lg hover:bg-accent/50 transition-all animate-in"
             >
-              <h2 className="text-xl font-semibold hover:text-[#24acb5]">{post.title}</h2>
+              <h2 className="text-xl font-semibold hover:text-[#24acb5] [font-family:var(--font-default)]">
+                {post.title}
+              </h2>
               <p className="text-muted-foreground">{formatDate(post.created_at)}</p>
             </Link>
           ))}

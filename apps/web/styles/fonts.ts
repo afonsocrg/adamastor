@@ -1,5 +1,5 @@
-import localFont from "next/font/local";
 import { Crimson_Text, Inconsolata, Inter } from "next/font/google";
+import localFont from "next/font/local";
 
 export const cal = localFont({
   src: "./CalSans-SemiBold.otf",
@@ -9,11 +9,6 @@ export const cal = localFont({
 export const crimsonBold = Crimson_Text({
   weight: "700",
   variable: "--font-title",
-  subsets: ["latin"],
-});
-
-export const inter = Inter({
-  variable: "--font-default",
   subsets: ["latin"],
 });
 
@@ -30,6 +25,11 @@ export const crimson = Crimson_Text({
 });
 
 export const inconsolata = Inconsolata({
+  variable: "--font-default",
+  subsets: ["latin"],
+});
+
+export const inter = Inter({
   variable: "--font-default",
   subsets: ["latin"],
 });
