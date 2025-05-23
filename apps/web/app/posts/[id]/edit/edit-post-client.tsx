@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
 import { Button } from "@/components/tailwind/ui/button";
+import { type Post, updatePost } from "@/lib/posts";
 import type { JSONContent } from "novel";
-import { updatePost, type Post } from "@/lib/posts";
+import { useState } from "react";
 
 interface EditPostClientProps {
-  post: Post
+  post: Post;
 }
 
 export default function EditPostClient({ post }: EditPostClientProps) {
@@ -29,7 +29,7 @@ export default function EditPostClient({ post }: EditPostClientProps) {
   const handleEditorUpdate = () => {
     setEditorSaved(false);
     setChangesSinceLastSave(true);
-  }
+  };
 
   const handleEditorSave = (content: JSONContent) => {
     setContent(content);
@@ -42,13 +42,13 @@ export default function EditPostClient({ post }: EditPostClientProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="mb-4 flex gap-2 items-center">
-          <input
-            placeholder="The title of your post..."
-            type="text"
-            value={titleState}
-            onChange={(e) => setTitleState(e.target.value)} 
-            className="flex-1 p-2 rounded-md border border-gray-300 text-3xl font-bold border-none focused:border-none"
-          />
+        <input
+          placeholder="The title of your post..."
+          type="text"
+          value={titleState}
+          onChange={(e) => setTitleState(e.target.value)}
+          className="flex-1 p-2 rounded-md border border-neutral-300 text-3xl font-bold border-none focused:border-none"
+        />
         {!post.is_public ? (
           <>
             <Button onClick={handleSavePost} variant="outline" disabled={buttonsDisabled}>
@@ -64,12 +64,12 @@ export default function EditPostClient({ post }: EditPostClientProps) {
           </Button>
         )}
       </div>
-      <TailwindAdvancedEditor 
-        initialContent={content} 
+      <TailwindAdvancedEditor
+        initialContent={content}
         savePost={handleEditorSave}
         onUpdate={handleEditorUpdate}
         showSaveStatus={false}
       />
     </div>
   );
-} 
+}

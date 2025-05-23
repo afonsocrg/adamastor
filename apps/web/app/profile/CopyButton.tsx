@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { copyPost } from '@/lib/posts';
+import { copyPost } from "@/lib/posts";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function CopyButton({ postId }: { postId: string }) {
   const [isPending, setIsPending] = useState(false);
@@ -10,15 +10,15 @@ export function CopyButton({ postId }: { postId: string }) {
 
   async function handleCopy() {
     setIsPending(true);
-    
+
     try {
       const response = await copyPost({ id: postId });
 
-      if (!response.ok) throw new Error('Failed to copy post');
-      
+      if (!response.ok) throw new Error("Failed to copy post");
+
       router.refresh();
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     } finally {
       setIsPending(false);
     }
@@ -29,12 +29,12 @@ export function CopyButton({ postId }: { postId: string }) {
       onClick={handleCopy}
       disabled={isPending}
       className={`
-        inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 
-        rounded-md hover:bg-gray-200 transition-colors
-        ${isPending ? 'opacity-50 cursor-not-allowed' : ''}
+        inline-flex items-center px-3 py-1.5 bg-neutral-100 text-neutral-700 
+        rounded-md hover:bg-neutral-200 transition-colors
+        ${isPending ? "opacity-50 cursor-not-allowed" : ""}
       `}
     >
-      {isPending ? 'Creating copy...' : 'Create copy'}
+      {isPending ? "Creating copy..." : "Create copy"}
     </button>
   );
 }
