@@ -35,7 +35,10 @@ importers:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.1.0
-        version: 1.1.0(zod@3.24.1)
+        version: 1.1.0(zod@3.25.28)
+      '@hookform/resolvers':
+        specifier: ^5.0.1
+        version: 5.0.1(react-hook-form@7.56.4(react@18.2.0))
       '@radix-ui/react-avatar':
         specifier: ^1.1.7
         version: 1.1.7(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -48,6 +51,9 @@ importers:
       '@radix-ui/react-hover-card':
         specifier: ^1.1.11
         version: 1.1.11(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@radix-ui/react-label':
+        specifier: ^2.1.7
+        version: 2.1.7(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@radix-ui/react-popover':
         specifier: ^1.1.4
         version: 1.1.4(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -95,7 +101,7 @@ importers:
         version: 1.0.1
       ai:
         specifier: ^3.0.12
-        version: 3.4.33(openai@4.78.1(zod@3.24.1))(react@18.2.0)(sswr@2.1.0(svelte@5.17.4))(svelte@5.17.4)(vue@3.5.13(typescript@5.7.3))(zod@3.24.1)
+        version: 3.4.33(openai@4.78.1(zod@3.25.28))(react@18.2.0)(sswr@2.1.0(svelte@5.17.4))(svelte@5.17.4)(vue@3.5.13(typescript@5.7.3))(zod@3.25.28)
       autoprefixer:
         specifier: ^10.4.17
         version: 10.4.20(postcss@8.5.1)
@@ -140,7 +146,7 @@ importers:
         version: 1.0.2(@tiptap/extension-code-block@2.11.2(@tiptap/core@2.11.2(@tiptap/pm@2.11.2))(@tiptap/pm@2.11.2))(@types/react-dom@18.2.19)(@types/react@18.3.18)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       openai:
         specifier: ^4.28.4
-        version: 4.78.1(zod@3.24.1)
+        version: 4.78.1(zod@3.25.28)
       postgres:
         specifier: ^3.4.5
         version: 3.4.5
@@ -156,6 +162,9 @@ importers:
       react-dom:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
+      react-hook-form:
+        specifier: ^7.56.4
+        version: 7.56.4(react@18.2.0)
       react-markdown:
         specifier: ^9.0.1
         version: 9.0.3(@types/react@18.3.18)(react@18.2.0)
@@ -183,6 +192,9 @@ importers:
       use-debounce:
         specifier: ^10.0.0
         version: 10.0.4(react@18.2.0)
+      zod:
+        specifier: ^3.25.28
+        version: 3.25.28
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.7.2
@@ -827,6 +839,11 @@ packages:
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
 
+  '@hookform/resolvers@5.0.1':
+    resolution: {integrity: sha512-u/+Jp83luQNx9AdyW2fIPGY6Y7NG68eN2ZW8FOJYL+M0i4s49+refdJdOp/A9n9HFQtQs3HIDHQvX3ZET2o7YA==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
+
   '@img/sharp-darwin-arm64@0.33.5':
     resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
@@ -1328,6 +1345,19 @@ packages:
       '@types/react':
         optional: true
 
+  '@radix-ui/react-label@2.1.7':
+    resolution: {integrity: sha512-YT1GqPSL8kJn20djelMX7/cTRp/Y9w5IZHvfxQTVHrOqa2yMl7i/UfMqKRU5V7mEyKTrUVgJXhNQPVCG8PBLoQ==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
   '@radix-ui/react-menu@2.1.14':
     resolution: {integrity: sha512-0zSiBAIFq9GSKoSH5PdEaQeRB3RnEGxC+H2P0egtnKoKKLNBH8VBHyVO6/jskhjAezhOIplyRUj7U2lds9A+Yg==}
     peerDependencies:
@@ -1497,6 +1527,19 @@ packages:
       '@types/react-dom':
         optional: true
 
+  '@radix-ui/react-primitive@2.1.3':
+    resolution: {integrity: sha512-m9gTwRkhy2lvCPe6QJp4d3G1TYEUHn/FzJUtq9MjH46an1wJU+GdoGC5VLof8RX8Ft/DlpshApkhswDLZzHIcQ==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
   '@radix-ui/react-roving-focus@1.1.7':
     resolution: {integrity: sha512-C6oAg451/fQT3EGbWHbCQjYTtbyjNO1uzQgMzwyivcHT3GKNEmu1q3UuREhN+HzHAVtv3ivMVK08QlC+PkYw9Q==}
     peerDependencies:
@@ -1582,6 +1625,15 @@ packages:
 
   '@radix-ui/react-slot@1.2.2':
     resolution: {integrity: sha512-y7TBO4xN4Y94FvcWIOIh18fM4R1A8S4q1jhoz4PNzOoHsFcN8pogcFmZrTYAm4F9VRUrWP/Mw7xSKybIeRI+CQ==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
+  '@radix-ui/react-slot@1.2.3':
+    resolution: {integrity: sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A==}
     peerDependencies:
       '@types/react': '*'
       react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
@@ -1767,6 +1819,9 @@ packages:
 
   '@scena/matrix@1.1.1':
     resolution: {integrity: sha512-JVKBhN0tm2Srl+Yt+Ywqu0oLgLcdemDQlD1OxmN9jaCTwaFPZ7tY8n6dhVgMEaR9qcR7r+kAlMXnSfNyYdE+Vg==}
+
+  '@standard-schema/utils@0.3.0':
+    resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
   '@supabase/auth-js@2.67.3':
     resolution: {integrity: sha512-NJDaW8yXs49xMvWVOkSIr8j46jf+tYHV0wHhrwOaLLMZSFO4g6kKAf+MfzQ2RaD06OCUkUHIzctLAxjTgEVpzw==}
@@ -3624,6 +3679,12 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
+  react-hook-form@7.56.4:
+    resolution: {integrity: sha512-Rob7Ftz2vyZ/ZGsQZPaRdIefkgOSrQSPXfqBdvOPwJfoGnjwRJUs7EM7Kc1mcoDv3NOtqBzPGbcMB8CGn9CKgw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+
   react-markdown@9.0.3:
     resolution: {integrity: sha512-Yk7Z94dbgYTOrdk41Z74GoKA7rThnsbbqBTRYuxoe08qvfQ9tJVhmAKw6BJS/ZORG7kTy/s1QvYzSuaoBA1qfw==}
     peerDependencies:
@@ -4185,8 +4246,8 @@ packages:
     peerDependencies:
       zod: ^3.24.1
 
-  zod@3.24.1:
-    resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
+  zod@3.25.28:
+    resolution: {integrity: sha512-/nt/67WYKnr5by3YS7LroZJbtcCBurDKKPBPWWzaxvVCGuG/NOsiKkrjoOhI8mJ+SQUXEbUzeB3S+6XDUEEj7Q==}
 
   zustand@4.5.6:
     resolution: {integrity: sha512-ibr/n1hBzLLj5Y+yUcU7dYw8p6WnIVzdJbnX+1YpaScvZVF2ziugqHs+LAmHw4lWO9c/zRj+K1ncgWDQuthEdQ==}
@@ -4208,29 +4269,29 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/openai@1.1.0(zod@3.24.1)':
+  '@ai-sdk/openai@1.1.0(zod@3.25.28)':
     dependencies:
       '@ai-sdk/provider': 1.0.4
-      '@ai-sdk/provider-utils': 2.1.0(zod@3.24.1)
-      zod: 3.24.1
+      '@ai-sdk/provider-utils': 2.1.0(zod@3.25.28)
+      zod: 3.25.28
 
-  '@ai-sdk/provider-utils@1.0.22(zod@3.24.1)':
+  '@ai-sdk/provider-utils@1.0.22(zod@3.25.28)':
     dependencies:
       '@ai-sdk/provider': 0.0.26
       eventsource-parser: 1.1.2
       nanoid: 3.3.8
       secure-json-parse: 2.7.0
     optionalDependencies:
-      zod: 3.24.1
+      zod: 3.25.28
 
-  '@ai-sdk/provider-utils@2.1.0(zod@3.24.1)':
+  '@ai-sdk/provider-utils@2.1.0(zod@3.25.28)':
     dependencies:
       '@ai-sdk/provider': 1.0.4
       eventsource-parser: 3.0.0
       nanoid: 3.3.8
       secure-json-parse: 2.7.0
     optionalDependencies:
-      zod: 3.24.1
+      zod: 3.25.28
 
   '@ai-sdk/provider@0.0.26':
     dependencies:
@@ -4240,47 +4301,47 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/react@0.0.70(react@18.2.0)(zod@3.24.1)':
+  '@ai-sdk/react@0.0.70(react@18.2.0)(zod@3.25.28)':
     dependencies:
-      '@ai-sdk/provider-utils': 1.0.22(zod@3.24.1)
-      '@ai-sdk/ui-utils': 0.0.50(zod@3.24.1)
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.25.28)
+      '@ai-sdk/ui-utils': 0.0.50(zod@3.25.28)
       swr: 2.3.0(react@18.2.0)
       throttleit: 2.1.0
     optionalDependencies:
       react: 18.2.0
-      zod: 3.24.1
+      zod: 3.25.28
 
-  '@ai-sdk/solid@0.0.54(zod@3.24.1)':
+  '@ai-sdk/solid@0.0.54(zod@3.25.28)':
     dependencies:
-      '@ai-sdk/provider-utils': 1.0.22(zod@3.24.1)
-      '@ai-sdk/ui-utils': 0.0.50(zod@3.24.1)
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.25.28)
+      '@ai-sdk/ui-utils': 0.0.50(zod@3.25.28)
     transitivePeerDependencies:
       - zod
 
-  '@ai-sdk/svelte@0.0.57(svelte@5.17.4)(zod@3.24.1)':
+  '@ai-sdk/svelte@0.0.57(svelte@5.17.4)(zod@3.25.28)':
     dependencies:
-      '@ai-sdk/provider-utils': 1.0.22(zod@3.24.1)
-      '@ai-sdk/ui-utils': 0.0.50(zod@3.24.1)
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.25.28)
+      '@ai-sdk/ui-utils': 0.0.50(zod@3.25.28)
       sswr: 2.1.0(svelte@5.17.4)
     optionalDependencies:
       svelte: 5.17.4
     transitivePeerDependencies:
       - zod
 
-  '@ai-sdk/ui-utils@0.0.50(zod@3.24.1)':
+  '@ai-sdk/ui-utils@0.0.50(zod@3.25.28)':
     dependencies:
       '@ai-sdk/provider': 0.0.26
-      '@ai-sdk/provider-utils': 1.0.22(zod@3.24.1)
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.25.28)
       json-schema: 0.4.0
       secure-json-parse: 2.7.0
-      zod-to-json-schema: 3.24.1(zod@3.24.1)
+      zod-to-json-schema: 3.24.1(zod@3.25.28)
     optionalDependencies:
-      zod: 3.24.1
+      zod: 3.25.28
 
-  '@ai-sdk/vue@0.0.59(vue@3.5.13(typescript@5.7.3))(zod@3.24.1)':
+  '@ai-sdk/vue@0.0.59(vue@3.5.13(typescript@5.7.3))(zod@3.25.28)':
     dependencies:
-      '@ai-sdk/provider-utils': 1.0.22(zod@3.24.1)
-      '@ai-sdk/ui-utils': 0.0.50(zod@3.24.1)
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.25.28)
+      '@ai-sdk/ui-utils': 0.0.50(zod@3.25.28)
       swrv: 1.0.4(vue@3.5.13(typescript@5.7.3))
     optionalDependencies:
       vue: 3.5.13(typescript@5.7.3)
@@ -4806,6 +4867,11 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
+  '@hookform/resolvers@5.0.1(react-hook-form@7.56.4(react@18.2.0))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.56.4(react@18.2.0)
+
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
       '@img/sharp-libvips-darwin-arm64': 1.0.4
@@ -5227,6 +5293,15 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.18
 
+  '@radix-ui/react-label@2.1.7(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@radix-ui/react-primitive': 2.1.3(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    optionalDependencies:
+      '@types/react': 18.3.18
+      '@types/react-dom': 18.2.19
+
   '@radix-ui/react-menu@2.1.14(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@radix-ui/primitive': 1.1.2
@@ -5407,6 +5482,15 @@ snapshots:
       '@types/react': 18.3.18
       '@types/react-dom': 18.2.19
 
+  '@radix-ui/react-primitive@2.1.3(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@radix-ui/react-slot': 1.2.3(@types/react@18.3.18)(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    optionalDependencies:
+      '@types/react': 18.3.18
+      '@types/react-dom': 18.2.19
+
   '@radix-ui/react-roving-focus@1.1.7(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@radix-ui/primitive': 1.1.2
@@ -5511,6 +5595,13 @@ snapshots:
       '@types/react': 18.3.18
 
   '@radix-ui/react-slot@1.2.2(@types/react@18.3.18)(react@18.2.0)':
+    dependencies:
+      '@radix-ui/react-compose-refs': 1.1.2(@types/react@18.3.18)(react@18.2.0)
+      react: 18.2.0
+    optionalDependencies:
+      '@types/react': 18.3.18
+
+  '@radix-ui/react-slot@1.2.3(@types/react@18.3.18)(react@18.2.0)':
     dependencies:
       '@radix-ui/react-compose-refs': 1.1.2(@types/react@18.3.18)(react@18.2.0)
       react: 18.2.0
@@ -5661,6 +5752,8 @@ snapshots:
   '@scena/matrix@1.1.1':
     dependencies:
       '@daybrush/utils': 1.13.0
+
+  '@standard-schema/utils@0.3.0': {}
 
   '@supabase/auth-js@2.67.3':
     dependencies:
@@ -6139,27 +6232,27 @@ snapshots:
     dependencies:
       humanize-ms: 1.2.1
 
-  ai@3.4.33(openai@4.78.1(zod@3.24.1))(react@18.2.0)(sswr@2.1.0(svelte@5.17.4))(svelte@5.17.4)(vue@3.5.13(typescript@5.7.3))(zod@3.24.1):
+  ai@3.4.33(openai@4.78.1(zod@3.25.28))(react@18.2.0)(sswr@2.1.0(svelte@5.17.4))(svelte@5.17.4)(vue@3.5.13(typescript@5.7.3))(zod@3.25.28):
     dependencies:
       '@ai-sdk/provider': 0.0.26
-      '@ai-sdk/provider-utils': 1.0.22(zod@3.24.1)
-      '@ai-sdk/react': 0.0.70(react@18.2.0)(zod@3.24.1)
-      '@ai-sdk/solid': 0.0.54(zod@3.24.1)
-      '@ai-sdk/svelte': 0.0.57(svelte@5.17.4)(zod@3.24.1)
-      '@ai-sdk/ui-utils': 0.0.50(zod@3.24.1)
-      '@ai-sdk/vue': 0.0.59(vue@3.5.13(typescript@5.7.3))(zod@3.24.1)
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.25.28)
+      '@ai-sdk/react': 0.0.70(react@18.2.0)(zod@3.25.28)
+      '@ai-sdk/solid': 0.0.54(zod@3.25.28)
+      '@ai-sdk/svelte': 0.0.57(svelte@5.17.4)(zod@3.25.28)
+      '@ai-sdk/ui-utils': 0.0.50(zod@3.25.28)
+      '@ai-sdk/vue': 0.0.59(vue@3.5.13(typescript@5.7.3))(zod@3.25.28)
       '@opentelemetry/api': 1.9.0
       eventsource-parser: 1.1.2
       json-schema: 0.4.0
       jsondiffpatch: 0.6.0
       secure-json-parse: 2.7.0
-      zod-to-json-schema: 3.24.1(zod@3.24.1)
+      zod-to-json-schema: 3.24.1(zod@3.25.28)
     optionalDependencies:
-      openai: 4.78.1(zod@3.24.1)
+      openai: 4.78.1(zod@3.25.28)
       react: 18.2.0
       sswr: 2.1.0(svelte@5.17.4)
       svelte: 5.17.4
-      zod: 3.24.1
+      zod: 3.25.28
     transitivePeerDependencies:
       - solid-js
       - vue
@@ -7370,7 +7463,7 @@ snapshots:
 
   object-hash@3.0.0: {}
 
-  openai@4.78.1(zod@3.24.1):
+  openai@4.78.1(zod@3.25.28):
     dependencies:
       '@types/node': 18.19.70
       '@types/node-fetch': 2.6.12
@@ -7380,7 +7473,7 @@ snapshots:
       formdata-node: 4.4.1
       node-fetch: 2.7.0
     optionalDependencies:
-      zod: 3.24.1
+      zod: 3.25.28
     transitivePeerDependencies:
       - encoding
 
@@ -7666,6 +7759,10 @@ snapshots:
       loose-envify: 1.4.0
       react: 18.2.0
       scheduler: 0.23.2
+
+  react-hook-form@7.56.4(react@18.2.0):
+    dependencies:
+      react: 18.2.0
 
   react-markdown@9.0.3(@types/react@18.3.18)(react@18.2.0):
     dependencies:
@@ -8271,11 +8368,11 @@ snapshots:
 
   zimmerframe@1.1.2: {}
 
-  zod-to-json-schema@3.24.1(zod@3.24.1):
+  zod-to-json-schema@3.24.1(zod@3.25.28):
     dependencies:
-      zod: 3.24.1
+      zod: 3.25.28
 
-  zod@3.24.1: {}
+  zod@3.25.28: {}
 
   zustand@4.5.6(@types/react@18.3.18)(react@18.2.0):
     dependencies:
