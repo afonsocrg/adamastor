@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { CalendarPlusIcon, FileTextIcon, LogOutIcon, SquarePenIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "./search-bar";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./tailwind/ui/hover-card";
+import { Separator } from "./tailwind/ui/separator";
 
 const Navbar = async () => {
   // const router = useRouter();
@@ -60,15 +63,42 @@ const Navbar = async () => {
               </Link>
               {user && (
                 <>
-                  <Link href="/posts/new" className="font-medium hover:underline hover:text-primary">
-                    New Post
-                  </Link>
-                  <Link href="/profile" className="font-medium hover:underline hover:text-primary">
-                    Profile
-                  </Link>
-                  <Link prefetch={false} href="/logout" className="font-medium hover:underline hover:text-primary">
-                    Logout
-                  </Link>
+                  <HoverCard>
+                    <HoverCardTrigger className="cursor-pointer">Account</HoverCardTrigger>
+                    <HoverCardContent className="flex flex-col rounded-xl space-y-2 p-2 !text-muted-foreground">
+                      <Link
+                        href="/posts/new"
+                        className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
+                      >
+                        <SquarePenIcon className="h-4 w-4" />
+                        New Post
+                      </Link>
+                      <Link
+                        href="/profile"
+                        className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
+                      >
+                        <FileTextIcon className="h-4 w-4" />
+                        View Posts
+                      </Link>
+                      <Link
+                        href="/add-event"
+                        className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
+                      >
+                        <CalendarPlusIcon className="h-4 w-4" />
+                        New Event
+                      </Link>
+                      <Separator />
+
+                      <Link
+                        prefetch={false}
+                        href="/logout"
+                        className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
+                      >
+                        <LogOutIcon className="h-4 w-4" />
+                        Sign out
+                      </Link>
+                    </HoverCardContent>
+                  </HoverCard>
                 </>
               )}
             </div>
