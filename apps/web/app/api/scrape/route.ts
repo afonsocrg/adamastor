@@ -20,10 +20,10 @@ function snakeCaseToCamelCase(str: string) {
 }
 
 function getPropertyKey(property: string) {
-  const type = property.split(":")[0];
-  const propertyName = property.split(":")[1];
+  const parts = property.split(":").map(part => capitalizeFirstLetter(snakeCaseToCamelCase(part)));
 
-  return `${type.toLowerCase()}${capitalizeFirstLetter(snakeCaseToCamelCase(propertyName))}`;
+  // first letter lowercase
+  return parts.join("").charAt(0).toLowerCase() + parts.join("").slice(1);
 }
 
 function extractOGMetadata($: CheerioAPI) {
@@ -116,6 +116,17 @@ function extractEventbriteData(html: string): Event {
     }
 }
 
+function extractLumaData(html: string): Event {
+    const metadata = extractMetadata(html);
+    return {
+        title: metadata.title.replace(" · Luma", ""),
+        description: metadata.description,
+        url: metadata.ogUrl,
+        bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
+        startTime: metadata.eventStartTime,
+    }
+}
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -142,6 +153,9 @@ export async function POST(request: NextRequest) {
     if (url.includes("eventbrite.")) {
         console.log("Detected Eventbrite URL. Scraping Eventbrite data...")
         metadata = extractEventbriteData(html);
+    } else if (url.includes("lu.ma")) {
+        console.log("Detected Lu.ma URL. Scraping Lu.ma data...")
+        metadata = extractLumaData(html);
     } else {
         console.log("Did not detect any special event URL. Using default metadata extraction...")
         metadata = extractDefaultEventData(html);
