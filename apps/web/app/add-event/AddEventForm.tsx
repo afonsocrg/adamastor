@@ -42,6 +42,10 @@ import {
 } from "@/components/tailwind/ui/form";
 import { toast } from "sonner";
 
+const urlFormSchema = z.object({
+  url: z.string().min(1),
+});
+
 // [afonsocrg] This url is the link to the event itself.
 // It's a good practice to keep this separate from the scrape URL
 // because the scrape URL may not be the "official" event URL that
@@ -55,9 +59,15 @@ const formSchema = z.object({
   city: z.string().min(1),
 });
 
-const urlFormSchema = z.object({
-  url: z.string().min(1),
-});
+const defaultEventFormValues = {
+  title: "",
+  description: "",
+  url: "",
+  bannerUrl: "",
+  date: new Date(),
+  city: "lisboa",
+};
+
 
 // Server action for scraping URLs
 async function scrapeUrl(
@@ -100,18 +110,20 @@ export default function AddEventForm() {
 
   const [urlToScrape, setUrlToScrape] = useState<string>("");
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const eventForm = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: defaultEventFormValues,
   });
 
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
     resolver: zodResolver(urlFormSchema),
+    defaultValues: { url: "" },
   });
 
-  const title = form.watch("title");
-  const description = form.watch("description");
-  const url = form.watch("url");
-  const bannerUrl = form.watch("bannerUrl");
+  const title = eventForm.watch("title");
+  const description = eventForm.watch("description");
+  const url = eventForm.watch("url");
+  const bannerUrl = eventForm.watch("bannerUrl");
   //   const date = form.watch("date");
   //   const city = form.watch("city");
 
@@ -130,12 +142,12 @@ export default function AddEventForm() {
         toast.error(result.error);
       } else if (result.data) {
         const { title, description, url, bannerUrl, startTime } = result.data;
-        form.setValue("title", title);
-        form.setValue("description", description);
-        form.setValue("url", url);
-        form.setValue("bannerUrl", bannerUrl);
-        form.setValue("date", startTime ? new Date(startTime) : undefined);
-        form.setValue("city", "lisboa");
+        eventForm.setValue("title", title);
+        eventForm.setValue("description", description);
+        eventForm.setValue("url", url);
+        eventForm.setValue("bannerUrl", bannerUrl);
+        eventForm.setValue("date", startTime ? new Date(startTime) : undefined);
+        eventForm.setValue("city", "lisboa");
         setHasLoadedMetadata(true);
       }
     } catch (error) {
@@ -170,7 +182,9 @@ export default function AddEventForm() {
       }
 
       // Reset form after successful submission
-      form.reset();
+      eventForm.reset();
+      urlForm.reset();
+      setHasLoadedMetadata(false);
       toast.success("Event created successfully");
     } catch (err) {
       toast.error("Failed to create event");
@@ -192,7 +206,7 @@ export default function AddEventForm() {
             <div className="w-full">
               <Card className="p-4 gap-4 flex flex-col h-full">
                 <EventDetailsForm
-                  form={form}
+                  form={eventForm}
                   isSubmitting={isSubmitting}
                   handleEventSubmit={handleEventSubmit}
                 />
