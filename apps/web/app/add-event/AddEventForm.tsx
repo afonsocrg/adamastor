@@ -60,12 +60,12 @@ const formSchema = z.object({
 });
 
 const defaultEventFormValues = {
-  title: "",
-  description: "",
-  url: "",
-  bannerUrl: "",
-  date: new Date(),
-  city: "lisboa",
+  title: null,
+  description: null,
+  url: null,
+  bannerUrl: null,
+  date: null,
+  city: null,
 };
 
 
@@ -141,13 +141,13 @@ export default function AddEventForm() {
       if (result.error) {
         toast.error(result.error);
       } else if (result.data) {
-        const { title, description, url, bannerUrl, startTime } = result.data;
+        const { title, description, url, bannerUrl, startTime, city } = result.data;
         eventForm.setValue("title", title);
         eventForm.setValue("description", description);
         eventForm.setValue("url", url);
         eventForm.setValue("bannerUrl", bannerUrl);
-        eventForm.setValue("date", startTime ? new Date(startTime) : undefined);
-        eventForm.setValue("city", "lisboa");
+        eventForm.setValue("date", startTime ? new Date(startTime) : null);
+        eventForm.setValue("city", city ?? null);
         setHasLoadedMetadata(true);
       }
     } catch (error) {
@@ -170,7 +170,7 @@ export default function AddEventForm() {
         body: JSON.stringify({
           title,
           description,
-          date: date?.toISOString(),
+          date: date?.toISOString() || null,
           city,
           url,
           bannerUrl,
