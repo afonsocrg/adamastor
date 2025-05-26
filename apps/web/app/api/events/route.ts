@@ -13,7 +13,7 @@ export async function POST(request: Request) {
         // }
 
         const body = await request.json();
-        const { title, description, date, city, url, imageUrl, siteName } = body;
+        const { title, description, date, city, url, bannerUrl } = body;
 
         // Validate required fields
         if (!title || !description || !date || !city) {
@@ -35,9 +35,7 @@ export async function POST(request: Request) {
                     start_time: new Date(new Date(date).setHours(18, 0, 0, 0)).toISOString(),
                     city,
                     url,
-                    banner_url: imageUrl,
-                    // site_name: siteName,
-                    // created_by: user.id
+                    banner_url: bannerUrl,
                 }
             ])
             .select()

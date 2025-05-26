@@ -1,6 +1,121 @@
 import type { MetadataResult } from "@/app/types";
-import { load } from "cheerio";
+import { load, type CheerioAPI } from "cheerio";
 import { type NextRequest, NextResponse } from "next/server";
+
+interface Event {
+  title: string;
+  description?: string;
+  url?: string;
+  bannerUrl?: string;
+  startTime?: Date;
+  city?: string;
+}
+
+function capitalizeFirstLetter(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function snakeCaseToCamelCase(str: string) {
+  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+function getPropertyKey(property: string) {
+  const type = property.split(":")[0];
+  const propertyName = property.split(":")[1];
+
+  return `${type.toLowerCase()}${capitalizeFirstLetter(snakeCaseToCamelCase(propertyName))}`;
+}
+
+function extractOGMetadata($: CheerioAPI) {
+  const metadata: MetadataResult = {};
+
+  $('meta[property^="og:"]').each((_, element) => {
+    const property = $(element).attr("property");
+    const content = $(element).attr("content");
+
+    if (property && content) {
+      const key = getPropertyKey(property);
+      if (property === "og:image") {
+        metadata.ogImage = metadata.ogImage || [];
+        metadata.ogImage.push({ url: content });
+      } else {
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        (metadata as any)[key] = content;
+      }
+    }
+  });
+  return metadata;
+  
+}
+
+function extractTwitterMetadata($: CheerioAPI) {
+    const metadata: MetadataResult = {};
+    $('meta[name^="twitter:"]').each((_, element) => {
+        const name = $(element).attr("name");
+        const content = $(element).attr("content");
+
+        if (name && content) {
+          const key = getPropertyKey(name);
+
+          if (name === "twitter:image") {
+            metadata.twitterImage = metadata.twitterImage || [];
+            metadata.twitterImage.push({ url: content });
+          } else {
+            // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+            (metadata as any)[key] = content;
+          }
+        }
+    });
+    return metadata;
+}
+
+function extractMetadata(html: string): MetadataResult {
+    // Parse the HTML with cheerio
+    const $ = load(html);
+
+    // Some sites (eventbrite) return this metadata tag
+    const eventStartTime = $('meta[property="event:start_time"]').attr("content") || undefined;
+    const eventEndTime = $('meta[property="event:end_time"]').attr("content") || undefined;
+
+    // Extract metadata
+    const metadata: MetadataResult = {
+      title: $("title")?.text()?.trim(),
+      description: $('meta[name="description"]').attr("content")?.trim(),
+      eventStartTime: eventStartTime,
+      eventEndTime: eventEndTime,
+      ...extractOGMetadata($),
+      ...extractTwitterMetadata($),
+    };
+  return metadata;
+}
+
+function extractDefaultEventData(html: string): Event {
+    const metadata = extractMetadata(html);
+    return {
+        title: metadata.title,
+        description: metadata.description,
+        url: metadata.ogUrl,
+        bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
+    }
+}
+
+
+function extractEventbriteData(html: string): Event {
+    const metadata = extractMetadata(html);
+
+    const eventStartTime = metadata.eventStartTime ? new Date(metadata.eventStartTime) : undefined;
+
+    console.log({metadata, eventStartTime})
+
+    return {
+        title: metadata.ogTitle || metadata.title,
+        description: metadata.ogDescription || metadata.description,
+        url: metadata.ogUrl,
+        bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
+        startTime: eventStartTime,
+    }
+}
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,63 +138,13 @@ export async function POST(request: NextRequest) {
 
     const html = await response.text();
 
-    // Parse the HTML with cheerio
-    const $ = load(html);
-
-    // Extract metadata
-    const metadata: MetadataResult = {
-      requestUrl: url,
-      success: true,
-      ogImage: [],
-    };
-
-    // Extract Open Graph metadata
-    $('meta[property^="og:"]').each((_, element) => {
-      const property = $(element).attr("property");
-      const content = $(element).attr("content");
-
-      if (property && content) {
-        const key = property.replace("og:", "og");
-
-        if (property === "og:image") {
-          metadata.ogImage = metadata.ogImage || [];
-          metadata.ogImage.push({ url: content });
-        } else {
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          (metadata as any)[key] = content;
-        }
-      }
-    });
-
-    // Extract Twitter Card metadata
-    $('meta[name^="twitter:"]').each((_, element) => {
-      const name = $(element).attr("name");
-      const content = $(element).attr("content");
-
-      if (name && content) {
-        const key = name.replace("twitter:", "twitter");
-
-        if (name === "twitter:image") {
-          metadata.twitterImage = metadata.twitterImage || [];
-          metadata.twitterImage.push({ url: content });
-        } else {
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          (metadata as any)[key] = content;
-        }
-      }
-    });
-
-    // Extract title as fallback
-    if (!metadata.ogTitle) {
-      metadata.ogTitle = $("title").text();
-    }
-
-    // Extract description as fallback
-    if (!metadata.ogDescription) {
-      const metaDescription = $('meta[name="description"]').attr("content");
-      if (metaDescription) {
-        metadata.ogDescription = metaDescription;
-      }
+    let metadata: Event;
+    if (url.includes("eventbrite.")) {
+        console.log("Detected Eventbrite URL. Scraping Eventbrite data...")
+        metadata = extractEventbriteData(html);
+    } else {
+        console.log("Did not detect any special event URL. Using default metadata extraction...")
+        metadata = extractDefaultEventData(html);
     }
 
     return NextResponse.json({ data: metadata });

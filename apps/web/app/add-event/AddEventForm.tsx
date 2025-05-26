@@ -43,17 +43,23 @@ async function scrapeUrl(url: string): Promise<{ data?: MetadataResult; error?: 
 }
 
 export default function AddEventForm() {
-  const [url, setUrl] = useState("");
   const [isScraping, setIsScraping] = useState(false);
-  const [metadata, setMetadata] = useState<MetadataResult | null>(null);
-  const [editableMetadata, setEditableMetadata] = useState({
-    title: "",
-    description: "",
-  });
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [city, setCity] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoadedMetadata, setHasLoadedMetadata] = useState(false);
+
+  const [urlToScrape, setUrlToScrape] = useState<string>("");
+
+  // [afonsocrg] This url is the link to the event itself.
+  // It's a good practice to keep this separate from the scrape URL
+  // because the scrape URL may not be the "official" event URL that 
+  // will be returned by our backend.
+  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [bannerUrl, setBannerUrl] = useState<string>("");
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [city, setCity] = useState<string>("");
 
   const handleUrlSubmit = async (formData: FormData) => {
     const url = formData.get("url") as string;
@@ -62,17 +68,20 @@ export default function AddEventForm() {
       return;
     }
 
+    setIsScraping(true);
     try {
-      const result = await scrapeUrl(url);
+      const result = await scrapeUrl(urlToScrape);
 
       if (result.error) {
         setError(result.error);
       } else if (result.data) {
-        setMetadata(result.data);
-        setEditableMetadata({
-          title: result.data.ogTitle || result.data.twitterTitle || "Metadata Results",
-          description: result.data.ogDescription || "",
-        });
+        const { title, description, url, bannerUrl, startTime } = result.data;
+        setTitle(title);
+        setDescription(description);
+        setUrl(url);
+        setBannerUrl(bannerUrl);
+        setDate(startTime ? new Date(startTime) : undefined);
+        setHasLoadedMetadata(true);
       }
     } catch (error) {
       setError("Failed to scrape URL");
@@ -92,13 +101,12 @@ export default function AddEventForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: editableMetadata.title,
-          description: editableMetadata.description,
+          title,
+          description,
           date: date?.toISOString(),
           city,
           url,
-          imageUrl: metadata?.ogImage?.[0]?.url,
-          siteName: metadata?.ogSiteName,
+          bannerUrl,
         }),
       });
 
@@ -107,10 +115,8 @@ export default function AddEventForm() {
       }
 
       // Reset form after successful submission
-      setEditableMetadata({ title: '', description: '' });
       setDate(undefined);
       setCity('');
-      setMetadata(null);
       setUrl('');
       
     } catch (err) {
@@ -132,8 +138,8 @@ export default function AddEventForm() {
                 name="url"
                 type="url"
                 placeholder="https://example.com"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                value={urlToScrape}
+                onChange={(e) => setUrlToScrape(e.target.value)}
                 required
                 className="flex-1"
               />
@@ -144,7 +150,7 @@ export default function AddEventForm() {
           </div>
         </form>
 
-        {metadata && (
+        {hasLoadedMetadata && (
           <form onSubmit={handleEventSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
             <div className="w-full">
               <Card className="p-4 gap-4 flex flex-col h-full">
@@ -152,8 +158,8 @@ export default function AddEventForm() {
                   <Label>Title</Label>
                   <Input 
                     id="meta-title" 
-                    value={editableMetadata.title} 
-                    onChange={(e) => setEditableMetadata(prev => ({ ...prev, title: e.target.value }))}
+                    value={title} 
+                    onChange={(e) => setTitle(e.target.value)}
                     required 
                   />
                 </section>
@@ -161,9 +167,9 @@ export default function AddEventForm() {
                   <Label>Description</Label>
                   <Textarea
                     id="meta-description"
-                    value={editableMetadata.description}
+                    value={description}
                     className="h-32"
-                    onChange={(e) => setEditableMetadata(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) => setDescription(e.target.value)}
                     required
                   />
                 </section>
@@ -210,37 +216,37 @@ export default function AddEventForm() {
             <div className="w-full">
               <Card className="h-full">
                 <CardHeader>
-                  <CardTitle>{editableMetadata.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">{editableMetadata.description}</CardDescription>
+                  <CardTitle>{title}</CardTitle>
+                  <CardDescription className="line-clamp-2">{description}</CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-hidden">
-                  {metadata.ogImage && metadata.ogImage.length > 0 && (
+                  {bannerUrl && (
                     <div className="mb-4">
                       <img
-                        src={metadata.ogImage[0].url || "/placeholder.svg"}
-                        alt={metadata.ogTitle || "Preview image"}
+                        src={bannerUrl || "/placeholder.svg"}
+                        alt={title || "Preview image"}
                         className="rounded-md max-h-64 object-contain"
                       />
                     </div>
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {metadata.ogUrl && (
+                    {url && (
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground">URL</h3>
                         <p className="text-sm truncate">
                           <a
-                            href={metadata.ogUrl}
+                            href={url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary hover:underline"
                           >
-                            {metadata.ogUrl}
+                            {url}
                           </a>
                         </p>
                       </div>
                     )}
 
-                    {metadata.ogSiteName && (
+                    {/* {metadata.ogSiteName && (
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground">Site Name</h3>
                         <p className="text-sm">{metadata.ogSiteName}</p>
@@ -259,7 +265,7 @@ export default function AddEventForm() {
                         <h3 className="text-sm font-medium text-muted-foreground">Twitter Card</h3>
                         <p className="text-sm">{metadata.twitterCard}</p>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </CardContent>
               </Card>

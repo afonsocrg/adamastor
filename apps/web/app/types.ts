@@ -19,8 +19,9 @@ export interface MetadataResult {
     height?: string;
     alt?: string;
   }>;
-  requestUrl: string;
-  success: boolean;
+  // requestUrl: string;
+  // success: boolean;
+
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   [key: string]: any;
 }
