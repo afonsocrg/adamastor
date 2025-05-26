@@ -40,6 +40,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/tailwind/ui/form";
+import { toast } from "sonner";
 
 // [afonsocrg] This url is the link to the event itself.
 // It's a good practice to keep this separate from the scrape URL
@@ -52,6 +53,10 @@ const formSchema = z.object({
   bannerUrl: z.string().min(1),
   date: z.date(),
   city: z.string().min(1),
+});
+
+const urlFormSchema = z.object({
+  url: z.string().min(1),
 });
 
 // Server action for scraping URLs
@@ -91,13 +96,16 @@ async function scrapeUrl(
 export default function AddEventForm() {
   const [isScraping, setIsScraping] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [hasLoadedMetadata, setHasLoadedMetadata] = useState(false);
 
   const [urlToScrape, setUrlToScrape] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+  });
+
+  const urlForm = useForm<z.infer<typeof urlFormSchema>>({
+    resolver: zodResolver(urlFormSchema),
   });
 
   const title = form.watch("title");
@@ -107,8 +115,8 @@ export default function AddEventForm() {
   //   const date = form.watch("date");
   //   const city = form.watch("city");
 
-  const handleUrlSubmit = async (formData: FormData) => {
-    const url = formData.get("url") as string;
+  const handleUrlSubmit = async (values: { url: string }) => {
+    const url = values.url;
 
     if (!url || !url.trim()) {
       return;
@@ -116,10 +124,10 @@ export default function AddEventForm() {
 
     setIsScraping(true);
     try {
-      const result = await scrapeUrl(urlToScrape);
+      const result = await scrapeUrl(url);
 
       if (result.error) {
-        setError(result.error);
+        toast.error(result.error);
       } else if (result.data) {
         const { title, description, url, bannerUrl, startTime } = result.data;
         form.setValue("title", title);
@@ -131,7 +139,7 @@ export default function AddEventForm() {
         setHasLoadedMetadata(true);
       }
     } catch (error) {
-      setError("Failed to scrape URL");
+      toast.error("Failed to scrape URL");
     }
     setIsScraping(false);
   };
@@ -140,7 +148,6 @@ export default function AddEventForm() {
     const { title, description, date, city, url, bannerUrl } = values;
 
     setIsSubmitting(true);
-    setError(null);
 
     try {
       const response = await fetch("/api/events", {
@@ -164,8 +171,9 @@ export default function AddEventForm() {
 
       // Reset form after successful submission
       form.reset();
+      toast.success("Event created successfully");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      toast.error("Failed to create event");
     } finally {
       setIsSubmitting(false);
     }
@@ -177,155 +185,182 @@ export default function AddEventForm() {
         Add Event to the Agenda
       </h1>
       <div className="mx-auto">
-        <form action={handleUrlSubmit} className="space-y-4">
-          <div className="flex flex-col space-y-2">
-            <div className="flex space-x-2 w-8/12 self-center">
-              <Input
-                id="url"
-                name="url"
-                type="url"
-                placeholder="https://example.com"
-                value={urlToScrape}
-                onChange={(e) => setUrlToScrape(e.target.value)}
-                required
-                className="flex-1"
-              />
-              <Button type="submit" disabled={isScraping}>
-                {isScraping ? "Scraping..." : "Scrape URL"}
-              </Button>
-            </div>
-          </div>
-        </form>
+        <UrlForm form={urlForm} isScraping={isScraping} handleUrlSubmit={handleUrlSubmit} />
 
         {hasLoadedMetadata && (
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleEventSubmit)}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8"
-            >
-              <div className="w-full">
-                <Card className="p-4 gap-4 flex flex-col h-full">
-                  <section>
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Title</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Event Title..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </section>
-                  <section>
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Event Description..."
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </section>
-                  <section>
-                    <FormField
-                      control={form.control}
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Date</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={"outline"}
-                                  className={cn(
-                                    "w-[240px] pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground",
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP")
-                                  ) : (
-                                    <span>Pick a date</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-0"
-                              align="start"
-                            >
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </section>
-                  <section>
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Select
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pick a city" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="lisboa">Lisboa</SelectItem>
-                                <SelectItem value="porto">Porto</SelectItem>
-                                <SelectItem value="aveiro">Aveiro</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </section>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Creating Event..." : "Create Event"}
-                  </Button>
-                </Card>
-              </div>
-              <div className="w-full">
-                <EventPreview
-                  title={title}
-                  description={description}
-                  url={url}
-                  bannerUrl={bannerUrl}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            <div className="w-full">
+              <Card className="p-4 gap-4 flex flex-col h-full">
+                <EventDetailsForm
+                  form={form}
+                  isSubmitting={isSubmitting}
+                  handleEventSubmit={handleEventSubmit}
                 />
-              </div>
-            </form>
-          </Form>
+              </Card>
+            </div>
+            <div className="w-full">
+              <EventPreview
+                title={title}
+                description={description}
+                url={url}
+                bannerUrl={bannerUrl}
+              />
+            </div>
+          </div>
         )}
       </div>
     </main>
+  );
+}
+
+interface UrlFormProps {
+  form: any;
+  isScraping: boolean;
+  handleUrlSubmit: (values: z.infer<typeof urlFormSchema>) => void;
+}
+function UrlForm({form, isScraping, handleUrlSubmit}: UrlFormProps) {
+    return (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleUrlSubmit)} className="space-y-4">
+            <div className="flex flex-col space-y-2">
+              <div className="flex space-x-2 w-8/12 self-center">
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Input
+                          placeholder="https://link-to-event-page.com"
+                          {...field}
+                          required
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={isScraping}>
+                  {isScraping ? "Scraping..." : "Scrape URL"}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </Form>
+    )
+}
+
+interface EventDetailsFormProps {
+  form: any;
+  isSubmitting: boolean;
+  handleEventSubmit: (values: z.infer<typeof formSchema>) => void;
+}
+function EventDetailsForm({
+  form,
+  isSubmitting,
+  handleEventSubmit,
+}: EventDetailsFormProps) {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleEventSubmit)} className="space-y-4">
+        <section>
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Event Title..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </section>
+        <section>
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Event Description..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </section>
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="city"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>City</FormLabel>
+                <FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pick a city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lisboa">Lisboa</SelectItem>
+                      <SelectItem value="porto">Porto</SelectItem>
+                      <SelectItem value="aveiro">Aveiro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </section>
+        <div className="flex justify-end">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Creating Event..." : "Create Event"}
+        </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 
