@@ -34,6 +34,7 @@ const Navbar = async () => {
           <div className="flex-1 flex justify-center">
             <Link href="/">
               <Image
+                priority
                 className="dark:hidden"
                 src={"/adamastorLogotype.svg"}
                 height={160}
@@ -41,6 +42,7 @@ const Navbar = async () => {
                 alt="Adamastor Logotype"
               />
               <Image
+                priority
                 className="hidden dark:block"
                 src={"/adamastorLogotypeDark.svg"}
                 height={160}
