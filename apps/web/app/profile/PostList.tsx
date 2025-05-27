@@ -10,6 +10,9 @@ import {
 import { Copy, Eye, EyeOff, Globe, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { PublishedTag } from "@components/PublishedTag";
+import { publishPost, unpublishPost, deletePost } from "@/lib/posts";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Post {
   id: string;
@@ -23,6 +26,38 @@ interface PostListProps {
 }
 
 export function PostList({ posts, emptyMessage }: PostListProps) {
+  const router = useRouter();
+
+  const handlePublishPost = async (id: string) => {
+    const response = await publishPost({ id });
+    if (response.ok) {
+      toast.success("Post published");
+      router.refresh();
+    } else {
+      toast.error("Failed to publish post");
+    }
+  };
+
+  const handleUnpublishPost = async (id: string) => {
+    const response = await unpublishPost({ id });
+    if (response.ok) {
+      toast.success("Post unpublished");
+      router.refresh();
+    } else {
+      toast.error("Failed to unpublish post");
+    }
+  };
+
+  const handleDeletePost = async (id: string) => {
+    const response = await deletePost({ id });
+    if (response.ok) {
+      toast.success("Post deleted");
+      router.refresh();
+    } else {
+      toast.error("Failed to delete post");
+    }
+  };
+
   return (
     <div className="space-y-4">
       {posts?.length === 0 ? (
@@ -78,21 +113,21 @@ export function PostList({ posts, emptyMessage }: PostListProps) {
                 </DropdownMenuItem>
                 {post.is_public ? (
                   <DropdownMenuItem
-                    onSelect={() => alert("Unpublish logic here")}
+                    onSelect={() => handleUnpublishPost(post.id)}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <EyeOff className="w-4 h-4" /> Unpublish
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
-                    onSelect={() => alert("Publish logic here")}
+                    onSelect={() => handlePublishPost(post.id)}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <Globe className="w-4 h-4" /> Publish
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
-                  onSelect={() => alert("Delete logic here")}
+                  onSelect={() => handleDeletePost(post.id)}
                   className="flex items-center gap-2 text-red-600 focus:bg-red-50 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" /> Delete
