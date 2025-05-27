@@ -25,7 +25,7 @@ export function PostList({ posts, emptyMessage }: PostListProps) {
           >
             <div className="flex items-center gap-2 flex-1">
               <PublishedTag is_public={post.is_public} />
-              <h2 className="text-xl font-semibold text-neutral-900 truncate">
+              <h2 className="text-xl font-semibold text-neutral-900 truncate text-wrap">
                 {post.title}
               </h2>
             </div>
