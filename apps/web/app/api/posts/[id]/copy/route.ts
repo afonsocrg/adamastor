@@ -22,9 +22,9 @@ export async function POST(request: Request, routeParams: RouteParams) {
       throw new BadRequestError('Failed to get post');
     }
  
-    if (post.author_id !== user.id) {
-      throw new UnauthorizedError('You are not the author of this post');
-    }
+    // if (post.author_id !== user.id) {
+    //   throw new UnauthorizedError('You are not the author of this post');
+    // }
 
     const { data: newPost, error: newPostError } = await supabase
       .from('posts')
