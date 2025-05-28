@@ -1,13 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import CityEventsPageClient from "./CityEventsPageClient";
 
-type Props = {
-  params: {
-    city: string;
-  };
-};
-
-export default async function EventsByCityPage({ params }: Props) {
+export default async function EventsByCityPage({
+  params,
+}: {
+  params: { city: string };
+}) {
   const supabase = await createClient();
 
   const today = new Date();
@@ -17,7 +15,7 @@ export default async function EventsByCityPage({ params }: Props) {
     .from("events")
     .select("*")
     .gte("start_time", today.toISOString())
-    .ilike("city", params.city) // case-insensitive match
+    .ilike("city", params.city)
     .order("start_time", { ascending: true });
 
   if (error) {
