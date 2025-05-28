@@ -30,7 +30,7 @@ export default async function EventsPage() {
   let lastDate: string | null = null;
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 md:p-4">
       <h1 className="text-2xl font-bold mb-6">Upcoming Events</h1>
       <div className="space-y-4">
         {events?.map((event) => {
@@ -39,7 +39,7 @@ export default async function EventsPage() {
           lastDate = eventDate;
 
           return (
-            <div key={event.id} className="space-y-3">
+            <div key={event.id} className="space-y-4">
               {showDateHeading && (
                 <>
                   <h2 className="text-lg font-semibold text-muted-foreground mt-6">
@@ -55,7 +55,7 @@ export default async function EventsPage() {
                   rel="noopener noreferrer"
                   className="flex flex-col sm:px-4 py-4 rounded-lg hover:bg-accent/50 transition-all animate-in border-l-4 border-[#04C9D8] rounded-l"
                 >
-                  <div className="flex gap-8 align-top">
+                  <div className="flex gap-8 align-top ml-1">
                     <section className="space-y-3 mb-3">
                       <h3 className="text-xl font-bold group-hover:text-[#24acb5] [font-family:var(--font-default)]">
                         {event.title}
