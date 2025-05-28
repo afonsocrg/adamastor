@@ -1,13 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import CityEventsPageClient from "./CityEventsPageClient";
 
-interface PageProps {
+type Props = {
   params: {
     city: string;
   };
-}
+};
 
-export default async function EventsByCityPage({ params }: PageProps) {
+export default async function EventsByCityPage({ params }: Props) {
   const supabase = await createClient();
 
   const today = new Date();
