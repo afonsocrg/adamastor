@@ -62,7 +62,7 @@ function EventCalendar({
           // Selected date styling
           isSelected && "bg-[#04C9D8] text-white font-bold",
           // Event day styling (when not selected or today)
-          hasEvent && !isToday && !isSelected && "font-medium text-[#104357] hover:bg-accent/50",
+          hasEvent && !isToday && !isSelected && "font-medium text-[#104357] dark:text-[#E3F2F7] hover:bg-accent/50",
           // Non-event day styling
           !hasEvent && !isToday && !isSelected && "text-muted-foreground opacity-60",
           // Cursor styling
@@ -95,7 +95,7 @@ function EventCalendar({
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 animate-in",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center mb-6",
-        caption_label: "font-medium absolute left-2 text-[#104357]",
+        caption_label: "font-medium absolute left-2 text-[#104357] dark:text-[#E3F2F7]",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
