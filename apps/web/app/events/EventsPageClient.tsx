@@ -34,9 +34,10 @@ interface Event {
 
 interface EventsPageProps {
   initialEvents: Event[];
+  city?: string; // Optional city prop
 }
 
-export default function EventsPageClient({ initialEvents }: EventsPageProps) {
+export default function EventsPageClient({ initialEvents, city }: EventsPageProps) {
   const [events] = useState<Event[]>(initialEvents);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>(initialEvents);
@@ -80,7 +81,11 @@ export default function EventsPageClient({ initialEvents }: EventsPageProps) {
     <div className="space-y-4 md:p-4">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">
-          {selectedDate ? `Events for ${formatShortDate(selectedDate)}` : "Upcoming Events"}
+          {selectedDate
+            ? `Events for ${formatShortDate(selectedDate)}`
+            : city
+              ? `Upcoming Events in ${city.charAt(0).toUpperCase() + city.slice(1)}`
+              : "Upcoming Events"}
         </h1>
         {selectedDate && (
           // biome-ignore lint/a11y/useButtonType: <explanation>
