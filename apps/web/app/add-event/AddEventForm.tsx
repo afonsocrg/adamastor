@@ -2,45 +2,21 @@
 
 import { Button } from "@/components/tailwind/ui/button";
 import { Calendar } from "@/components/tailwind/ui/calendar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/tailwind/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/tailwind/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/tailwind/ui/form";
 import { Input } from "@/components/tailwind/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/tailwind/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/tailwind/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/tailwind/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/tailwind/ui/select";
 import { Textarea } from "@/components/tailwind/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Label } from "@radix-ui/react-dropdown-menu";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { MetadataResult } from "../types";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/tailwind/ui/form";
 import { toast } from "sonner";
+import { z } from "zod";
+import type { MetadataResult } from "../types";
 
 const urlFormSchema = z.object({
   url: z.string().min(1),
@@ -68,11 +44,8 @@ const defaultEventFormValues = {
   city: null,
 };
 
-
 // Server action for scraping URLs
-async function scrapeUrl(
-  url: string,
-): Promise<{ data?: MetadataResult; error?: string }> {
+async function scrapeUrl(url: string): Promise<{ data?: MetadataResult; error?: string }> {
   try {
     if (!url.match(/^https?:\/\/.+\..+/)) {
       return {
@@ -195,9 +168,7 @@ export default function AddEventForm() {
 
   return (
     <main className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">
-        Add Event to the Agenda
-      </h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Add Event to the Agenda</h1>
       <div className="mx-auto">
         <UrlForm form={urlForm} isScraping={isScraping} handleUrlSubmit={handleUrlSubmit} />
 
@@ -205,20 +176,11 @@ export default function AddEventForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
             <div className="w-full">
               <Card className="p-4 gap-4 flex flex-col h-full">
-                <EventDetailsForm
-                  form={eventForm}
-                  isSubmitting={isSubmitting}
-                  handleEventSubmit={handleEventSubmit}
-                />
+                <EventDetailsForm form={eventForm} isSubmitting={isSubmitting} handleEventSubmit={handleEventSubmit} />
               </Card>
             </div>
             <div className="w-full">
-              <EventPreview
-                title={title}
-                description={description}
-                url={url}
-                bannerUrl={bannerUrl}
-              />
+              <EventPreview title={title} description={description} url={url} bannerUrl={bannerUrl} />
             </div>
           </div>
         )}
@@ -232,35 +194,31 @@ interface UrlFormProps {
   isScraping: boolean;
   handleUrlSubmit: (values: z.infer<typeof urlFormSchema>) => void;
 }
-function UrlForm({form, isScraping, handleUrlSubmit}: UrlFormProps) {
-    return (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleUrlSubmit)} className="space-y-4">
-            <div className="flex flex-col space-y-2">
-              <div className="flex space-x-2 w-8/12 self-center">
-                <FormField
-                  control={form.control}
-                  name="url"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <Input
-                          placeholder="https://link-to-event-page.com"
-                          {...field}
-                          required
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" disabled={isScraping}>
-                  {isScraping ? "Scraping..." : "Scrape URL"}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </Form>
-    )
+function UrlForm({ form, isScraping, handleUrlSubmit }: UrlFormProps) {
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleUrlSubmit)} className="space-y-4">
+        <div className="flex flex-col space-y-2">
+          <div className="flex space-x-2 w-8/12 self-center">
+            <FormField
+              control={form.control}
+              name="url"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormControl>
+                    <Input placeholder="https://link-to-event-page.com" {...field} required />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <Button type="submit" disabled={isScraping}>
+              {isScraping ? "Scraping..." : "Scrape URL"}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </Form>
+  );
 }
 
 interface EventDetailsFormProps {
@@ -268,11 +226,7 @@ interface EventDetailsFormProps {
   isSubmitting: boolean;
   handleEventSubmit: (values: z.infer<typeof formSchema>) => void;
 }
-function EventDetailsForm({
-  form,
-  isSubmitting,
-  handleEventSubmit,
-}: EventDetailsFormProps) {
+function EventDetailsForm({ form, isSubmitting, handleEventSubmit }: EventDetailsFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleEventSubmit)} className="space-y-4">
@@ -318,27 +272,15 @@ function EventDetailsForm({
                     <FormControl>
                       <Button
                         variant={"outline"}
-                        className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
+                        className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
                       >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
+                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
                   </PopoverContent>
                 </Popover>
                 <FormMessage />
@@ -359,7 +301,11 @@ function EventDetailsForm({
                     <SelectContent>
                       <SelectItem value="lisboa">Lisboa</SelectItem>
                       <SelectItem value="porto">Porto</SelectItem>
+                      <SelectItem value="algarve">Algarve</SelectItem>
                       <SelectItem value="aveiro">Aveiro</SelectItem>
+                      <SelectItem value="braga">Braga</SelectItem>
+                      <SelectItem value="coimbra">Coimbra</SelectItem>
+                      <SelectItem value="leiria">Leiria</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -369,9 +315,9 @@ function EventDetailsForm({
           />
         </section>
         <div className="flex justify-end">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creating Event..." : "Create Event"}
-        </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creating Event..." : "Create Event"}
+          </Button>
         </div>
       </form>
     </Form>
@@ -385,19 +331,12 @@ interface EventPreviewProps {
   bannerUrl: string;
 }
 
-function EventPreview({
-  title,
-  description,
-  url,
-  bannerUrl,
-}: EventPreviewProps) {
+function EventPreview({ title, description, url, bannerUrl }: EventPreviewProps) {
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <CardDescription className="line-clamp-2">
-          {description}
-        </CardDescription>
+        <CardDescription className="line-clamp-2">{description}</CardDescription>
       </CardHeader>
       <CardContent className="overflow-hidden">
         {bannerUrl && (
@@ -414,12 +353,7 @@ function EventPreview({
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">URL</h3>
               <p className="text-sm truncate">
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
+                <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   {url}
                 </a>
               </p>
