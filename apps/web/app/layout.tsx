@@ -62,12 +62,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 Only you know who you can be
               </div>
               <footer className="justify-end flex gap-3 text-muted-foreground p-4 mb-2 border-t">
-                <Link href="https://www.instagram.com/adamastor.blog/" className="hover:underline hover:text-primary">
+                <Link
+                  href="https://www.instagram.com/adamastor.blog/"
+                  className="hover:underline hover:text-primary transition-colors"
+                >
                   Instagram
                 </Link>
                 <Link
                   href="https://www.linkedin.com/company/adamastor-magazine/"
-                  className="hover:underline hover:text-primary"
+                  className="hover:underline hover:text-primary transition-colors"
                 >
                   LinkedIn
                 </Link>

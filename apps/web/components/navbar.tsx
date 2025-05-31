@@ -55,10 +55,10 @@ const Navbar = async () => {
 
           <div className="w-60 justify-end">
             <div className="flex gap-3 justify-end !text-muted-foreground">
-              <Link href="/about" className="hover:underline hover:text-primary">
+              <Link href="/about" className="hover:underline hover:text-primary transition-colors">
                 About
               </Link>
-              <Link href="/events" className="hover:underline hover:text-primary flex gap-1 group">
+              <Link href="/events" className="hover:underline hover:text-primary flex gap-1 group transition-colors">
                 Events
                 <Badge variant="default">NEW</Badge>
               </Link>
