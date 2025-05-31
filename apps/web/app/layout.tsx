@@ -6,6 +6,7 @@ import { cal, crimson, crimsonBold, inconsolata, inconsolataBold, inter } from "
 
 import Navbar from "@/components/navbar";
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import Providers from "./providers";
 import { PostHogProvider } from "./providers";
@@ -57,6 +58,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <div>
               <Navbar />
               <main className="max-w-screen-lg mx-auto p-4">{children}</main>
+              <div className="justify-start tracking-wider uppercase [writing-mode:vertical-rl] left-0 bottom-0 hidden sm:block fixed text-xs m-2 text-muted-foreground hover:blur-sm transition-all duration-1000 hover:bg-gradient-to-r hover:from-[#24acb5] hover:to-[#2cdce9] bg-clip-text hover:text-transparent cursor-pointer">
+                Only you know who you can be
+              </div>
+              <footer className="justify-end flex gap-3 text-muted-foreground p-4 mb-2 border-t">
+                <Link href="https://www.instagram.com/adamastor.blog/" className="hover:underline hover:text-primary">
+                  Instagram
+                </Link>
+                <Link
+                  href="https://www.linkedin.com/company/adamastor-magazine/"
+                  className="hover:underline hover:text-primary"
+                >
+                  LinkedIn
+                </Link>
+              </footer>
             </div>
           </Providers>
         </PostHogProvider>

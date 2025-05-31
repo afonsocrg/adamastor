@@ -76,7 +76,7 @@ export default async function Home() {
                 >
                   <div className="flex gap-8 align-top">
                     <section className="space-y-3 mb-3">
-                      <h2 className="text-xl font-bold group-hover:text-[#24acb5] [font-family:var(--font-default)] space-x-4">
+                      <h2 className="text-xl font-bold group-hover:text-[#24acb5] duration-300 [font-family:var(--font-default)] space-x-4">
                         {post.title}
                       </h2>
                       <p className="text-muted-foreground prose line-clamp-2">{contentPreview}</p>

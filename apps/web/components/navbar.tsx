@@ -3,6 +3,7 @@ import { CalendarPlusIcon, FileTextIcon, LogOutIcon, SquarePenIcon } from "lucid
 import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "./search-bar";
+import { Badge } from "./tailwind/ui/badge";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./tailwind/ui/hover-card";
 import { Separator } from "./tailwind/ui/separator";
 
@@ -54,15 +55,14 @@ const Navbar = async () => {
 
           <div className="w-60 justify-end">
             <div className="flex gap-3 justify-end !text-muted-foreground">
-              <Link href="/about" className="font-medium hover:underline hover:text-primary">
+              <Link href="/about" className="hover:underline hover:text-primary">
                 About
               </Link>
-              <Link
-                href="https://www.linkedin.com/company/adamastor-magazine/"
-                className="font-medium hover:underline hover:text-primary"
-              >
-                LinkedIn
+              <Link href="/events" className="hover:underline hover:text-primary flex gap-1 group">
+                Events
+                <Badge variant="default">NEW</Badge>
               </Link>
+
               {user && (
                 <>
                   <HoverCard>
