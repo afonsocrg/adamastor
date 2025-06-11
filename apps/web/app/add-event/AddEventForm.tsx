@@ -306,7 +306,9 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit }: EventDetail
                       <SelectItem value="aveiro">Aveiro</SelectItem>
                       <SelectItem value="braga">Braga</SelectItem>
                       <SelectItem value="coimbra">Coimbra</SelectItem>
+                      <SelectItem value="guimaraes">Guimarães</SelectItem>
                       <SelectItem value="leiria">Leiria</SelectItem>
+                      <SelectItem value="viseu">Viseu</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
