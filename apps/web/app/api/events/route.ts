@@ -1,63 +1,56 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getUserProfile } from '@/lib/supabase/authentication';
+import { getUserProfile } from "@/lib/supabase/authentication";
+import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-    try {
-        const supabase = await createClient();
-        const user = await getUserProfile(supabase);
-        
-        // if (!user || user.role !== 'admin') {
-        //     console.log('Unauthorized', {user});
-        //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        // }
+  try {
+    const supabase = await createClient();
+    const user = await getUserProfile(supabase);
 
-        const body = await request.json();
-        const { title, description, date, city, url, bannerUrl } = body;
+    // if (!user || user.role !== 'admin') {
+    //     console.log('Unauthorized', {user});
+    //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // }
 
-        // Validate required fields
-        if (!title || !description || !date || !city) {
-            return NextResponse.json(
-                { error: 'Missing required fields' },
-                { status: 400 }
-            );
-        }
+    const body = await request.json();
+    const { title, description, date, city, url, bannerUrl } = body;
 
-        console.log('body', body);
+    const dateOnly = new Date(date).toLocaleDateString("en-CA"); // This gives YYYY-MM-DD in local time
 
-        // Insert the event into the database
-        const { data, error } = await supabase
-            .from('events')
-            .insert([
-                {
-                    title,
-                    description,
-                    start_time: new Date(new Date(date).setHours(18, 0, 0, 0)).toISOString(),
-                    city,
-                    url,
-                    banner_url: bannerUrl,
-                }
-            ])
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Error creating event:', error);
-            return NextResponse.json(
-                { error: 'Failed to create event' },
-                { status: 500 }
-            );
-        }
-
-        return NextResponse.json({ 
-            message: 'Event created successfully', 
-            event: data 
-        });
-    } catch (error) {
-        console.error('Error in POST /api/events:', error);
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+    // Validate required fields
+    if (!title || !description || !date || !city) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    console.log("body", body);
+
+    // Insert the event into the database
+    const { data, error } = await supabase
+      .from("events")
+      .insert([
+        {
+          title,
+          description,
+          start_time: new Date(`${dateOnly}T17:00:00Z`).toISOString(),
+          city,
+          url,
+          banner_url: bannerUrl,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating event:", error);
+      return NextResponse.json({ error: "Failed to create event" }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      message: "Event created successfully",
+      event: data,
+    });
+  } catch (error) {
+    console.error("Error in POST /api/events:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }

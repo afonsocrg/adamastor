@@ -7,10 +7,12 @@ import { useEffect, useState } from "react";
 
 function formatShortDate(date: string | Date) {
   const d = new Date(date);
-  const day = d.toLocaleDateString("en-US", { day: "numeric" });
-  const month = d.toLocaleDateString("en-US", { month: "long" });
-  const weekday = d.toLocaleDateString("en-US", { weekday: "long" });
-  return `${month} ${day}, ${weekday}`;
+  return d.toLocaleDateString("en-US", {
+    timeZone: "Europe/Lisbon",
+    day: "numeric",
+    month: "long",
+    weekday: "long",
+  });
 }
 
 // Helper function to check if two dates are on the same day

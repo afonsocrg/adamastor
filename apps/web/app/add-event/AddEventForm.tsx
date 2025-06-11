@@ -222,6 +222,7 @@ function UrlForm({ form, isScraping, handleUrlSubmit }: UrlFormProps) {
 }
 
 interface EventDetailsFormProps {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   form: any;
   isSubmitting: boolean;
   handleEventSubmit: (values: z.infer<typeof formSchema>) => void;
