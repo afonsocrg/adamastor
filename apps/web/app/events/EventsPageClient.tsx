@@ -1,8 +1,11 @@
 "use client";
 
 import { EventCalendar } from "@/components/event-calendar";
+import { Button } from "@/components/tailwind/ui/button";
+import { cn } from "@/lib/utils";
 import { MapPinIcon } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; // Add this import
 import { useEffect, useState } from "react";
 
 function formatShortDate(date: string | Date) {
@@ -44,6 +47,9 @@ export default function EventsPageClient({ initialEvents, city }: EventsPageProp
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>(initialEvents);
 
+  // Filter for cities, different styles applied depending on the path.
+  const pathname = usePathname();
+
   // Extract event dates for the calendar
   const eventDates = events?.map((event) => new Date(event.start_time)) || [];
 
@@ -81,7 +87,7 @@ export default function EventsPageClient({ initialEvents, city }: EventsPageProp
 
   return (
     <div className="space-y-4 md:p-4">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex  justify-between mb-6">
         <h1 className="text-2xl font-bold">
           {selectedDate
             ? `Events for ${formatShortDate(selectedDate)}`
@@ -89,14 +95,11 @@ export default function EventsPageClient({ initialEvents, city }: EventsPageProp
               ? `Upcoming Events in ${city.charAt(0).toUpperCase() + city.slice(1)}`
               : "Upcoming Events"}
         </h1>
+
         {selectedDate && (
-          // biome-ignore lint/a11y/useButtonType: <explanation>
-          <button
-            onClick={clearFilter}
-            className="px-4 py-2 text-sm bg-accent hover:bg-accent/80 rounded-md transition-all animate-in"
-          >
+          <Button onClick={clearFilter} variant="default" className="transition-all animate-in rounded-lg">
             Show All Events
-          </button>
+          </Button>
         )}
       </div>
 
@@ -160,7 +163,47 @@ export default function EventsPageClient({ initialEvents, city }: EventsPageProp
 
         {/* Calendar Sidebar - Takes up 1/3 of the space on large screens */}
         <div className="lg:col-span-1">
-          <div className="sticky top-4">
+          <div className="sticky top-4 flex flex-col gap-10">
+            <section id="city_filters" className="space-y-2 flex flex-col gap-2">
+              <h6 className="block font-medium text-[#104357] dark:text-[#E3F2F7]">Events by City</h6>
+
+              <div className="flex gap-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  className={cn(
+                    "rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
+                    pathname === "/events" || pathname === "/events/"
+                      ? "bg-[#dff6f7] text-[#28aeb8]  hover:bg-[#dff6f7] hover:text-[#28aeb8]"
+                      : "text-neutral-600 hover:text-neutral-900",
+                  )}
+                >
+                  <Link href="/events/">Everything</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className={cn(
+                    "rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
+                    pathname === "/events/lisboa" &&
+                      "bg-[#dff6f7] text-[#28aeb8] hover:bg-[#dff6f7] hover:text-[#28aeb8]",
+                  )}
+                >
+                  <Link href="/events/lisboa">Lisboa</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className={cn(
+                    "rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
+                    pathname === "/events/porto" &&
+                      "bg-[#dff6f7] text-[#28aeb8]  hover:bg-[#dff6f7] hover:text-[#28aeb8]",
+                  )}
+                >
+                  <Link href="/events/porto">Porto</Link>
+                </Button>
+              </div>
+            </section>
             <div className="rounded-xl border bg-card p-3 shadow-sm">
               <EventCalendar eventDates={eventDates} onDateClick={handleDateClick} selectedDate={selectedDate} />
               <div className="mt-4 space-y-2 text-xs text-muted-foreground">

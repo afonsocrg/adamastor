@@ -58,9 +58,9 @@ function EventCalendar({
         className={cn(
           "relative flex flex-col items-center justify-center h-9 w-9 rounded-md transition-all",
           // Today styling
-          isToday && "bg-accent !text-[#04C9D8] text-accent-foreground font-medium",
+          isToday && "bg-accent !text-[#28aeb8] text-accent-foreground font-medium",
           // Selected date styling
-          isSelected && "bg-[#04C9D8] text-white font-bold",
+          isSelected && "bg-[#dff6f7] text-[#28aeb8] font-bold",
           // Event day styling (when not selected or today)
           hasEvent && !isToday && !isSelected && "font-medium text-[#104357] dark:text-[#E3F2F7] hover:bg-accent/50",
           // Non-event day styling
@@ -73,7 +73,9 @@ function EventCalendar({
       >
         <div className="flex h-full w-full items-center justify-center">{date.getDate()}</div>
         {hasEvent && (
-          <div className={cn("absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-[#04C9D8]", isSelected && "bg-white")} />
+          <div
+            className={cn("absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-[#04C9D8]", isSelected && " bg-[#28aeb8]")}
+          />
         )}
       </div>
     );
