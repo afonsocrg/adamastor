@@ -3,185 +3,185 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+	:root {
+		--background: 0 0% 100%;
+		--foreground: 0 0% 3.9%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+		--card: 0 0% 100%;
+		--card-foreground: 0 0% 3.9%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 0 0% 3.9%;
 
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
+		--primary: 0 0% 9%;
+		--primary-foreground: 0 0% 98%;
 
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
+		--secondary: 0 0% 96.1%;
+		--secondary-foreground: 0 0% 9%;
 
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
+		--muted: 0 0% 96.1%;
+		--muted-foreground: 0 0% 45.1%;
 
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+		--accent: 0 0% 96.1%;
+		--accent-foreground: 0 0% 9%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+		--destructive: 0 84.2% 60.2%;
+		--destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+		--border: 0 0% 89.8%;
+		--input: 0 0% 89.8%;
+		--ring: 0 0% 3.9%;
 
-    --radius: 0.5rem;
+		--radius: 0.5rem;
 
-    --novel-highlight-default: #ffffff;
-    --novel-highlight-purple: #f6f3f8;
-    --novel-highlight-red: #fdebeb;
-    --novel-highlight-yellow: #fbf4a2;
-    --novel-highlight-blue: #c1ecf9;
-    --novel-highlight-green: #acf79f;
-    --novel-highlight-orange: #faebdd;
-    --novel-highlight-pink: #faf1f5;
-    --novel-highlight-gray: #f1f1ef;
-  }
+		--novel-highlight-default: #ffffff;
+		--novel-highlight-purple: #f6f3f8;
+		--novel-highlight-red: #fdebeb;
+		--novel-highlight-yellow: #fbf4a2;
+		--novel-highlight-blue: #c1ecf9;
+		--novel-highlight-green: #acf79f;
+		--novel-highlight-orange: #faebdd;
+		--novel-highlight-pink: #faf1f5;
+		--novel-highlight-gray: #f1f1ef;
+	}
 
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
+	.dark {
+		--background: 201, 72%, 8%;
+		--foreground: 210 40% 98%;
 
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
+		--card: 201, 72%, 8%;
+		--card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
+		--popover: 201, 72%, 8%;
+		--popover-foreground: 210 40% 98%;
 
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
+		--primary: 210 40% 98%;
+		--primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
+		--secondary: 217.2 32.6% 17.5%;
+		--secondary-foreground: 210 40% 98%;
 
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+		--muted: 217.2 32.6% 17.5%;
+		--muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+		--accent: 217.2 32.6% 17.5%;
+		--accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+		--destructive: 0 62.8% 30.6%;
+		--destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+		--border: 217.2 32.6% 17.5%;
+		--input: 217.2 32.6% 17.5%;
+		--ring: 212.7 26.8% 83.9%;
 
-    --novel-highlight-default: #000000;
-    --novel-highlight-purple: #3f2c4b;
-    --novel-highlight-red: #5c1a1a;
-    --novel-highlight-yellow: #5c4b1a;
-    --novel-highlight-blue: #1a3d5c;
-    --novel-highlight-green: #1a5c20;
-    --novel-highlight-orange: #5c3a1a;
-    --novel-highlight-pink: #5c1a3a;
-    --novel-highlight-gray: #3a3a3a;
-  }
+		--novel-highlight-default: #000000;
+		--novel-highlight-purple: #3f2c4b;
+		--novel-highlight-red: #5c1a1a;
+		--novel-highlight-yellow: #5c4b1a;
+		--novel-highlight-blue: #1a3d5c;
+		--novel-highlight-green: #1a5c20;
+		--novel-highlight-orange: #5c3a1a;
+		--novel-highlight-pink: #5c1a3a;
+		--novel-highlight-gray: #3a3a3a;
+	}
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+	* {
+		@apply border-border;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
 }
 
 body {
-  font-family: var(--font-default);
+	font-family: var(--font-default);
 }
 
 pre {
-  background: #0d0d0d;
-  border-radius: 0.5rem;
-  color: #fff;
-  font-family: "JetBrainsMono", monospace;
-  padding: 0.75rem 1rem;
+	background: #0d0d0d;
+	border-radius: 0.5rem;
+	color: #fff;
+	font-family: "JetBrainsMono", monospace;
+	padding: 0.75rem 1rem;
 
-  code {
-    background: none;
-    color: inherit;
-    font-size: 0.8rem;
-    padding: 0;
-  }
+	code {
+		background: none;
+		color: inherit;
+		font-size: 0.8rem;
+		padding: 0;
+	}
 
-  .hljs-comment,
-  .hljs-quote {
-    color: #616161;
-  }
+	.hljs-comment,
+	.hljs-quote {
+		color: #616161;
+	}
 
-  .hljs-variable,
-  .hljs-template-variable,
-  .hljs-attribute,
-  .hljs-tag,
-  .hljs-name,
-  .hljs-regexp,
-  .hljs-link,
-  .hljs-name,
-  .hljs-selector-id,
-  .hljs-selector-class {
-    color: #f98181;
-  }
+	.hljs-variable,
+	.hljs-template-variable,
+	.hljs-attribute,
+	.hljs-tag,
+	.hljs-name,
+	.hljs-regexp,
+	.hljs-link,
+	.hljs-name,
+	.hljs-selector-id,
+	.hljs-selector-class {
+		color: #f98181;
+	}
 
-  .hljs-number,
-  .hljs-meta,
-  .hljs-built_in,
-  .hljs-builtin-name,
-  .hljs-literal,
-  .hljs-type,
-  .hljs-params {
-    color: #fbbc88;
-  }
+	.hljs-number,
+	.hljs-meta,
+	.hljs-built_in,
+	.hljs-builtin-name,
+	.hljs-literal,
+	.hljs-type,
+	.hljs-params {
+		color: #fbbc88;
+	}
 
-  .hljs-string,
-  .hljs-symbol,
-  .hljs-bullet {
-    color: #b9f18d;
-  }
+	.hljs-string,
+	.hljs-symbol,
+	.hljs-bullet {
+		color: #b9f18d;
+	}
 
-  .hljs-title,
-  .hljs-section {
-    color: #faf594;
-  }
+	.hljs-title,
+	.hljs-section {
+		color: #faf594;
+	}
 
-  .hljs-keyword,
-  .hljs-selector-tag {
-    color: #70cff8;
-  }
+	.hljs-keyword,
+	.hljs-selector-tag {
+		color: #70cff8;
+	}
 
-  .hljs-emphasis {
-    font-style: italic;
-  }
+	.hljs-emphasis {
+		font-style: italic;
+	}
 
-  .hljs-strong {
-    font-weight: 700;
-  }
+	.hljs-strong {
+		font-weight: 700;
+	}
 }
 
 ::selection {
-  background-color: #e3f4f7;
-  color: #0f0d2a;
+	background-color: #e3f4f7;
+	color: #0f0d2a;
 }
 
 @keyframes animateIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .animate-in {
-  animation: animateIn 0.3s ease 0.15s both;
+	animation: animateIn 0.3s ease 0.15s both;
 }
