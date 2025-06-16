@@ -1,6 +1,6 @@
 {
-  "name": "novel-next-app",
-  "version": "0.1.0",
+  "name": "adamastor-web",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -73,7 +73,6 @@
     "@types/react": "^18.2.61",
     "@types/react-dom": "18.2.19",
     "drizzle-kit": "^0.30.4",
-    "tailwindcss": "^3.4.1",
-    "tsconfig": "workspace:*"
+    "tailwindcss": "^3.4.1"
   }
 }
