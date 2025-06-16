@@ -7,6 +7,7 @@ import { MapPinIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation"; // Add this import
 import { useEffect, useState } from "react";
+import posthog from "posthog-js";
 
 function formatShortDate(date: string | Date) {
   const d = new Date(date);
@@ -62,6 +63,12 @@ export default function EventsPageClient({ initialEvents, city }: EventsPageProp
       setFilteredEvents(events);
     }
   }, [selectedDate, events]);
+
+  const handleFilterClick = (city: string) => {
+    posthog.capture('city_filter', {
+      city: city
+    })
+  }
 
   // Handle calendar date click
   const handleDateClick = (date: Date) => {
@@ -182,6 +189,7 @@ export default function EventsPageClient({ initialEvents, city }: EventsPageProp
                 </Button>
                 <Button
                   asChild
+                  onClick={()=> handleFilterClick('lisboa')}
                   variant="outline"
                   className={cn(
                     "rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
@@ -193,6 +201,7 @@ export default function EventsPageClient({ initialEvents, city }: EventsPageProp
                 </Button>
                 <Button
                   asChild
+                  onClick={()=> handleFilterClick('porto')}
                   variant="outline"
                   className={cn(
                     "rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
