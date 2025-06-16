@@ -36,12 +36,12 @@ const formSchema = z.object({
 });
 
 const defaultEventFormValues = {
-  title: null,
-  description: null,
-  url: null,
-  bannerUrl: null,
-  date: null,
-  city: null,
+  title: "",
+  description: "",
+  url: "",
+  bannerUrl: "",
+  date: undefined,
+  city: "",
 };
 
 // Server action for scraping URLs
@@ -119,8 +119,8 @@ export default function AddEventForm() {
         eventForm.setValue("description", description);
         eventForm.setValue("url", url);
         eventForm.setValue("bannerUrl", bannerUrl);
-        eventForm.setValue("date", startTime ? new Date(startTime) : null);
-        eventForm.setValue("city", city ?? null);
+        eventForm.setValue("date", startTime && new Date(startTime));
+        eventForm.setValue("city", city ?? "");
         setHasLoadedMetadata(true);
       }
     } catch (error) {
@@ -143,7 +143,7 @@ export default function AddEventForm() {
         body: JSON.stringify({
           title,
           description,
-          date: date?.toISOString() || null,
+          date: date?.toISOString() || undefined,
           city,
           url,
           bannerUrl,
