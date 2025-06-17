@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { UnauthorizedError  } from '@/lib/errors';
 
-type UserWithProfile = {
+export type UserWithProfile = {
   id: string;
   email?: string;
   role: 'admin' | 'user';

@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { MetadataResult } from "../types";
+import type { MetadataResult } from "@/app/types";
 
 const urlFormSchema = z.object({
   url: z.string().min(1),
@@ -167,9 +167,10 @@ export default function AddEventForm() {
   };
 
   return (
-    <main className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">Add Event to the Agenda</h1>
-      <div className="mx-auto">
+    <main className="container px-4 animate-in">
+      
+      <h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Add Event to the Agenda</h2>
+      <div className="">
         <UrlForm form={urlForm} isScraping={isScraping} handleUrlSubmit={handleUrlSubmit} />
 
         {hasLoadedMetadata && (
@@ -199,7 +200,7 @@ function UrlForm({ form, isScraping, handleUrlSubmit }: UrlFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleUrlSubmit)} className="space-y-4">
         <div className="flex flex-col space-y-2">
-          <div className="flex space-x-2 w-8/12 self-center">
+          <div className="flex space-x-2 w-8/12">
             <FormField
               control={form.control}
               name="url"

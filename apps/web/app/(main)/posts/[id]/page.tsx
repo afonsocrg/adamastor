@@ -1,4 +1,4 @@
-import { PublishButton } from "@/app/profile/PublishButton";
+import { PublishButton } from "@/app/(dashboard)/profile/PublishButton";
 import AuthorCard from "@/components/authorCard";
 import ShareWidget from "@/components/shareWidget";
 import PostPreview from "@/components/tailwind/post-preview";
