@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { handleError } from '@/lib/errors';
 import { assertAuthenticated } from '@/lib/supabase/authentication';
 
@@ -12,15 +12,17 @@ export interface UpdateEventBody {
 }
 
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  routeParams: { params: Promise<{
+    id: string;
+  }>}
 ) {
   try {
     const supabase = await createClient();
     await assertAuthenticated(supabase);
 
     const body: UpdateEventBody = await request.json();
-    const { id } = params;
+    const { id } = await routeParams.params;
 
     console.log('Update request payload:', { id, ...body });
 
@@ -60,14 +62,16 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  routeParams: { params: Promise<{
+    id: string;
+  }>}
 ) {
   try {
     const supabase = await createClient();
     await assertAuthenticated(supabase);
 
-    const { id } = params;
+    const { id } = await routeParams.params;
 
     // First, let's verify the event exists
     const { data: existingEvent, error: fetchError } = await supabase
