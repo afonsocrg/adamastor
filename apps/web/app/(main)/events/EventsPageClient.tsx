@@ -5,7 +5,7 @@ import { Button } from "@/components/tailwind/ui/button";
 import { cn } from "@/lib/utils";
 import { MapPinIcon, PencilIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import posthog from "posthog-js";
 import {
@@ -63,7 +63,9 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
   const router = useRouter();
 
   // Filter for cities, different styles applied depending on the path.
-  const pathname = usePathname();
+  // const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const cityParam = searchParams.get('city') || 'all';
 
   // Extract event dates for the calendar
   const eventDates = events?.map((event) => new Date(event.start_time)) || [];
@@ -81,7 +83,8 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
   const handleFilterClick = (city: string) => {
     posthog.capture('city_filter', {
       city: city
-    })
+    });
+    window.location.href = city === 'all' ? '/events' : `/events?city=${city}`;
   }
 
   // Handle calendar date click
@@ -248,39 +251,49 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
               <div className="flex gap-2">
                 <Button
                   asChild
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleFilterClick('all');
+                  }}
                   variant="outline"
                   className={cn(
                     "rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
-                    pathname === "/events" || pathname === "/events/"
+                    cityParam === "all"
                       ? "bg-[#dff6f7] text-[#28aeb8]  hover:bg-[#dff6f7] hover:text-[#28aeb8]"
                       : "text-neutral-600 hover:text-neutral-900",
                   )}
                 >
-                  <Link href="/events/">Everything</Link>
+                  <Link href="/events">Everything</Link>
                 </Button>
                 <Button
                   asChild
-                  onClick={()=> handleFilterClick('lisboa')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleFilterClick('lisboa');
+                  }}
                   variant="outline"
                   className={cn(
                     "rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
-                    pathname === "/events/lisboa" &&
+                    cityParam === "lisboa" &&
                       "bg-[#dff6f7] text-[#28aeb8] hover:bg-[#dff6f7] hover:text-[#28aeb8]",
                   )}
                 >
-                  <Link href="/events/lisboa">Lisboa</Link>
+                  <Link href="/events?city=lisboa">Lisboa</Link>
                 </Button>
                 <Button
                   asChild
-                  onClick={()=> handleFilterClick('porto')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleFilterClick('porto');
+                  }}
                   variant="outline"
                   className={cn(
                     "rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
-                    pathname === "/events/porto" &&
+                    cityParam === "porto" &&
                       "bg-[#dff6f7] text-[#28aeb8]  hover:bg-[#dff6f7] hover:text-[#28aeb8]",
                   )}
                 >
-                  <Link href="/events/porto">Porto</Link>
+                  <Link href="/events?city=porto">Porto</Link>
                 </Button>
               </div>
             </section>
