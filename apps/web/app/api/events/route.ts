@@ -13,12 +13,10 @@ export async function POST(request: Request) {
     // }
 
     const body = await request.json();
-    const { title, description, date, city, url, bannerUrl } = body;
-
-    const dateOnly = new Date(date).toLocaleDateString("en-CA"); // This gives YYYY-MM-DD in local time
+    const { title, description, start_time, city, url, bannerUrl } = body;
 
     // Validate required fields
-    if (!title || !description || !date || !city) {
+    if (!title || !description || !start_time || !city) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -31,7 +29,7 @@ export async function POST(request: Request) {
         {
           title,
           description,
-          start_time: new Date(`${dateOnly}T17:00:00Z`).toISOString(),
+          start_time,
           city,
           url,
           banner_url: bannerUrl,

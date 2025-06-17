@@ -57,4 +57,43 @@ export async function PUT(
     console.error('Error in PUT /api/events/[id]:', error);
     return handleError(error);
   }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await createClient();
+    await assertAuthenticated(supabase);
+
+    const { id } = params;
+
+    // First, let's verify the event exists
+    const { data: existingEvent, error: fetchError } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching existing event:', fetchError);
+      throw fetchError;
+    }
+
+    const { error: deleteError } = await supabase
+      .from('events')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('Error deleting event:', deleteError);
+      throw deleteError;
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error in DELETE /api/events/[id]:', error);
+    return handleError(error);
+  }
 } 

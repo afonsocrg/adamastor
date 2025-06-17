@@ -16,7 +16,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { MetadataResult } from "../types";
+import type { MetadataResult } from "@/app/types";
+import { dateTimeStringWithNoTimezoneToTzDateString, tzDateStringToDateTimeStringWithNoTimezone } from "@/lib/datetime";
+
+const TIMEZONE = 'Europe/Lisbon';
 
 const urlFormSchema = z.object({
   url: z.string().min(1),
@@ -31,7 +34,7 @@ const formSchema = z.object({
   description: z.string().min(1),
   url: z.string().min(1),
   bannerUrl: z.string().min(1),
-  date: z.date(),
+  startTime: z.string().min(1),
   city: z.string().min(1),
 });
 
@@ -40,7 +43,7 @@ const defaultEventFormValues = {
   description: "",
   url: "",
   bannerUrl: "",
-  date: undefined,
+  startTime: "",
   city: "",
 };
 
@@ -97,8 +100,8 @@ export default function AddEventForm() {
   const description = eventForm.watch("description");
   const url = eventForm.watch("url");
   const bannerUrl = eventForm.watch("bannerUrl");
-  //   const date = form.watch("date");
-  //   const city = form.watch("city");
+  const startTime = eventForm.watch("startTime");
+  const city = eventForm.watch("city");
 
   const handleUrlSubmit = async (values: { url: string }) => {
     const url = values.url;
@@ -119,7 +122,7 @@ export default function AddEventForm() {
         eventForm.setValue("description", description);
         eventForm.setValue("url", url);
         eventForm.setValue("bannerUrl", bannerUrl);
-        eventForm.setValue("date", startTime && new Date(startTime));
+        eventForm.setValue("startTime", startTime ? tzDateStringToDateTimeStringWithNoTimezone(startTime, TIMEZONE) : "");
         eventForm.setValue("city", city ?? "");
         setHasLoadedMetadata(true);
       }
@@ -130,11 +133,13 @@ export default function AddEventForm() {
   };
 
   const handleEventSubmit = async (values: z.infer<typeof formSchema>) => {
-    const { title, description, date, city, url, bannerUrl } = values;
+    const { title, description, startTime, city, url, bannerUrl } = values;
 
     setIsSubmitting(true);
 
     try {
+      const utcDateTime = dateTimeStringWithNoTimezoneToTzDateString(startTime, TIMEZONE);
+
       const response = await fetch("/api/events", {
         method: "POST",
         headers: {
@@ -143,7 +148,7 @@ export default function AddEventForm() {
         body: JSON.stringify({
           title,
           description,
-          date: date?.toISOString() || undefined,
+          start_time: utcDateTime,
           city,
           url,
           bannerUrl,
@@ -167,9 +172,10 @@ export default function AddEventForm() {
   };
 
   return (
-    <main className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">Add Event to the Agenda</h1>
-      <div className="mx-auto">
+    <main className="container px-4 animate-in">
+      
+      <h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Add Event to the Agenda</h2>
+      <div className="">
         <UrlForm form={urlForm} isScraping={isScraping} handleUrlSubmit={handleUrlSubmit} />
 
         {hasLoadedMetadata && (
@@ -199,7 +205,7 @@ function UrlForm({ form, isScraping, handleUrlSubmit }: UrlFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleUrlSubmit)} className="space-y-4">
         <div className="flex flex-col space-y-2">
-          <div className="flex space-x-2 w-8/12 self-center">
+          <div className="flex space-x-2 w-8/12">
             <FormField
               control={form.control}
               name="url"
@@ -264,26 +270,16 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit }: EventDetail
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="date"
+            name="startTime"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                      >
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                  </PopoverContent>
-                </Popover>
+                <FormLabel>Start Time (Europe/Lisbon)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="datetime-local"
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

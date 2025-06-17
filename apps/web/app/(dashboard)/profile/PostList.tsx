@@ -21,7 +21,7 @@ export function PostList({ posts, emptyMessage }: PostListProps) {
         posts?.map((post) => (
           <div
             key={post.id}
-            className="bg-white shadow rounded-lg p-6 flex flex-col sm:flex-row justify-between items-center gap-4"
+            className="bg-white border rounded-lg p-6 flex flex-col sm:flex-row justify-between items-center gap-4"
           >
             <div className="flex items-center gap-2 flex-1">
               <PublishedTag is_public={post.is_public} />

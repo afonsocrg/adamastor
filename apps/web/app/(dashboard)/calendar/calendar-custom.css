@@ -1,0 +1,202 @@
+/* Import the base styles first */
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+/* Override Calendar Container */
+.rbc-calendar {
+  @apply bg-white dark:bg-neutral-900;
+  @apply border rounded-lg;
+  font-family: inherit; /* Use your app's font */
+}
+
+/* Month View Cells */
+.rbc-month-view {
+  @apply border-0;
+}
+
+.rbc-month-header {
+    @apply border-t;
+}
+
+/* Day Cells */
+.rbc-day-bg {
+  @apply border-neutral-50 dark:border-neutral-700;
+  @apply hover:bg-neutral-50 dark:hover:bg-neutral-800;
+  @apply transition-colors duration-200;
+}
+
+/* Today's Cell */
+.rbc-today {
+  @apply bg-accent;
+}
+
+/* Off-range cells (days from other months) */
+.rbc-off-range-bg {
+  @apply bg-neutral-50 dark:bg-neutral-800/50 text-neutral-200 dark:text-neutral-600;
+  
+}
+
+.rbc-date-cell.rbc-off-range {
+    @apply text-neutral-300;
+}
+
+/* Header Cells (weekday names) */
+.rbc-header {
+  /* @apply bg-neutral-50 dark:bg-neutral-800; */
+  @apply text-neutral-500 dark:text-neutral-300;
+  @apply font-medium text-xs tracking-wider;
+  @apply py-3 px-2;
+  @apply border-neutral-200 dark:border-neutral-700;
+}
+
+/* Selected Cell */
+.rbc-day-bg.rbc-selected {
+  @apply bg-indigo-100 dark:bg-indigo-900/30;
+}
+
+/* Events */
+.rbc-event {
+  @apply bg-[#dff6f7] dark:bg-indigo-500;
+  @apply text-[#28aeb8] rounded-md px-1;
+  @apply transition-all duration-200;
+}
+
+
+.rbc-calendar .rbc-month-view .rbc-event,
+.rbc-calendar .rbc-time-view .rbc-event,
+.rbc-calendar .rbc-agenda-view .rbc-event {
+  border: 1px solid rgba(40, 174, 184, 0.3);
+  padding: 5px;
+  opacity: 90%;
+  width: 95%;
+}
+
+.rbc-day-slot .rbc-event, .rbc-day-slot .rbc-background-event {
+    @apply border-[#28aeb8] border-opacity-30 border-2;
+}
+
+.rbc-event:hover {
+  @apply opacity-80 dark:bg-indigo-600;
+}
+
+.rbc-event.rbc-selected {
+  @apply bg-indigo-800 dark:bg-indigo-700;
+  @apply ring-2 ring-indigo-500 ring-offset-2;
+}
+
+/* Event Content */
+.rbc-event-content {
+  @apply text-xs font-semibold;
+  @apply rounded-md;
+}
+
+/* Toolbar */
+.rbc-toolbar {
+  @apply mb-4 flex flex-wrap items-center justify-between;
+  @apply p-4 rounded-lg;
+}
+
+.rbc-toolbar button {
+  @apply px-4 py-2 text-sm font-medium;
+  @apply bg-white dark:bg-neutral-700;
+  @apply text-neutral-700 dark:text-neutral-300;
+  @apply border border-neutral-200 dark:border-neutral-600 shadow-none;
+  @apply rounded-lg;
+  @apply hover:bg-neutral-50 dark:hover:bg-neutral-600;
+  @apply focus:outline-none focus:ring-2 focus:ring-[#04C9D8];
+  @apply transition-colors duration-200;
+}
+
+.rbc-toolbar button:active,
+.rbc-toolbar button.rbc-active {
+  @apply bg-[#dff6f7] text-[#28aeb8] border-neutral-100 shadow-none;
+  @apply hover:opacity-80 !bg-[#dff6f7] !text-[#28aeb8];
+}
+
+.rbc-toolbar-label {
+  @apply text-lg font-medium text-[#104357] dark:text-[#E3F2F7];
+  @apply flex-grow text-center;
+}
+
+/* Week View Customization */
+.rbc-time-view {
+  @apply border-neutral-200 dark:border-neutral-700;
+}
+
+.rbc-time-header {
+  @apply bg-neutral-50 dark:bg-neutral-800;
+}
+
+.rbc-time-header-content {
+  @apply border-l border-neutral-200 dark:border-neutral-700;
+}
+
+.rbc-timeslot-group {
+  @apply border-b border-neutral-200 dark:border-neutral-700;
+}
+
+.rbc-time-slot {
+  @apply text-neutral-500 dark:text-neutral-400 text-xs;
+}
+
+.rbc-current-time-indicator {
+  @apply bg-[#04C8D8];
+  height: 2px;
+}
+
+/* Agenda View */
+.rbc-agenda-view {
+  @apply text-sm;
+}
+
+.rbc-agenda-view table.rbc-agenda-table {
+  @apply w-full;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  @apply p-2 border-b border-neutral-200 dark:border-neutral-700;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td + td {
+  @apply p-2;
+}
+
+.rbc-agenda-view table.rbc-agenda-table thead > tr > th {
+  @apply p-3 text-left font-semibold text-neutral-700 dark:text-neutral-300;
+  @apply bg-neutral-50 dark:bg-neutral-800 rounded-lg;
+  @apply border-b border-neutral-200 dark:border-neutral-700;
+}
+
+/* Date Cell Number */
+.rbc-date-cell {
+  @apply text-left p-3 text-xs text-neutral-600 font-medium;
+}
+
+.rbc-date-cell > a {
+  @apply text-neutral-700 dark:text-neutral-300 no-underline;
+  @apply text-sm;
+}
+
+
+
+.rbc-date-cell.rbc-now > a {
+  @apply text-indigo-600 dark:text-indigo-400 font-bold;
+}
+
+/* Selection Overlay */
+.rbc-overlay {
+  @apply bg-white dark:bg-neutral-800;
+  @apply border border-neutral-200 dark:border-neutral-700;
+  @apply shadow-none rounded-lg;
+}
+
+.rbc-overlay-header {
+  @apply border-b border-neutral-200 dark:border-neutral-700;
+  @apply p-2 font-semibold;
+}
+
+/* Show more events link */
+.rbc-show-more {
+  @apply text-indigo-600 dark:text-indigo-400;
+  @apply text-xs font-medium;
+  @apply hover:text-indigo-800 dark:hover:text-indigo-300;
+}

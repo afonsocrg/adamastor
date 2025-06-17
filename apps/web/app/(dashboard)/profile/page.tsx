@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { MyPosts } from "./MyPosts";
 import { OthersPosts } from "./OthersPosts";
+import { Button } from "@/components/tailwind/ui/button";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -12,18 +13,18 @@ export default async function ProfilePage() {
   const isAdmin = profile.role === "admin";
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <p className="text-neutral-900 dark:text-white mb-4">
-        (Logged in as [{profile.role.toUpperCase()}] {profile.email})
-      </p>
+    <div className="w-full mx-auto p-6 animate-in">
+      
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Posts</h2>
+        <h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Posts</h2>
+        <Button className="inline-flex items-center px-4 py-2 bg-[#04C9D8] text-white font-semibold rounded-md hover:opacity-80 transition-colors" asChild>
         <Link
           href="/posts/new"
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors"
+          
         >
           Create New Post
         </Link>
+        </Button>
       </div>
 
       {isAdmin ? (

@@ -3,11 +3,23 @@
 import { EventCalendar } from "@/components/event-calendar";
 import { Button } from "@/components/tailwind/ui/button";
 import { cn } from "@/lib/utils";
-import { MapPinIcon } from "lucide-react";
+import { MapPinIcon, PencilIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Add this import
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import posthog from "posthog-js";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/tailwind/ui/alert-dialog";
+import { toast } from "sonner";
 
 function formatShortDate(date: string | Date) {
   const d = new Date(date);
@@ -45,9 +57,10 @@ interface EventsPageProps {
 }
 
 export default function EventsPageClient({ initialEvents, city, user }: EventsPageProps) {
-  const [events] = useState<Event[]>(initialEvents);
+  const [events, setEvents] = useState<Event[]>(initialEvents);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>(initialEvents);
+  const router = useRouter();
 
   // Filter for cities, different styles applied depending on the path.
   const pathname = usePathname();
@@ -89,6 +102,26 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
   // Clear filter function
   const clearFilter = () => {
     setSelectedDate(null);
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete event');
+      }
+
+      // Remove the deleted event from the state
+      setEvents(events.filter(event => event.id !== eventId));
+      toast.success('Event deleted successfully');
+      router.refresh();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Failed to delete event');
+    }
   };
 
   let lastDate: string | null = null;
@@ -142,15 +175,45 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
                       className="flex flex-col px-4 py-4 rounded-lg hover:bg-accent/50 transition-all animate-in border-l-4 border-[#04C9D8] rounded-l"
                     >
                       <div className="flex gap-8 align-top ml-1">
-                        <section className="space-y-3 mb-3">
+                        <section className="space-y-3 mb-3 w-full">
                           <div className="flex justify-between items-start">
                             <h3 className="text-xl font-bold group-hover:text-[#24acb5] [font-family:var(--font-default)]">
                               {event.title}
                             </h3>
                             {(user?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true") && (
-                              <Button variant="outline" size="sm" asChild className="ml-4">
-                                <Link href={`/events/${event.id}/edit`}>Edit Event</Link>
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={(e) => {
+                                  e.preventDefault();
+                                  router.push(`/events/${event.id}/edit`);
+                                }}>
+                                  <PencilIcon className="h-4 w-4" />
+                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm">
+                                      <TrashIcon className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete the event
+                                        "{event.title}".
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteEvent(event.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             )}
                           </div>
                           <p className="text-muted-foreground prose line-clamp-2">{event.description}</p>
