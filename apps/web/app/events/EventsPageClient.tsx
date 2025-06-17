@@ -41,9 +41,10 @@ interface Event {
 interface EventsPageProps {
   initialEvents: Event[];
   city?: string; // Optional city prop
+  user?: { id: string; role: string } | null; // Add user prop
 }
 
-export default function EventsPageClient({ initialEvents, city }: EventsPageProps) {
+export default function EventsPageClient({ initialEvents, city, user }: EventsPageProps) {
   const [events] = useState<Event[]>(initialEvents);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>(initialEvents);
@@ -142,9 +143,16 @@ export default function EventsPageClient({ initialEvents, city }: EventsPageProp
                     >
                       <div className="flex gap-8 align-top ml-1">
                         <section className="space-y-3 mb-3">
-                          <h3 className="text-xl font-bold group-hover:text-[#24acb5] [font-family:var(--font-default)]">
-                            {event.title}
-                          </h3>
+                          <div className="flex justify-between items-start">
+                            <h3 className="text-xl font-bold group-hover:text-[#24acb5] [font-family:var(--font-default)]">
+                              {event.title}
+                            </h3>
+                            {(user?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true") && (
+                              <Button variant="outline" size="sm" asChild className="ml-4">
+                                <Link href={`/events/${event.id}/edit`}>Edit Event</Link>
+                              </Button>
+                            )}
+                          </div>
                           <p className="text-muted-foreground prose line-clamp-2">{event.description}</p>
 
                           <div className="text-muted-foreground flex items-center gap-1">
