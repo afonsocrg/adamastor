@@ -46,14 +46,14 @@ export default function NewPostPage() {
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 p-8">
       <div className="mb-4 flex gap-2 items-center">
         <input
           placeholder="The title of your post..."
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="flex-1 p-2 rounded-md border border-neutral-300 text-3xl font-bold border-none focused:border-none"
+          className="flex-1 p-2 rounded-md border border-neutral-300 text-3xl font-bold border-none focused:border-none outline-none text-[#104357] dark:text-[#E3F2F7]"
         />
         <Button onClick={handleSaveDraft} variant="outline">
           Save Draft

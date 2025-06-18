@@ -19,7 +19,7 @@ export default async function ProfilePage() {
         <h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Posts</h2>
         <Button className="inline-flex items-center px-4 py-2 bg-[#04C9D8] text-white font-semibold rounded-md hover:opacity-80 transition-colors" asChild>
         <Link
-          href="/posts/new"
+          href="/dashboard/posts/new"
           
         >
           Create New Post
@@ -34,11 +34,11 @@ export default async function ProfilePage() {
             <TabsTrigger value="others-posts">Others' Posts</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="my-posts">
+          <TabsContent value="my-posts" className="animate-in">
             <MyPosts userId={profile.id} />
           </TabsContent>
 
-          <TabsContent value="others-posts">
+          <TabsContent value="others-posts" className="animate-in">
             <OthersPosts currentUserId={profile.id} />
           </TabsContent>
         </Tabs>

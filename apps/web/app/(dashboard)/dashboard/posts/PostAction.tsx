@@ -68,7 +68,7 @@ export function PostActions({ post }: PostActionsProps) {
       toast.success("Post duplicated");
     }
     const { post: newPost } = await response.json();
-    router.push(`/posts/${newPost.id}/edit`);
+    router.push(`/dashboard/posts/${newPost.id}/edit`);
   };
 
   const handleAction = async (
@@ -118,7 +118,7 @@ export function PostActions({ post }: PostActionsProps) {
           className="flex items-center gap-2 cursor-pointer"
         >
           <Link
-            href={`/posts/${post.id}/edit`}
+            href={`/dashboard/posts/${post.id}/edit`}
             className="flex items-center gap-2 cursor-pointer"
           >
             <Pencil className="w-4 h-4" /> Edit

@@ -98,7 +98,7 @@ export default function EditPostClient({ post }: EditPostClientProps) {
   const publishDisabled = !editorSaved || hasChanges || isPublished;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 p-8">
       <div className="mb-4 flex gap-2 items-center">
         <input
           placeholder="The title of your post..."
@@ -107,7 +107,7 @@ export default function EditPostClient({ post }: EditPostClientProps) {
           onChange={(e) => {
             setTitleState(e.target.value);
           }}
-          className="flex-1 p-2 rounded-md border border-neutral-300 text-3xl font-bold border-none focused:border-none"
+          className="flex-1 p-2 rounded-md border border-neutral-300 text-3xl font-bold border-none focused:border-none outline-none text-[#104357] dark:text-[#E3F2F7]"
         />
 
         <ActionButton
@@ -117,16 +117,7 @@ export default function EditPostClient({ post }: EditPostClientProps) {
           label={hasChanges ? (isPublished ? "Save" : "Save Draft") : "Saved"}
           loadingLabel="Saving..."
         />
-        {/* <Button
-              onClick={() => {
-                window.open(`/posts/${post.id}/preview`, "_blank");
-              }}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <EyeIcon className="w-4 h-4" />
-              Preview
-            </Button> */}
+       
         {!isPublished && (
           <ActionButton
             onClick={handlePublishPost}

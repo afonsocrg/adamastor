@@ -1,4 +1,4 @@
-import { PublishButton } from "@/app/(dashboard)/profile/PublishButton";
+import { PublishButton } from "@/app/(dashboard)/dashboard/posts/PublishButton";
 import AuthorCard from "@/components/authorCard";
 import ShareWidget from "@/components/shareWidget";
 import PostPreview from "@/components/tailwind/post-preview";
@@ -44,7 +44,7 @@ export default async function PostPage({ params }: PostPageProps) {
         {(user?.id === post.author_id || user?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true") && (
           <>
             <Button variant="outline" asChild>
-              <a href={`/posts/${id}/edit`}>Edit Post</a>
+              <a href={`/dashboard/posts/${id}/edit`}>Edit Post</a>
             </Button>
             <PublishButton postId={id} isPublic={post.is_public} />
             <DeleteButton id={id} />

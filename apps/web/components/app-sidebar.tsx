@@ -55,28 +55,28 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
     navMain: [
       {
         title: "Posts",
-        url: "/profile",
+        url: "/dashboard/posts",
         icon: NewspaperIcon,
         isActive: true,
         items: [
           {
             title: "My Posts",
-            url: "/profile",
+            url: "/dashboard/posts",
           },
           {
             title: "Other's Posts",
-            url: "/profile",
+            url: "/dashboard/posts",
           },                 
         ],
       },
       {
         title: "Events",
-        url: "/add-event",
+        url: "/dashboard//add-event",
         icon: Bot,
       },
       {
         title: "Calendar",
-        url: "/calendar",
+        url: "/dashboard/calendar",
         icon: CalendarIcon,
       },
       {
@@ -111,15 +111,13 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <a href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#1DCEDB] text-sidebar-primary-foreground">
                   <Command className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Adamastor</span>
-                  <span className="truncate text-xs">
-                    {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : "Enterprise"}
-                  </span>
+                 
                 </div>
               </a>
             </SidebarMenuButton>

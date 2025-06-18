@@ -69,21 +69,21 @@ const Navbar = async () => {
                     <HoverCardTrigger className="cursor-pointer">Account</HoverCardTrigger>
                     <HoverCardContent className="flex flex-col rounded-xl space-y-2 p-2 !text-muted-foreground">
                       <Link
-                        href="/posts/new"
+                        href="/dashboard/posts/new"
                         className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
                       >
                         <SquarePenIcon className="h-4 w-4" />
                         New Post
                       </Link>
                       <Link
-                        href="/profile"
+                        href="/dashboard/posts"
                         className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
                       >
                         <FileTextIcon className="h-4 w-4" />
                         View Posts
                       </Link>
                       <Link
-                        href="/add-event"
+                        href="/dashboard/add-event"
                         className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
                       >
                         <CalendarPlusIcon className="h-4 w-4" />

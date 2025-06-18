@@ -17,8 +17,8 @@ export const config = {
   //   '/((?!_next/static|_next/image|favicon.ico|error|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   // ],
   matcher: [
-    '/profile',
-    '/posts/new',
-    '/posts/:id/edit',
+    '/dashboard/posts',
+    '/dashboard/posts/new',
+    '/dashboard/posts/:id/edit',
   ],
 }
