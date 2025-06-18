@@ -4,7 +4,8 @@ import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
 import { type Post, updatePost, publishPost, unpublishPost } from "@/lib/posts";
 import type { JSONContent } from "novel";
 import { ActionButton } from "@/components/ActionButton";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Skeleton } from "@/components/tailwind/ui/skeleton"; // Assuming this is where your skeleton component is
 
 interface EditPostClientProps {
   post: Post;
@@ -45,6 +46,21 @@ export default function EditPostClient({ post }: EditPostClientProps) {
   const [titleState, setTitleState] = useState(post.title);
   const [content, setContent] = useState(post.content);
   const [isPublished, setIsPublished] = useState(post.is_public);
+  const [isEditorLoading, setIsEditorLoading] = useState(true);
+
+  // Using a ref to track if editor has been initialized
+  const editorInitialized = useRef(false);
+
+  // Fallback timeout in case onUpdate never fires
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isEditorLoading) {
+        setIsEditorLoading(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [isEditorLoading]);
 
   // This state is true when `content` contains the most up to date content
   // from the novel editor.
@@ -70,25 +86,25 @@ export default function EditPostClient({ post }: EditPostClientProps) {
   const handlePublishPost = async () => {
     const response = await publishPost({ id: post.id });
     setIsPublished(true);
-    // const { post } = await response.json();
   };
 
   const handleUnpublishPost = async () => {
     const response = await unpublishPost({ id: post.id });
     setIsPublished(false);
-    // setInitialPostHash(currentHash);
   };
 
   // This function is called whenever there is a change in the editor
-  // For performance reasons, Novel does not return the content
   const handleEditorUpdate = () => {
-    // console.log("handleEditorUpdate");
     setEditorSaved(false);
+    // Remove the loading state when editor first updates
+    if (!editorInitialized.current) {
+      editorInitialized.current = true;
+      setIsEditorLoading(false);
+    }
   };
 
   // This function is called when the editor gives us the most up to date content
   const handleEditorSave = (content: JSONContent) => {
-    // console.log("handleEditorSave");
     setContent(content);
     setEditorSaved(true);
   };
@@ -98,18 +114,9 @@ export default function EditPostClient({ post }: EditPostClientProps) {
   const publishDisabled = !editorSaved || hasChanges || isPublished;
 
   return (
-    <div className="flex flex-col gap-4 p-8">
-      <div className="mb-4 flex gap-2 items-center">
-        <input
-          placeholder="The title of your post..."
-          type="text"
-          value={titleState}
-          onChange={(e) => {
-            setTitleState(e.target.value);
-          }}
-          className="flex-1 p-2 rounded-md border border-neutral-300 text-3xl font-bold border-none focused:border-none outline-none text-[#104357] dark:text-[#E3F2F7]"
-        />
-
+    <div className="min-h-screen p-8">
+      {/* Action buttons - fixed position */}
+      <div className="fixed top-4 right-4 z-10 flex gap-2">
         <ActionButton
           onClick={handleSavePost}
           variant="outline"
@@ -117,7 +124,7 @@ export default function EditPostClient({ post }: EditPostClientProps) {
           label={hasChanges ? (isPublished ? "Save" : "Save Draft") : "Saved"}
           loadingLabel="Saving..."
         />
-       
+        
         {!isPublished && (
           <ActionButton
             onClick={handlePublishPost}
@@ -128,22 +135,59 @@ export default function EditPostClient({ post }: EditPostClientProps) {
           />
         )}
         {isPublished && (
-          <>
-            <ActionButton
-              onClick={handleUnpublishPost}
-              variant="outline"
-              label="Unpublish"
-              loadingLabel="Unpublishing..."
-            />
-          </>
+          <ActionButton
+            onClick={handleUnpublishPost}
+            variant="outline"
+            label="Unpublish"
+            loadingLabel="Unpublishing..."
+          />
         )}
       </div>
-      <TailwindAdvancedEditor
-        initialContent={content}
-        savePost={handleEditorSave}
-        onUpdate={handleEditorUpdate}
-        showSaveStatus={false}
-      />
+
+      {/* Main content container - centered with consistent width */}
+      <div className="mx-auto max-w-[750px] space-y-6">
+        {/* Title input */}
+        <div className="relative">
+          {isEditorLoading ? (
+            <Skeleton className="h-12 w-full rounded-md" />
+          ) : (
+            <input
+              placeholder="The title of your post..."
+              type="text"
+              value={titleState}
+              onChange={(e) => {
+                setTitleState(e.target.value);
+              }}
+              className="title-input w-full resize-none overflow-hidden rounded-md border-0 bg-transparent p-0 text-3xl font-bold text-[#104357] placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-[#E3F2F7] dark:placeholder:text-neutral-600"
+              style={{
+                // Prevent layout shift by setting a min-height
+                minHeight: "48px",
+              }}
+            />
+          )}
+        </div>
+
+        {/* Editor container */}
+        <div className="relative">
+          {isEditorLoading && (
+            <div className="space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-64 w-full rounded-md" />
+            </div>
+          )}
+          
+          <div className={isEditorLoading ? "invisible absolute inset-0" : "visible editor-fade-in"}>
+            <TailwindAdvancedEditor
+              initialContent={content}
+              savePost={handleEditorSave}
+              onUpdate={handleEditorUpdate}
+              showSaveStatus={false}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 
 export default function DashboardPage() {
@@ -63,6 +62,7 @@ export default function DashboardPage() {
 
   return (
     <div className="w-full flex items-center justify-center">
+      
       <div className="bg-white p-8 rounded-lg text-center">
         <h2 className="text-sm font-medium text-neutral-600 uppercase tracking-wide">
           Weekly Active Users

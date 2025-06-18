@@ -25,7 +25,7 @@ export function ActionButton({
   };
 
   return (
-    <Button onClick={handleClick} disabled={disabled || loading} {...props}>
+    <Button className="rounded-lg" onClick={handleClick} disabled={disabled || loading} {...props}>
       {loading && loadingLabel ? (
         <div className="flex items-center gap-2">
           <Loader2 className="w-6 h-6 animate-spin" />

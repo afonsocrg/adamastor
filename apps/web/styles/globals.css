@@ -201,3 +201,25 @@ pre {
 .animate-in {
 	animation: animateIn 0.3s ease 0.15s both;
 }
+
+/* Smooth skeleton to content transition */
+.editor-fade-in {
+  animation: editorFadeIn 0.2s ease-out;
+}
+
+@keyframes editorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Prevent layout shift on title input */
+.title-input::placeholder {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}

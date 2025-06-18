@@ -2,20 +2,14 @@
 
 import * as React from "react"
 import {
-  BookOpen,
   Bot,
   CalendarIcon,
   Command,
   DatabaseIcon,
   Frame,
-  LifeBuoy,
   Map,
   NewspaperIcon,
-  PaperclipIcon,
   PieChart,
-  Send,
-  Settings2,
-  SquareTerminal,
 } from "lucide-react"
 
 import { NavMain } from '@/components/nav-main'
