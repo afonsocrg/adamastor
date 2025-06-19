@@ -79,8 +79,8 @@
 }
 
 .rbc-event.rbc-selected {
-  @apply bg-indigo-800 dark:bg-indigo-700;
-  @apply ring-2 ring-indigo-500 ring-offset-2;
+  @apply opacity-90;
+  @apply ring-2 ring-[#28aeb8] ring-offset-2;
 }
 
 /* Event Content */
@@ -196,7 +196,7 @@
 
 /* Show more events link */
 .rbc-show-more {
-  @apply text-indigo-600 dark:text-indigo-400;
+  @apply text-[#28aeb8];
   @apply text-xs font-medium;
-  @apply hover:text-indigo-800 dark:hover:text-indigo-300;
+  @apply hover:opacity-80;
 }
