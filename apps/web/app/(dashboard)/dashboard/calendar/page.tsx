@@ -39,7 +39,7 @@ export default async function CalendarTestPage() {
   })) || [];
 
   return (
-    <div className="container mx-auto animate-in">
+    <div>
       <CalendarTestClient 
         initialEvents={calendarEvents} 
         user={user}

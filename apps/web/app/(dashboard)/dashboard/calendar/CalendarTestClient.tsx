@@ -2,7 +2,7 @@
 
 import { Calendar, momentLocalizer, View, ToolbarProps } from 'react-big-calendar';
 import moment from 'moment';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   Select,
@@ -11,8 +11,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/tailwind/ui/select';
-
 import './calendar-custom.css';
+
+// Configure moment to use Monday as the first day of the week
+// 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+moment.updateLocale('en', {
+  week: {
+    dow: 1, // Monday is the first day of the week
+    doy: 4  // The week that contains Jan 4th is the first week of the year
+  }
+});
+
+// Custom time formats for the calendar
+const formats = {
+  // Time formats for different views
+  timeGutterFormat: 'h A', // "1am", "2pm" in the time gutter (left side)
+  eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
+    `${localizer.format(start, 'h A', culture)} - ${localizer.format(end, 'h A', culture)}`,
+  agendaTimeFormat: 'h A', // Time format in agenda view
+  agendaTimeRangeFormat: ({ start, end }, culture, localizer) =>
+    `${localizer.format(start, 'h A', culture)} - ${localizer.format(end, 'h A', culture)}`,
+  
+  // Keep other formats as default
+  dayFormat: 'ddd DD', // "01 Mon"
+  dayRangeHeaderFormat: ({ start, end }, culture, localizer) =>
+    `${localizer.format(start, 'MMMM DD', culture)} - ${localizer.format(end, 'DD, YYYY', culture)}`,
+  dayHeaderFormat: 'dddd MMM DD', // "Monday Jan 01"
+};
 
 const localizer = momentLocalizer(moment);
 
@@ -160,10 +185,52 @@ ${event.description ? `\nDescription: ${event.description}` : ''}
     [events, user]
   );
 
+  // Add this useEffect to calculate today's position
+useEffect(() => {
+  if (view === 'week') {
+    const calculateTodayPosition = () => {
+      // Get today's day of week (0 = Sunday, 6 = Saturday)
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      
+      // Convert to Monday-first (0 = Monday, 6 = Sunday)
+      const mondayFirstDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      
+      // Calculate percentage position (each day is 14.285%)
+      const dayWidth = 100 / 7;
+      const startPosition = mondayFirstDay * dayWidth;
+      const endPosition = (mondayFirstDay + 1) * dayWidth;
+      
+      // Set CSS variables
+      document.documentElement.style.setProperty('--today-start', `${startPosition}%`);
+      document.documentElement.style.setProperty('--today-end', `${endPosition}%`);
+      document.documentElement.style.setProperty('--indicator-offset', `${mondayFirstDay * 100}%`);
+    };
+
+    calculateTodayPosition();
+    
+    // Recalculate at midnight
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+    
+    const midnightTimer = setTimeout(() => {
+      calculateTodayPosition();
+      // Then recalculate every 24 hours
+      const dailyInterval = setInterval(calculateTodayPosition, 24 * 60 * 60 * 1000);
+      return () => clearInterval(dailyInterval);
+    }, timeUntilMidnight);
+    
+    return () => clearTimeout(midnightTimer);
+  }
+}, [view]);
 
   return (
     <div className="space-y-4">
-      <div style={{ height: '800px', width:'auto' }} className="bg-white dark:bg-neutral-900 rounded-lg p-4">
+      <div style={{ height: '800px', width:'100%' }} className="bg-white dark:bg-neutral-900 rounded-lg p-4">
+       
         <Calendar
           localizer={localizer}
           events={events}
@@ -175,9 +242,10 @@ ${event.description ? `\nDescription: ${event.description}` : ''}
           onView={handleViewChange}
           onSelectEvent={handleSelectEvent}
           onSelectSlot={handleSelectSlot}
-          selectable={!!user} // Only allow selection if user is logged in
-          style={{ height: '100%' }}
+          selectable={false} // !!user: Only allow selection if user is logged in
           components={components}
+          formats={formats}
+          scrollToTime={new Date(1970, 0, 1, 8,40)} // 1970 = Unix Epoch. We only care about the time.
         />
       </div>
 

@@ -65,7 +65,7 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
       },
       {
         title: "Events",
-        url: "/dashboard//add-event",
+        url: "/dashboard/add-event",
         icon: Bot,
       },
       {
@@ -75,7 +75,7 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
       },
       {
         title: "Analytics",
-        url: "/dashboard",
+        url: "/dashboard/analytics",
         icon: DatabaseIcon,
       },                  
     ],
