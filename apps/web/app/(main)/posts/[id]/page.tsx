@@ -20,6 +20,12 @@ import {
   Youtube,
 } from "novel";
 import { DeleteButton } from "./DeleteButton";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/tailwind/ui/context-menu"
 
 interface PostPageProps {
   params: Promise<{ id: string }>;
@@ -39,15 +45,25 @@ export default async function PostPage({ params }: PostPageProps) {
   const formattedPublishedDate = formatDate(post.created_at);
 
   return (
+    <ContextMenu>
+      <ContextMenuTrigger>
     <div className="max-w-[750px] mx-auto md:px-4 animate-in">
       <div className="mb-4 flex gap-2 justify-end">
         {(user?.id === post.author_id || user?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true") && (
           <>
-            <Button variant="outline" asChild>
+          
+  
+  <ContextMenuContent>
+    <ContextMenuItem>
+      <Button variant="ghost" asChild>
               <a href={`/dashboard/posts/${id}/edit`}>Edit Post</a>
             </Button>
-            <PublishButton postId={id} isPublic={post.is_public} />
-            <DeleteButton id={id} />
+    </ContextMenuItem>
+    <ContextMenuItem><PublishButton postId={id} isPublic={post.is_public} /></ContextMenuItem>
+    <ContextMenuItem><DeleteButton id={id} /></ContextMenuItem>
+  </ContextMenuContent>
+
+           
           </>
         )}
       </div>
@@ -64,6 +80,8 @@ export default async function PostPage({ params }: PostPageProps) {
 
       <PostPreview initialContent={post.content} />
     </div>
+    </ContextMenuTrigger>
+    </ContextMenu>
   );
 }
 

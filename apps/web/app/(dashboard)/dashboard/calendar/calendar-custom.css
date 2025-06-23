@@ -141,7 +141,7 @@
 }
 
 .rbc-header .rbc-button-link {
-  @apply p-2 rounded-full;
+  @apply p-2 rounded-lg;
 }
 
 /* Today's header highlighting */

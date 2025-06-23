@@ -66,7 +66,11 @@ const Navbar = async () => {
               {user && (
                 <>
                   <HoverCard>
-                    <HoverCardTrigger className="cursor-pointer">Account</HoverCardTrigger>
+                    <HoverCardTrigger asChild className="cursor-pointer"><Link
+                        href="/dashboard/calendar">Account</Link>
+                        
+
+                      </HoverCardTrigger>
                     <HoverCardContent className="flex flex-col rounded-xl space-y-2 p-2 !text-muted-foreground">
                       <Link
                         href="/dashboard/posts/new"

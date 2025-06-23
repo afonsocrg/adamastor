@@ -1,41 +1,37 @@
 "use client";
 
 import { Button } from "@/components/tailwind/ui/button";
-import { Calendar } from "@/components/tailwind/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/tailwind/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/tailwind/ui/form";
 import { Input } from "@/components/tailwind/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/tailwind/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/tailwind/ui/select";
 import { Textarea } from "@/components/tailwind/ui/textarea";
+import { Skeleton } from "@/components/tailwind/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import type { MetadataResult } from "@/app/types";
 import { dateTimeStringWithNoTimezoneToTzDateString, tzDateStringToDateTimeStringWithNoTimezone } from "@/lib/datetime";
+import { Separator } from "@/components/tailwind/ui/separator";
+import DateTimePickerField from "@/components/date-time-picker-field";
 
 const TIMEZONE = 'Europe/Lisbon';
 
 const urlFormSchema = z.object({
-  url: z.string().min(1),
+  url: z.string().url("Please enter a valid URL"),
 });
 
-// [afonsocrg] This url is the link to the event itself.
-// It's a good practice to keep this separate from the scrape URL
-// because the scrape URL may not be the "official" event URL that
-// will be returned by our backend.
 const formSchema = z.object({
-  title: z.string().min(1),
-  description: z.string().min(1),
-  url: z.string().min(1),
-  bannerUrl: z.string().min(1),
-  startTime: z.string().min(1),
-  city: z.string().min(1),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  url: z.string().url("Please enter a valid URL"),
+  bannerUrl: z.string().url("Please enter a valid banner URL"),
+  startTime: z.string().min(1, "Start time is required"),
+  city: z.string().min(1, "City is required"),
 });
 
 const defaultEventFormValues = {
@@ -50,12 +46,6 @@ const defaultEventFormValues = {
 // Server action for scraping URLs
 async function scrapeUrl(url: string): Promise<{ data?: MetadataResult; error?: string }> {
   try {
-    if (!url.match(/^https?:\/\/.+\..+/)) {
-      return {
-        error: "Please enter a valid URL including http:// or https://",
-      };
-    }
-
     const response = await fetch("/api/scrape", {
       method: "POST",
       headers: {
@@ -83,8 +73,7 @@ export default function AddEventForm() {
   const [isScraping, setIsScraping] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasLoadedMetadata, setHasLoadedMetadata] = useState(false);
-
-  const [urlToScrape, setUrlToScrape] = useState<string>("");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const eventForm = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,35 +85,49 @@ export default function AddEventForm() {
     defaultValues: { url: "" },
   });
 
-  const title = eventForm.watch("title");
-  const description = eventForm.watch("description");
-  const url = eventForm.watch("url");
-  const bannerUrl = eventForm.watch("bannerUrl");
-  const startTime = eventForm.watch("startTime");
-  const city = eventForm.watch("city");
+  // Watch all form fields for the disabled state
+  const urlValue = urlForm.watch("url");
+  const formValues = eventForm.watch();
+  
+  // Check if the event form is valid
+  const isEventFormValid = formValues.title && 
+    formValues.description && 
+    formValues.url && 
+    formValues.bannerUrl && 
+    formValues.startTime && 
+    formValues.city;
+
+  // Animation on mount
+  useEffect(() => {
+    const timer = setTimeout(() => setIsInitialLoad(false), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleUrlSubmit = async (values: { url: string }) => {
-    const url = values.url;
-
-    if (!url || !url.trim()) {
-      return;
-    }
-
     setIsScraping(true);
     try {
-      const result = await scrapeUrl(url);
+      const result = await scrapeUrl(values.url);
 
       if (result.error) {
         toast.error(result.error);
       } else if (result.data) {
         const { title, description, url, bannerUrl, startTime, city } = result.data;
+        
+        // Animate form population
         eventForm.setValue("title", title);
+        await new Promise(resolve => setTimeout(resolve, 50));
         eventForm.setValue("description", description);
+        await new Promise(resolve => setTimeout(resolve, 50));
         eventForm.setValue("url", url);
+        await new Promise(resolve => setTimeout(resolve, 50));
         eventForm.setValue("bannerUrl", bannerUrl);
+        await new Promise(resolve => setTimeout(resolve, 50));
         eventForm.setValue("startTime", startTime ? tzDateStringToDateTimeStringWithNoTimezone(startTime, TIMEZONE) : "");
+        await new Promise(resolve => setTimeout(resolve, 50));
         eventForm.setValue("city", city ?? "");
+        
         setHasLoadedMetadata(true);
+        toast.success("Event data loaded successfully");
       }
     } catch (error) {
       toast.error("Failed to scrape URL");
@@ -134,7 +137,6 @@ export default function AddEventForm() {
 
   const handleEventSubmit = async (values: z.infer<typeof formSchema>) => {
     const { title, description, startTime, city, url, bannerUrl } = values;
-
     setIsSubmitting(true);
 
     try {
@@ -172,21 +174,117 @@ export default function AddEventForm() {
   };
 
   return (
-    <main className="container px-4 animate-in">
+    <main className={cn(
+      "container px-4",
+      isInitialLoad ? "opacity-0" : "animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
+    )}>
+      <h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center mb-6">
+        Add Event to the Agenda
+      </h2>
       
-      <h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Add Event to the Agenda</h2>
-      <div className="">
-        <UrlForm form={urlForm} isScraping={isScraping} handleUrlSubmit={handleUrlSubmit} />
+      <div className="space-y-8">
+        {/* URL Form Section */}
+        <div className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-150">
+          <Form {...urlForm}>
+            <form onSubmit={urlForm.handleSubmit(handleUrlSubmit)} className="space-y-4">
+              <div className="flex space-x-2 w-full md:w-8/12">
+                <FormField
+                  control={urlForm.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Input 
+                          placeholder="https://link-to-event-page.com" 
+                          {...field} 
+                          onClick={async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && text.startsWith("http")) {
+          field.onChange(text);
+        }
+      } catch (err) {
+        toast.error("Failed to read clipboard");
+        console.error("Clipboard read failed:", err);
+      }
+    }}
+                          className="transition-all duration-200 rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button 
+                  type="submit" 
+                  variant="outline"
+                  className="rounded-lg transition-all duration-200"
+                  disabled={isScraping || !urlValue}
+                >
+                  {isScraping ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Scraping...
+                    </>
+                  ) : (
+                    "Get Event Data"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
 
-        {hasLoadedMetadata && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-            <div className="w-full">
-              <Card className="p-4 gap-4 flex flex-col h-full">
-                <EventDetailsForm form={eventForm} isSubmitting={isSubmitting} handleEventSubmit={handleEventSubmit} />
+        {/* Loading Skeleton */}
+        {isScraping && !hasLoadedMetadata && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in-0 duration-300">
+            <Card className="p-4 rounded-xl">
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <div className="grid grid-cols-2 gap-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <Skeleton className="h-10 w-24 ml-auto" />
+              </div>
+            </Card>
+            <Card className="rounded-xl">
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-48 w-full mb-4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Event Details Form and Preview */}
+        {hasLoadedMetadata && !isScraping && (
+          <div className={cn(
+            "grid grid-cols-1 md:grid-cols-2 gap-4",
+            "animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
+          )}>
+            <div className="w-full animate-in fade-in-0 slide-in-from-left-4 duration-500 delay-200">
+              <Card className="p-4 gap-4 flex flex-col h-full transition-all duration-200 rounded-xl">
+                <EventDetailsForm 
+                  form={eventForm} 
+                  isSubmitting={isSubmitting} 
+                  handleEventSubmit={handleEventSubmit}
+                  isFormValid={!!isEventFormValid}
+                />
               </Card>
             </div>
-            <div className="w-full">
-              <EventPreview title={title} description={description} url={url} bannerUrl={bannerUrl} />
+            <div className="w-full animate-in fade-in-0 slide-in-from-right-4 duration-500 delay-300">
+              <EventPreview 
+                title={formValues.title} 
+                description={formValues.description} 
+                url={formValues.url} 
+                bannerUrl={formValues.bannerUrl} 
+              />
             </div>
           </div>
         )}
@@ -195,49 +293,18 @@ export default function AddEventForm() {
   );
 }
 
-interface UrlFormProps {
-  form: any;
-  isScraping: boolean;
-  handleUrlSubmit: (values: z.infer<typeof urlFormSchema>) => void;
-}
-function UrlForm({ form, isScraping, handleUrlSubmit }: UrlFormProps) {
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleUrlSubmit)} className="space-y-4">
-        <div className="flex flex-col space-y-2">
-          <div className="flex space-x-2 w-8/12">
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <Input placeholder="https://link-to-event-page.com" {...field} required />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={isScraping}>
-              {isScraping ? "Scraping..." : "Scrape URL"}
-            </Button>
-          </div>
-        </div>
-      </form>
-    </Form>
-  );
-}
-
 interface EventDetailsFormProps {
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   form: any;
   isSubmitting: boolean;
   handleEventSubmit: (values: z.infer<typeof formSchema>) => void;
+  isFormValid: boolean;
 }
-function EventDetailsForm({ form, isSubmitting, handleEventSubmit }: EventDetailsFormProps) {
+
+function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }: EventDetailsFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleEventSubmit)} className="space-y-4">
-        <section>
+        <section className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-100">
           <FormField
             control={form.control}
             name="title"
@@ -245,14 +312,19 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit }: EventDetail
               <FormItem>
                 <FormLabel>Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Event Title..." {...field} />
+                  <Input 
+                    placeholder="Event Title..." 
+                    {...field} 
+                    className="transition-all duration-200"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </section>
-        <section>
+        
+        <section className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-200">
           <FormField
             control={form.control}
             name="description"
@@ -260,30 +332,33 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit }: EventDetail
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Event Description..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </section>
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="startTime"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Start Time (Europe/Lisbon)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="datetime-local"
-                    {...field}
+                  <Textarea 
+                    placeholder="Event Description..." 
+                    {...field} 
+                    className="transition-all duration-200 min-h-[100px]"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </section>
+        
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-300">
+          <FormField
+            control={form.control}
+            name="startTime"
+            render={({ field }) => (
+              <DateTimePickerField
+                value={field.value}
+                onChange={field.onChange}
+                label="Start Time (Europe/Lisbon)"
+                placeholder="Select date and time"
+                disabled={field.disabled}
+              />
+            )}
+          />
+
           <FormField
             control={form.control}
             name="city"
@@ -292,12 +367,14 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit }: EventDetail
                 <FormLabel>City</FormLabel>
                 <FormControl>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
+                    <SelectTrigger className="transition-all duration-200">
                       <SelectValue placeholder="Pick a city" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="lisboa">Lisboa</SelectItem>
                       <SelectItem value="porto">Porto</SelectItem>
+                      <SelectItem value="online">Online</SelectItem>
+                      <Separator/>
                       <SelectItem value="algarve">Algarve</SelectItem>
                       <SelectItem value="aveiro">Aveiro</SelectItem>
                       <SelectItem value="braga">Braga</SelectItem>
@@ -313,9 +390,21 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit }: EventDetail
             )}
           />
         </section>
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating Event..." : "Create Event"}
+        
+        <div className="flex justify-end animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-400">
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || !isFormValid}
+            className="transition-all duration-200 rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Event...
+              </>
+            ) : (
+              "Create Event"
+            )}
           </Button>
         </div>
       </form>
@@ -332,53 +421,49 @@ interface EventPreviewProps {
 
 function EventPreview({ title, description, url, bannerUrl }: EventPreviewProps) {
   return (
-    <Card className="h-full">
+    <Card className="h-full transition-all duration-200 rounded-xl">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription className="line-clamp-2">{description}</CardDescription>
+        <CardTitle className="animate-in fade-in-0 duration-300">
+          {title || <span className="text-muted-foreground">Event Title</span>}
+        </CardTitle>
+        <CardDescription className="line-clamp-2 animate-in fade-in-0 duration-300 delay-100">
+          {description || <span className="text-muted-foreground">Event description will appear here...</span>}
+        </CardDescription>
       </CardHeader>
       <CardContent className="overflow-hidden">
-        {bannerUrl && (
-          <div className="mb-4">
+        {bannerUrl ? (
+          <div className="mb-4 animate-in fade-in-0 zoom-in-95 duration-500 delay-200">
             <img
-              src={bannerUrl || "/placeholder.svg"}
+              src={bannerUrl}
               alt={title || "Preview image"}
-              className="rounded-md max-h-64 object-contain"
+              className="rounded-md max-h-64 object-contain w-full transition-transform duration-300 hover:scale-105"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </div>
+        ) : (
+          <div className="mb-4 h-48 bg-muted rounded-md flex items-center justify-center animate-pulse">
+            <span className="text-muted-foreground">Event banner will appear here</span>
+          </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <div className="grid grid-cols-1 gap-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-300">
           {url && (
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">URL</h3>
               <p className="text-sm truncate">
-                <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                <a 
+                  href={url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-primary hover:underline transition-colors duration-200"
+                >
                   {url}
                 </a>
               </p>
             </div>
           )}
-
-          {/* {metadata.ogSiteName && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Site Name</h3>
-                        <p className="text-sm">{metadata.ogSiteName}</p>
-                      </div>
-                    )}
-
-                    {metadata.ogType && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Type</h3>
-                        <p className="text-sm">{metadata.ogType}</p>
-                      </div>
-                    )}
-
-                    {metadata.twitterCard && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Twitter Card</h3>
-                        <p className="text-sm">{metadata.twitterCard}</p>
-                      </div>
-                    )} */}
         </div>
       </CardContent>
     </Card>

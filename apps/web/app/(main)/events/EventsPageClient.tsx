@@ -20,6 +20,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/tailwind/ui/alert-dialog";
 import { toast } from "sonner";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/tailwind/ui/context-menu"
 
 function formatShortDate(date: string | Date) {
   const d = new Date(date);
@@ -171,6 +177,8 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
                   )}
 
                   <article className="group">
+                    <ContextMenu>
+      <ContextMenuTrigger>
                     <Link
                       href={event.url}
                       target="_blank"
@@ -184,18 +192,30 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
                               {event.title}
                             </h3>
                             {(user?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true") && (
-                              <div className="flex gap-2">
-                                <Button variant="outline" size="sm" onClick={(e) => {
+                                 <ContextMenuContent>
+                                  <ContextMenuItem  onClick={(e) => {
                                   e.preventDefault();
                                   router.push(`/events/${event.id}/edit`);
                                 }}>
-                                  <PencilIcon className="h-4 w-4" />
-                                </Button>
-                                <AlertDialog>
+                                    
+                                  <div className="flex gap-2 cursor-pointer">
+                                    <PencilIcon className="h-4 w-4" /> 
+                                    <div>Edit Event</div>
+                                  </div>
+                               
+                                  </ContextMenuItem>
+                                  <ContextMenuItem onSelect={(e) => {
+    e.preventDefault();
+  }}>
+                                     <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm">
-                                      <TrashIcon className="h-4 w-4" />
-                                    </Button>
+                                   
+                                      
+                                  <div className="flex gap-2 cursor-pointer">
+                                  <TrashIcon className="h-4 w-4" />
+                                  <div>Delete Event</div>
+                                </div>
+                                   
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
@@ -216,7 +236,10 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
-                              </div>
+                                  </ContextMenuItem>
+                                  </ContextMenuContent>
+                                
+                               
                             )}
                           </div>
                           <p className="text-muted-foreground prose line-clamp-2">{event.description}</p>
@@ -235,6 +258,8 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
                         )} */}
                       </div>
                     </Link>
+                    </ContextMenuTrigger>
+                    </ContextMenu>
                   </article>
                 </div>
               );

@@ -17,7 +17,7 @@ export default async function ProfilePage() {
       
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Posts</h2>
-        <Button className="inline-flex items-center px-4 py-2 bg-[#04C9D8] text-white font-semibold rounded-md hover:opacity-80 transition-colors" asChild>
+        <Button className="inline-flex items-center px-4 py-2 text-white transition-all duration-200 rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90" asChild>
         <Link
           href="/dashboard/posts/new"
           
