@@ -15,11 +15,24 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { type UseFormReturn, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 const TIMEZONE = "Europe/Lisbon";
+
+const CITY_MAPPINGS = {
+	lisboa: ["lisboa", "lisbon", "lx"],
+	porto: ["porto", "oporto"],
+	online: ["online", "virtual", "remote", "zoom"],
+	algarve: ["algarve", "faro", "albufeira", "portimão", "portimao"],
+	aveiro: ["aveiro"],
+	braga: ["braga"],
+	coimbra: ["coimbra"],
+	guimaraes: ["guimarães", "guimaraes"],
+	leiria: ["leiria"],
+	viseu: ["viseu"],
+};
 
 const urlFormSchema = z.object({
 	url: z.string().url("Please enter a valid URL"),
@@ -302,7 +315,7 @@ export default function AddEventForm() {
 }
 
 interface EventDetailsFormProps {
-	form: any;
+	form: UseFormReturn<z.infer<typeof formSchema>>;
 	isSubmitting: boolean;
 	handleEventSubmit: (values: z.infer<typeof formSchema>) => void;
 	isFormValid: boolean;
@@ -316,27 +329,50 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 					<FormField
 						control={form.control}
 						name="title"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Title</FormLabel>
-								<FormControl>
-									<Input placeholder="Event Title..." {...field} className="transition-all duration-200" />
-								</FormControl>
-								{field.value.includes("| Meetup") && (
-									<div
-										className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
-										onClick={() => {
-											// Remove | Meetup from the value
-											const cleanedValue = field.value.replace(/\| Meetup/g, "");
-											field.onChange(cleanedValue);
-										}}
-									>
-										Is the "| Meetup" intentional? Click here to remove it.
-									</div>
-								)}
-								<FormMessage />
-							</FormItem>
-						)}
+						render={({ field }) => {
+							// Check for the full Meetup date pattern
+							const meetupDatePattern =
+								/,\s*\w{3},\s*\w{3}\s+\d{1,2},\s*\d{4},\s*\d{1,2}:\d{2}\s*(AM|PM)\s*\|\s*Meetup/;
+							const hasMeetupDatePattern = meetupDatePattern.test(field.value);
+
+							// Check for just "| Meetup" (in case it appears without the date)
+							const hasJustMeetup = !hasMeetupDatePattern && field.value.includes("| Meetup");
+
+							return (
+								<FormItem>
+									<FormLabel>Title</FormLabel>
+									<FormControl>
+										<Input placeholder="Event Title..." {...field} className="transition-all duration-200" />
+									</FormControl>
+
+									{hasMeetupDatePattern && (
+										<div
+											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
+											onClick={() => {
+												const cleanedValue = field.value.replace(meetupDatePattern, "").trim();
+												field.onChange(cleanedValue);
+											}}
+										>
+											Remove date and "| Meetup" suffix?
+										</div>
+									)}
+
+									{hasJustMeetup && (
+										<div
+											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
+											onClick={() => {
+												const cleanedValue = field.value.replace(/\|\s*Meetup/g, "").trim();
+												field.onChange(cleanedValue);
+											}}
+										>
+											Remove "| Meetup" suffix?
+										</div>
+									)}
+
+									<FormMessage />
+								</FormItem>
+							);
+						}}
 					/>
 				</section>
 
@@ -377,46 +413,69 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 					<FormField
 						control={form.control}
 						name="startTime"
-						render={({ field }) => (
-							<DateTimePickerField
-								value={field.value}
-								onChange={field.onChange}
-								label="Start Time (Europe/Lisbon)"
-								placeholder="Select date and time"
-								disabled={field.disabled}
-							/>
-						)}
+						render={({ field }) => {
+							return (
+								<FormItem className="flex flex-col">
+									<DateTimePickerField
+										value={field.value}
+										onChange={field.onChange}
+										label="Start Time (Europe/Lisbon)"
+										placeholder="Select date and time"
+										disabled={field.disabled}
+									/>
+								</FormItem>
+							);
+						}}
 					/>
 
 					<FormField
 						control={form.control}
 						name="city"
-						render={({ field }) => (
-							<FormItem className="flex flex-col">
-								<FormLabel>City</FormLabel>
-								<FormControl>
-									<Select value={field.value} onValueChange={field.onChange}>
-										<SelectTrigger className="transition-all duration-200">
-											<SelectValue placeholder="Pick a city" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="lisboa">Lisboa</SelectItem>
-											<SelectItem value="porto">Porto</SelectItem>
-											<SelectItem value="online">Online</SelectItem>
-											<Separator />
-											<SelectItem value="algarve">Algarve</SelectItem>
-											<SelectItem value="aveiro">Aveiro</SelectItem>
-											<SelectItem value="braga">Braga</SelectItem>
-											<SelectItem value="coimbra">Coimbra</SelectItem>
-											<SelectItem value="guimaraes">Guimarães</SelectItem>
-											<SelectItem value="leiria">Leiria</SelectItem>
-											<SelectItem value="viseu">Viseu</SelectItem>
-										</SelectContent>
-									</Select>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
+						render={({ field }) => {
+							// Check if there's a city in the title
+							const titleValue = form.watch("title");
+							const detectedCity = detectCityInText(titleValue);
+							const showCityHelper = detectedCity && field.value !== detectedCity.value;
+
+							return (
+								<FormItem className="flex flex-col">
+									<FormLabel>City</FormLabel>
+									<FormControl>
+										<Select value={field.value} onValueChange={field.onChange}>
+											<SelectTrigger className="transition-all duration-200">
+												<SelectValue placeholder="Pick a city" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="lisboa">Lisboa</SelectItem>
+												<SelectItem value="porto">Porto</SelectItem>
+												<SelectItem value="online">Online</SelectItem>
+												<Separator />
+												<SelectItem value="algarve">Algarve</SelectItem>
+												<SelectItem value="aveiro">Aveiro</SelectItem>
+												<SelectItem value="braga">Braga</SelectItem>
+												<SelectItem value="coimbra">Coimbra</SelectItem>
+												<SelectItem value="guimaraes">Guimarães</SelectItem>
+												<SelectItem value="leiria">Leiria</SelectItem>
+												<SelectItem value="viseu">Viseu</SelectItem>
+											</SelectContent>
+										</Select>
+									</FormControl>
+
+									{showCityHelper && (
+										<div
+											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer mt-2"
+											onClick={() => {
+												field.onChange(detectedCity.value);
+											}}
+										>
+											Set "{detectedCity.display}" as city.
+										</div>
+									)}
+
+									<FormMessage />
+								</FormItem>
+							);
+						}}
 					/>
 				</section>
 
@@ -497,4 +556,22 @@ function EventPreview({ title, description, url, bannerUrl }: EventPreviewProps)
 			</CardContent>
 		</Card>
 	);
+}
+
+// Helper function to detect city in text
+function detectCityInText(text: string): { value: string; display: string } | null {
+	const lowerText = text.toLowerCase();
+
+	for (const [value, variations] of Object.entries(CITY_MAPPINGS)) {
+		for (const variation of variations) {
+			if (lowerText.includes(variation)) {
+				return {
+					value,
+					display: value.charAt(0).toUpperCase() + value.slice(1),
+				};
+			}
+		}
+	}
+
+	return null;
 }
