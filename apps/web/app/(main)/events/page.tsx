@@ -1,39 +1,51 @@
+import { getUserProfile } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
 import EventsPageClient from "./EventsPageClient";
-import { getUserProfile } from "@/lib/supabase/authentication";
+
+// This list affects the filters parameters. I think we need to refactor this in the future.
+const VALID_CITIES = [
+	"lisboa",
+	"porto",
+	"online",
+	"algarve",
+	"aveiro",
+	"braga",
+	"coimbra",
+	"guimaraes",
+	"leiria",
+	"viseu",
+];
 
 export default async function EventsPage({ searchParams }) {
-  const supabase = await createClient();
-  const user = await getUserProfile(supabase);
+	const supabase = await createClient();
+	const user = await getUserProfile(supabase);
 
-  const city = searchParams.city?.toLowerCase() === 'lisboa' || searchParams.city?.toLowerCase() === 'porto' 
-    ? searchParams.city?.toLowerCase() 
-    : undefined;
+	// Check if the city parameter is valid
+	const cityParam = searchParams.city?.toLowerCase();
+	const city = VALID_CITIES.includes(cityParam) ? cityParam : undefined;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Set to 00:00:00.000
+	const today = new Date();
+	today.setHours(0, 0, 0, 0); // Set to 00:00:00.000
 
-  const query = supabase
-    .from("events")
-    .select("*")
-    .gte("start_time", today.toISOString())
-    .order("start_time", { ascending: true });
-  
-  if (city) {
-    query.ilike("city", city);
-  }
+	const query = supabase
+		.from("events")
+		.select("*")
+		.gte("start_time", today.toISOString())
+		.order("start_time", { ascending: true });
 
-  const { data: events, error } = await query;
+	if (city) {
+		query.ilike("city", city);
+	}
 
-  if (error) {
-    console.error("Error fetching events:", error);
-    return <div>Error loading events</div>;
-  }
+	const { data: events, error } = await query;
 
-  return <EventsPageClient initialEvents={events || []} user={user} />;
+	if (error) {
+		console.error("Error fetching events:", error);
+		return <div>Error loading events</div>;
+	}
+
+	return <EventsPageClient initialEvents={events || []} user={user} city={city} />;
 }
-
-
 
 // import { Button } from "@/components/tailwind/ui/button";
 // import { createClient } from "@/lib/supabase/server";
@@ -185,6 +197,3 @@ export default async function EventsPage({ searchParams }) {
 
 //   return <EventsPageClient initialEvents={events} city={decodedCity} />;
 // }
-
-
-
