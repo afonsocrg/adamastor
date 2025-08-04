@@ -39,7 +39,7 @@ export default function About() {
 					</div>
 					<div>
 						<Image alt="Malik Piara" src="/malik.jpeg" width={150} height={150} />
-						<Link className="underline underline-offset-2" href={"https://www.linkedin.com/in/malikpiara/"}>
+						<Link className="underline underline-offset-2" href={"https://moonwith.com/"}>
 							Malik Piara
 						</Link>
 					</div>
