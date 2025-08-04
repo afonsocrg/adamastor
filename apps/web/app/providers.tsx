@@ -60,7 +60,6 @@ export function PostHogIdentifier({ userId, userEmail }: PostHogIdentifierProps)
 			// posthog.reset() used for debugging.
 			posthog.identify(userId, {
 				email: userEmail,
-				$email: userEmail, // Also set PostHog's standard email property
 			});
 			// console.log("PostHog reset and identified:", userId, userEmail); — Used for debugging.
 		}

@@ -74,7 +74,11 @@ export default async function PostPage({ params }: PostPageProps) {
 						</h2>
 					</div>
 					<div className="flex justify-between items-start mt-6">
-						<AuthorCard publishedAt={formattedPublishedDate} />
+						{post.author_id === "b1b96ae8-8e87-4dbc-8ed9-85796a7d1a55" ? (
+							<AuthorCard id={1} publishedAt={formattedPublishedDate} />
+						) : (
+							<AuthorCard id={0} publishedAt={formattedPublishedDate} />
+						)}
 						<ShareWidget />
 					</div>
 					<PostPreview initialContent={post.content} />
