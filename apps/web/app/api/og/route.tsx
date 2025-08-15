@@ -74,9 +74,9 @@ export async function GET(request: Request) {
 					position: "absolute",
 					bottom: 0,
 					left: 0,
-					margin: 30,
+					margin: 40,
 					fontSize: 30,
-					fontFamily: "Source Serif 4",
+					fontFamily: "Inter",
 				}}
 			>
 				{url}
@@ -92,8 +92,8 @@ export async function GET(request: Request) {
 					style: "normal",
 				},
 				{
-					name: "Source Serif 4",
-					data: await loadGoogleFont("Source Serif 4", "Adamastor", false, 600),
+					name: "Inter",
+					data: await loadGoogleFont("Inter", "Adamastor", false, 600),
 					weight: 800,
 				},
 			],
