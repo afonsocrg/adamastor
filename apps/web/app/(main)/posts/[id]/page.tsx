@@ -128,5 +128,17 @@ export async function generateMetadata({ params }: PostPageProps) {
 	return {
 		title: post.title,
 		description: contentPreview,
+		authors: [{ name: "Carlos Resende", url: "https://pt.linkedin.com/in/carlos-resende-%F0%9F%94%B7-35162613" }],
+		keywords: ["Startups Portugal", "Portugal", "Startup", "Portugal Startups"],
+		openGraph: {
+			images: [
+				{
+					url: `https://adamastor.blog/api/og?title=${encodeURIComponent(post.title)}`,
+					width: 1200,
+					height: 630,
+					alt: post.title,
+				},
+			],
+		},
 	};
 }
