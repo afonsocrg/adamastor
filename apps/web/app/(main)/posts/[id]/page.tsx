@@ -154,7 +154,7 @@ export async function generateMetadata({ params }: PostPageProps) {
 	return {
 		title: post.title,
 		description: contentPreview,
-		authors: [{ name: "Carlos Resende", url: "https://pt.linkedin.com/in/carlos-resende-%F0%9F%94%B7-35162613" }],
+		authors: [{ name: post.authors.name, url: post.authors.website_url || undefined }],
 		keywords: ["Startups Portugal", "Portugal", "Startup", "Portugal Startups"],
 		openGraph: {
 			images: [

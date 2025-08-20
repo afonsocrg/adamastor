@@ -105,8 +105,6 @@ function extractEventbriteData(html: string): Event {
 
     const eventStartTime = metadata.eventStartTime ? new Date(metadata.eventStartTime) : undefined;
 
-    console.log({metadata, eventStartTime})
-
     return {
         title: metadata.ogTitle || metadata.title,
         description: metadata.ogDescription || metadata.description,
