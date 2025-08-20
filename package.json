@@ -55,5 +55,8 @@
         100
       ]
     }
+  },
+  "dependencies": {
+    "@radix-ui/react-context-menu": "^2.2.16"
   }
 }
