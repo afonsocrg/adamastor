@@ -84,7 +84,7 @@ export function PostActions({ post }: PostActionsProps) {
   };
 
   const handleAction = async (
-    e: Event,
+    e: React.MouseEvent | Event,
     action: string,
     handler: (id: string) => Promise<void>,
   ) => {
