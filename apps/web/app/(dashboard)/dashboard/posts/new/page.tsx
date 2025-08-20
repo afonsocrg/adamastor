@@ -49,10 +49,10 @@ export default function NewPostPage() {
   const handleSaveDraft = async () => {
     try {
       setIsSaving(true);
-      await saveDraft(title, savedDraft);
+      const post = await saveDraft(title, savedDraft);
+      router.push(`/dashboard/posts/${post.id}/edit`);
       setTitle("");
       setSavedDraft({});
-      router.push(`/profile`);
     } catch (error) {
       console.error('Error saving draft:', error);
       // You could add toast notification here

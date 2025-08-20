@@ -50,7 +50,7 @@ export function FeedbackForm() {
 			<div className="mb-10 space-y-2">
 				<h2 className="scroll-m-20 text-lg text-primary/80 font-medium tracking-tight">Feedback</h2>
 				<p className="text-muted-foreground">
-					I'd love to hear your feedback about Adamastor. It will help us build a better platform for you.
+					We'd love to hear your feedback about Adamastor. It will help us build a better platform for you.
 				</p>
 			</div>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6 mb-20">

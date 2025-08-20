@@ -10,7 +10,7 @@ export async function MyPosts({ userId }: MyPostsProps) {
   const { data: posts, error } = await supabase
     .from("posts")
     .select("*")
-    .eq("author_id", userId)
+    .eq("created_by", userId)
     .order("created_at", { ascending: false });
 
   return (
