@@ -17,7 +17,7 @@ export async function POST(request: Request) {
           title, 
           content,
           is_public: true,
-          author_id: user.id
+          created_by: user.id
         }
       ])
       .select()

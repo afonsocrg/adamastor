@@ -37,7 +37,22 @@ export default async function PostPage({ params }: PostPageProps) {
 	const supabase = await createClient();
 	const user = await getUserProfile(supabase);
 
-	const { data: post, error } = await supabase.from("posts").select("*").eq("id", id).single();
+	const { data: post, error } = await supabase
+		.from("posts")
+		.select(`
+			*,
+			authors (
+				id,
+				name,
+				bio,
+				image_url,
+				website_url,
+				social_links,
+				slug
+			)
+		`)
+		.eq("id", id)
+		.single();
 
 	if (error || !post) {
 		notFound();
@@ -74,11 +89,7 @@ export default async function PostPage({ params }: PostPageProps) {
 						</h2>
 					</div>
 					<div className="flex justify-between items-start mt-6">
-						{post.author_id === "b1b96ae8-8e87-4dbc-8ed9-85796a7d1a55" ? (
-							<AuthorCard id={1} publishedAt={formattedPublishedDate} />
-						) : (
-							<AuthorCard id={0} publishedAt={formattedPublishedDate} />
-						)}
+						<AuthorCard author={post.authors} publishedAt={formattedPublishedDate} />
 						<ShareWidget />
 					</div>
 					<PostPreview initialContent={post.content} />
@@ -93,7 +104,22 @@ export async function generateMetadata({ params }: PostPageProps) {
 	const { id } = await params;
 	const supabase = await createClient();
 
-	const { data: post, error } = await supabase.from("posts").select("*").eq("id", id).single();
+	const { data: post, error } = await supabase
+		.from("posts")
+		.select(`
+			*,
+			authors (
+				id,
+				name,
+				bio,
+				image_url,
+				website_url,
+				social_links,
+				slug
+			)
+		`)
+		.eq("id", id)
+		.single();
 
 	if (error || !post) {
 		notFound();
