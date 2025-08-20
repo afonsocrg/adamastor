@@ -54,16 +54,13 @@ export async function DELETE(_request: Request, routeParams: RouteParams) {
     await assertAuthenticated(supabase);
     // RLS is responsible for checking if the user is the author of the post
 
-    const result = await supabase
+    const { error: deleteError } = await supabase
       .from('posts')
       .delete()
-      .eq('id', id)
-      .single();
+      .eq('id', id);
 
-    const { data: post, error: postError } = result;
-
-    if (postError || !post) {
-      console.error('Failed to delete post', { postError });
+    if (deleteError) {
+      console.error('Failed to delete post', { deleteError });
       throw new BadRequestError('Failed to delete post');
     }
 

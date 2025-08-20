@@ -8,8 +8,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/tailwind/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/tailwind/ui/alert-dialog";
+import {
   Copy,
   Ellipsis,
+  Trash2,
   Eye,
   EyeOff,
   Globe,
@@ -157,17 +169,45 @@ export function PostActions({ post }: PostActionsProps) {
             Publish
           </DropdownMenuItem>
         )}
-        {/* <DropdownMenuItem
-            onSelect={() => handleAction('delete', onDelete)}
-            className="flex items-center gap-2 text-red-600 focus:bg-red-50 cursor-pointer"
-            disabled={loadingAction === 'delete'}
-          >
-            {loadingAction === 'delete' ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4" />
-            )} Delete
-          </DropdownMenuItem> */}
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <div className="flex items-center gap-2 text-red-600 cursor-pointer">
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </div>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the post "{post.title}".
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => handleAction(e, 'delete', onDelete)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={loadingAction === 'delete'}
+                >
+                  {loadingAction === 'delete' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete'
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
