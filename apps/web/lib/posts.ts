@@ -3,6 +3,7 @@ import type { JSONContent } from "novel";
 export interface Post {
   id: string;
   title: string;
+  slug: string;
   date: string;
   content: JSONContent;
   is_public: boolean;
@@ -11,14 +12,15 @@ export interface Post {
 interface CreatePostArgs {
   title: string;
   content: JSONContent;
+  slug?: string;
 }
-export async function createPost({ title, content }: CreatePostArgs) {
+export async function createPost({ title, content, slug }: CreatePostArgs) {
   const response = await fetch('/api/posts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ title, content }),
+    body: JSON.stringify({ title, content, slug }),
   });
 
   if (!response.ok) {
@@ -32,13 +34,14 @@ interface UpdatePostArgs {
   id: string;
   title?: string;
   content?: JSONContent;
+  slug?: string;
   is_public?: boolean;
 }
-export async function updatePost({ id, title, content, is_public }: UpdatePostArgs) {
+export async function updatePost({ id, title, content, slug, is_public }: UpdatePostArgs) {
   const response = await fetch(`/api/posts/${id}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content, is_public }),
+    body: JSON.stringify({ title, content, slug, is_public }),
   });
 
   if (!response.ok) {

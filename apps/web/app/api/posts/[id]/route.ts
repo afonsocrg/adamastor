@@ -2,11 +2,13 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { handleError, BadRequestError } from '@/lib/errors';
 import { assertAuthenticated } from '@/lib/supabase/authentication'
+import { generateUniqueSlug, ensureUniqueSlug, isValidSlug } from '@/lib/slugs';
 import type { RouteParams } from './types';
 
 export interface UpdatePostBody {
   title?: string;
   content?: string;
+  slug?: string;
   is_public?: boolean;
 }
 
@@ -19,9 +21,23 @@ export async function POST(request: Request, routeParams: RouteParams) {
     
     // RLS is responsible for checking if the user is the author of the post
 
-    const { title, content, is_public }: UpdatePostBody = await request.json();
+    const { title, content, slug: customSlug, is_public }: UpdatePostBody = await request.json();
 
-    const updatePayload = { content, title, is_public }
+    // Handle slug logic
+    let slug = customSlug;
+    if (title && !customSlug) {
+      // If title changed but no custom slug provided, generate new one
+      slug = await generateUniqueSlug(title, id);
+    } else if (customSlug) {
+      // Validate custom slug format
+      if (!isValidSlug(customSlug)) {
+        throw new BadRequestError('Invalid slug format');
+      }
+      // Ensure custom slug is unique
+      slug = await ensureUniqueSlug(customSlug, id);
+    }
+
+    const updatePayload = { content, title, slug, is_public }
 
     // 5. Update post
     const { data: updatedPost, error: updateError } = await supabase

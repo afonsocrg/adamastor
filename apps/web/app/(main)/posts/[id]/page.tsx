@@ -28,16 +28,10 @@ import {
 import { DeleteButton } from "./DeleteButton";
 import { FeedbackForm } from "./feedbackForm";
 
-interface PostPageProps {
-	params: Promise<{ id: string }>;
-}
-
-export default async function PostPage({ params }: PostPageProps) {
-	const { id } = await params;
+async function getPostByIdOrSlug(idOrSlug: string) {
 	const supabase = await createClient();
-	const user = await getUserProfile(supabase);
-
-	const { data: post, error } = await supabase
+	const isNumeric = /^\d+$/.test(idOrSlug);
+	const query = supabase
 		.from("posts")
 		.select(`
 			*,
@@ -50,9 +44,23 @@ export default async function PostPage({ params }: PostPageProps) {
 				social_links,
 				slug
 			)
-		`)
-		.eq("id", id)
-		.single();
+		`);
+
+	return isNumeric
+		? await query.eq("id", parseInt(idOrSlug, 10)).single()
+		: await query.eq("slug", idOrSlug).single();
+}
+
+interface PostPageProps {
+	params: Promise<{ id: string }>;
+}
+
+export default async function PostPage({ params }: PostPageProps) {
+	const { id } = await params;
+	const supabase = await createClient();
+	const user = await getUserProfile(supabase);
+
+	const { data: post, error } = await getPostByIdOrSlug(id);
 
 	if (error || !post) {
 		notFound();
@@ -102,24 +110,8 @@ export default async function PostPage({ params }: PostPageProps) {
 
 export async function generateMetadata({ params }: PostPageProps) {
 	const { id } = await params;
-	const supabase = await createClient();
 
-	const { data: post, error } = await supabase
-		.from("posts")
-		.select(`
-			*,
-			authors (
-				id,
-				name,
-				bio,
-				image_url,
-				website_url,
-				social_links,
-				slug
-			)
-		`)
-		.eq("id", id)
-		.single();
+	const { data: post, error } = await getPostByIdOrSlug(id);
 
 	if (error || !post) {
 		notFound();

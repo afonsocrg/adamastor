@@ -119,7 +119,7 @@ export function PostActions({ post }: PostActionsProps) {
           className="flex items-center gap-2 cursor-pointer"
         >
           <Link
-            href={`/posts/${post.id}`}
+            href={`/posts/${post.slug}`}
             className="flex items-center gap-2 cursor-pointer"
           >
             <Eye className="w-4 h-4" /> Preview

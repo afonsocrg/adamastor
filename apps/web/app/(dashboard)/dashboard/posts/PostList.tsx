@@ -4,6 +4,7 @@ import { PostActions } from "./PostAction";
 export interface Post {
   id: string;
   title: string;
+  slug: string;
   is_public: boolean;
 }
 

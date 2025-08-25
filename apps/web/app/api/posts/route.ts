@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { generateUniqueSlug, ensureUniqueSlug } from '@/lib/slugs';
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
     if (userError) throw userError;
 
     const body = await request.json();
-    const { title, content } = body;
+    const { title, content, slug: customSlug } = body;
 
     // Get the author_id for the current user, fallback to system author
     const { data: authorData } = await supabase
@@ -19,12 +20,16 @@ export async function POST(request: Request) {
 
     const author_id = authorData?.id || '8a3ac70b-7f88-4767-b88a-0645bfdaf817';
 
+    // Generate unique slug
+    const slug = customSlug ? await ensureUniqueSlug(customSlug) : await generateUniqueSlug(title);
+
     const { data, error } = await supabase
       .from('posts')
       .insert([
         { 
           title, 
           content,
+          slug,
           is_public: true,
           created_by: user.id,
           author_id
