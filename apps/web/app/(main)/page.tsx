@@ -71,7 +71,7 @@ export default async function Home() {
             return (
               <article className="group" key={post.id}>
                 <Link
-                  href={`/posts/${post.slug}`}
+                  href={`/posts/${post.id}`}
                   className="flex flex-col sm:px-4 py-4 rounded-lg hover:bg-accent/50 transition-all animate-in"
                 >
                   <div className="flex gap-8 align-top">
@@ -99,7 +99,7 @@ export default async function Home() {
             return (
               <article className="group" key={post.id}>
                 <Link
-                  href={`/posts/${post.slug}`}
+                  href={`/posts/${post.id}`}
                   className="flex flex-col sm:px-4 py-4 rounded-lg hover:bg-accent/50 transition-all animate-in"
                 >
                   <div className="flex gap-8 align-top">
