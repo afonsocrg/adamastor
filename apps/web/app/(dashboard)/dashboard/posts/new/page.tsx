@@ -10,6 +10,7 @@ import { generateSlug } from "@/lib/slug-utils";
 import { useRouter } from "next/navigation";
 import type { JSONContent } from "novel";
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { publishPost, saveDraft } from "./actions";
 
 const SAVED_DRAFT_KEY = "savedDraft";
@@ -68,13 +69,14 @@ export default function NewPostPage() {
     try {
       setIsSaving(true);
       const post = await saveDraft(title, savedDraft, slug);
+      toast.success("Draft saved successfully");
       router.push(`/dashboard/posts/${post.id}/edit`);
       setTitle("");
       setSlug("");
       setSavedDraft({});
     } catch (error) {
       console.error('Error saving draft:', error);
-      // You could add toast notification here
+      toast.error("Failed to save draft");
     } finally {
       setIsSaving(false);
     }
@@ -91,7 +93,7 @@ export default function NewPostPage() {
       router.push(`/`);
     } catch (error) {
       console.error('Error publishing post:', error);
-      // You could add toast notification here
+      toast.error("Failed to publish post");
     } finally {
       setIsPublishing(false);
     }
