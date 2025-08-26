@@ -35,7 +35,7 @@ async function createPost(title: string, content: JSONContent, isPublic: boolean
     
   if (error) {
     console.error('Error creating post:', error);
-    throw new Error('Failed to create post');
+    throw new Error(error.message);
   }
 
   revalidatePath('/', 'page');

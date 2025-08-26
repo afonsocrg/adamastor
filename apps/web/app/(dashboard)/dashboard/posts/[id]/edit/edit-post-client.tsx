@@ -5,6 +5,7 @@ import { type Post, updatePost, publishPost, unpublishPost } from "@/lib/posts";
 import type { JSONContent } from "novel";
 import { ActionButton } from "@/components/ActionButton";
 import { useMemo, useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/tailwind/ui/skeleton"; // Assuming this is where your skeleton component is
 
 interface EditPostClientProps {
@@ -75,22 +76,52 @@ export default function EditPostClient({ post }: EditPostClientProps) {
   }, [titleState, content]);
 
   const handleSavePost = async () => {
-    const response = await updatePost({
-      id: post.id,
-      title: titleState,
-      content,
-    });
-    setInitialPostHash(hashPost(titleState, content));
+    try {
+      const response = await updatePost({
+        id: post.id,
+        title: titleState,
+        content,
+      });
+      if (response.ok) {
+        toast.success(isPublished ? "Post saved successfully" : "Draft saved successfully");
+        setInitialPostHash(hashPost(titleState, content));
+      } else {
+        toast.error("Failed to save post");
+      }
+    } catch (error) {
+      console.error('Error saving post:', error);
+      toast.error("Failed to save post");
+    }
   };
 
   const handlePublishPost = async () => {
-    const response = await publishPost({ id: post.id });
-    setIsPublished(true);
+    try {
+      const response = await publishPost({ id: post.id });
+      if (response.ok) {
+        toast.success("Post published successfully");
+        setIsPublished(true);
+      } else {
+        toast.error("Failed to publish post");
+      }
+    } catch (error) {
+      console.error('Error publishing post:', error);
+      toast.error("Failed to publish post");
+    }
   };
 
   const handleUnpublishPost = async () => {
-    const response = await unpublishPost({ id: post.id });
-    setIsPublished(false);
+    try {
+      const response = await unpublishPost({ id: post.id });
+      if (response.ok) {
+        toast.success("Post unpublished successfully");
+        setIsPublished(false);
+      } else {
+        toast.error("Failed to unpublish post");
+      }
+    } catch (error) {
+      console.error('Error unpublishing post:', error);
+      toast.error("Failed to unpublish post");
+    }
   };
 
   // This function is called whenever there is a change in the editor
