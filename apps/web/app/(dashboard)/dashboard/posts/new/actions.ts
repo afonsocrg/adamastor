@@ -4,9 +4,10 @@ import { assertAuthenticated } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { generateUniqueSlug } from "@/lib/slugs";
 import type { JSONContent } from "novel";
 
-async function createPost(title: string, content: JSONContent, isPublic: boolean) {
+async function createPost(title: string, content: JSONContent, isPublic: boolean, slug?: string) {
   const supabase = await createClient();
   const user = await assertAuthenticated(supabase);
 
@@ -19,12 +20,16 @@ async function createPost(title: string, content: JSONContent, isPublic: boolean
 
   const author_id = authorData?.id || '8a3ac70b-7f88-4767-b88a-0645bfdaf817';
   
+  // Generate slug if not provided
+  const finalSlug = slug || await generateUniqueSlug(title);
+  
   const { data: post, error } = await supabase
       .from('posts')
       .insert([
         { 
           title, 
           content,
+          slug: finalSlug,
           is_public: isPublic,
           created_by: user.id,
           author_id
@@ -42,10 +47,10 @@ async function createPost(title: string, content: JSONContent, isPublic: boolean
   return post;
 }
 
-export async function publishPost(title: string, content: JSONContent) {
-  return await createPost(title, content, true);
+export async function publishPost(title: string, content: JSONContent, slug?: string) {
+  return await createPost(title, content, true, slug);
 }
 
-export async function saveDraft(title: string, content: JSONContent) {
-  return await createPost(title, content, false);
+export async function saveDraft(title: string, content: JSONContent, slug?: string) {
+  return await createPost(title, content, false, slug);
 }
