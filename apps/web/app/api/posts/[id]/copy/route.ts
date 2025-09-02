@@ -21,6 +21,14 @@ export async function POST(request: Request, routeParams: RouteParams) {
       console.error('Failed to get post', { postError });
       throw new BadRequestError('Failed to get post');
     }
+
+    // Get the author_id for the current user, fallback to system author
+    const { data: authorData } = await supabase
+      .from('authors')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+    const author_id = authorData?.id || '8a3ac70b-7f88-4767-b88a-0645bfdaf817';
  
     // if (post.author_id !== user.id) {
     //   throw new UnauthorizedError('You are not the author of this post');
@@ -32,7 +40,8 @@ export async function POST(request: Request, routeParams: RouteParams) {
         title: `[Copy] ${post.title}`,
         content: post.content,
         is_public: false,
-        author_id: user.id,
+        created_by: user.id,
+        author_id,
       })
       .select()
       .single();
