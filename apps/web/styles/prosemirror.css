@@ -210,3 +210,12 @@ span[style] > strong {
 mark[style] > strong {
   color: inherit;
 }
+
+/* Remove extra quotation marks from blockquotes added by @tailwindcss/typography */
+.prose blockquote p:first-of-type::before {
+  content: none;
+}
+
+.prose blockquote p:last-of-type::after {
+  content: none;
+}
