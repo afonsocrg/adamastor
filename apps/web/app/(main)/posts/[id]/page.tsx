@@ -26,14 +26,13 @@ import {
 	Youtube,
 } from "novel";
 import { DeleteButton } from "./DeleteButton";
+import { SubscribeForm } from "./SubscribeForm";
 import { FeedbackForm } from "./feedbackForm";
 
 async function getPostByIdOrSlug(idOrSlug: string) {
 	const supabase = await createClient();
 	const isNumeric = /^\d+$/.test(idOrSlug);
-	const query = supabase
-		.from("posts")
-		.select(`
+	const query = supabase.from("posts").select(`
 			*,
 			authors (
 				id,
@@ -47,7 +46,7 @@ async function getPostByIdOrSlug(idOrSlug: string) {
 		`);
 
 	return isNumeric
-		? await query.eq("id", parseInt(idOrSlug, 10)).single()
+		? await query.eq("id", Number.parseInt(idOrSlug, 10)).single()
 		: await query.eq("slug", idOrSlug).single();
 }
 
@@ -98,8 +97,10 @@ export default async function PostPage({ params }: PostPageProps) {
 					</div>
 					<div className="flex justify-between items-start mt-6">
 						<AuthorCard author={post.authors} publishedAt={formattedPublishedDate} />
+
 						<ShareWidget />
 					</div>
+					<SubscribeForm />
 					<PostPreview initialContent={post.content} />
 					<FeedbackForm />
 				</div>

@@ -88,7 +88,7 @@ export async function GET(request: Request) {
 			fonts: [
 				{
 					name: "Instrument Serif",
-					data: await loadGoogleFont("Instrument Serif", title),
+					data: await loadGoogleFont("Inter", title),
 					style: "normal",
 				},
 				{

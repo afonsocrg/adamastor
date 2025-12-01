@@ -57,6 +57,8 @@
     }
   },
   "dependencies": {
-    "@radix-ui/react-context-menu": "^2.2.16"
+    "@radix-ui/react-context-menu": "^2.2.16",
+    "@react-email/components": "^1.0.1",
+    "resend": "^6.5.2"
   }
 }
