@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, CalendarIcon, DatabaseIcon, Frame, Map, NewspaperIcon, PieChart } from "lucide-react";
+import { Bot, CalendarIcon, DatabaseIcon, Frame, MailIcon, NewspaperIcon, PieChart } from "lucide-react";
 import type * as React from "react";
 
 import { NavMain } from "@/components/nav-main";
@@ -70,6 +70,11 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
 				title: "Analytics",
 				url: "/dashboard/analytics",
 				icon: DatabaseIcon,
+			},
+			{
+				title: "Subscribers",
+				url: "/dashboard/subscribers",
+				icon: MailIcon,
 			},
 		],
 		navSecondary: [],
