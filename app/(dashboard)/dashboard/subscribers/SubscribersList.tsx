@@ -134,7 +134,7 @@ export function SubscribersList() {
 											: "—"}
 									</TableCell>
 									<TableCell>
-										<Badge variant={contact.unsubscribed ? "secondary" : "default"}>
+										<Badge className="rounded-md" variant={contact.unsubscribed ? "secondary" : "outline"}>
 											{contact.unsubscribed ? "Unsubscribed" : "Subscribed"}
 										</Badge>
 									</TableCell>

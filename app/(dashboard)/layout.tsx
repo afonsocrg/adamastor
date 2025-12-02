@@ -1,6 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs";
-import LoadingScreen from "@/components/loading-screen";
 import { Separator } from "@/components/tailwind/ui/separator";
 import { SidebarInset, SidebarProvider } from "@/components/tailwind/ui/sidebar";
 import { SidebarTrigger } from "@/components/tailwind/ui/sidebar";
@@ -26,7 +25,6 @@ export default async function DashboardLayout({
 
 	return (
 		<div className="min-h-screen flex">
-			<LoadingScreen />
 			<PostHogIdentifier userId={profile.id} userEmail={profile.email} />
 			<SidebarProvider>
 				<AppSidebar profile={profile} />
