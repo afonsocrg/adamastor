@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, CalendarIcon, DatabaseIcon, Frame, MailIcon, NewspaperIcon, PieChart } from "lucide-react";
+import { CalendarIcon, DatabaseIcon, Frame, MailIcon, NewspaperIcon, PieChart, TicketIcon } from "lucide-react";
 import type * as React from "react";
 
 import { NavMain } from "@/components/nav-main";
@@ -59,7 +59,7 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
 			{
 				title: "Events",
 				url: "/dashboard/add-event",
-				icon: Bot,
+				icon: TicketIcon,
 			},
 			{
 				title: "Calendar",
@@ -98,13 +98,13 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
 	};
 
 	return (
-		<Sidebar variant="inset" {...props}>
+		<Sidebar variant="floating" {...props}>
 			<SidebarHeader>
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton size="lg" asChild>
 							<a href="/">
-								<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#1DCEDB] text-sidebar-primary-foreground" />
+								<div className="flex aspect-square size-8 items-center justify-center rounded-full bg-[#1DCEDB] text-sidebar-primary-foreground" />
 								<div className="grid flex-1 text-left text-sm leading-tight">
 									<span className="truncate font-semibold">Adamastor</span>
 								</div>
