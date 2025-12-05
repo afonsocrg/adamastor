@@ -1,28 +1,10 @@
 import { ImageResponse } from "next/og";
-// App router includes @vercel/og.
-// No need to install it.
-
-async function loadGoogleFont(font: string, text: string, italic = false, weight = 400) {
-	const italParam = italic ? "1" : "0";
-	const url = `https://fonts.googleapis.com/css2?family=${font}:ital,wght@${italParam},${weight}&text=${encodeURIComponent(
-		text,
-	)}`;
-	const css = await (await fetch(url)).text();
-	const resource = css.match(/src: url\((.+)\) format\('(opentype|truetype)'\)/);
-
-	if (resource) {
-		const response = await fetch(resource[1]);
-		if (response.status == 200) {
-			return await response.arrayBuffer();
-		}
-	}
-
-	throw new Error("failed to load font data");
-}
 
 export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url);
-	const title = searchParams.get("title");
+	// We're omitting everything that follows "| week x" in order
+	// to make the image preview friendlier.
+	const title = searchParams.get("title").split("|")[0];
 	const url = "Adamastor";
 
 	const baseUrl = new URL(request.url).origin;
@@ -37,7 +19,7 @@ export async function GET(request: Request) {
 		<div
 			style={{
 				display: "flex",
-				fontSize: 125,
+				fontSize: 105,
 				color: "#056166",
 				background: "#DFF6F8",
 				width: "100%",
@@ -99,4 +81,22 @@ export async function GET(request: Request) {
 			],
 		},
 	);
+}
+
+async function loadGoogleFont(font: string, text: string, italic = false, weight = 400) {
+	const italParam = italic ? "1" : "0";
+	const url = `https://fonts.googleapis.com/css2?family=${font}:ital,wght@${italParam},${weight}&text=${encodeURIComponent(
+		text,
+	)}`;
+	const css = await (await fetch(url)).text();
+	const resource = css.match(/src: url\((.+)\) format\('(opentype|truetype)'\)/);
+
+	if (resource) {
+		const response = await fetch(resource[1]);
+		if (response.status === 200) {
+			return await response.arrayBuffer();
+		}
+	}
+
+	throw new Error("failed to load font data");
 }
