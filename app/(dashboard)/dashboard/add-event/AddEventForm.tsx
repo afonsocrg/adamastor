@@ -41,8 +41,8 @@ const urlFormSchema = z.object({
 const formSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
-	url: z.string().url("Please enter a valid URL"),
-	bannerUrl: z.string().url("Please enter a valid banner URL"),
+	url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+	bannerUrl: z.string().url("Please enter a valid banner URL").optional(),
 	startTime: z.string().min(1, "Start time is required"),
 	city: z.string().min(1, "City is required"),
 });
@@ -90,6 +90,7 @@ export default function AddEventForm() {
 
 	const eventForm = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
+
 		defaultValues: defaultEventFormValues,
 	});
 
@@ -104,12 +105,7 @@ export default function AddEventForm() {
 
 	// Check if the event form is valid
 	const isEventFormValid =
-		formValues.title &&
-		formValues.description &&
-		formValues.url &&
-		formValues.bannerUrl &&
-		formValues.startTime &&
-		formValues.city;
+		formValues.title && formValues.description && formValues.url && formValues.startTime && formValues.city;
 
 	// Animation on mount
 	useEffect(() => {
@@ -128,13 +124,13 @@ export default function AddEventForm() {
 				const { title, description, url, bannerUrl, startTime, city } = result.data;
 
 				// Animate form population
-				eventForm.setValue("title", title);
+				eventForm.setValue("title", title ?? "");
 				await new Promise((resolve) => setTimeout(resolve, 50));
-				eventForm.setValue("description", description);
+				eventForm.setValue("description", description ?? "");
 				await new Promise((resolve) => setTimeout(resolve, 50));
-				eventForm.setValue("url", url);
+				eventForm.setValue("url", url ?? "");
 				await new Promise((resolve) => setTimeout(resolve, 50));
-				eventForm.setValue("bannerUrl", bannerUrl);
+				eventForm.setValue("bannerUrl", bannerUrl ?? "");
 				await new Promise((resolve) => setTimeout(resolve, 50));
 				eventForm.setValue(
 					"startTime",
