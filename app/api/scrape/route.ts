@@ -11,7 +11,7 @@ interface Event {
 	description?: string;
 	url?: string;
 	bannerUrl?: string;
-	startTime?: Date;
+	startTime?: string; // -M: changed this from Date to string.
 	city?: string;
 }
 
@@ -162,7 +162,7 @@ function extractDefaultEventData(html: string, originalUrl: string): Event {
  * @param html - Raw HTML string from Eventbrite
  * @returns Structured event data with start time
  */
-function extractEventbriteData(html: string): Event {
+function extractEventbriteData(html: string, originalUrl: string): Event {
 	const metadata = extractMetadata(html);
 
 	// Parse the ISO timestamp from the event:start_time meta tag
@@ -172,26 +172,26 @@ function extractEventbriteData(html: string): Event {
 		// Prefer og:title over page title for Eventbrite
 		title: metadata.ogTitle || metadata.title,
 		description: metadata.ogDescription || metadata.description,
-		url: metadata.ogUrl,
+		url: metadata.ogUrl || originalUrl,
 		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
-		startTime: eventStartTime,
+		startTime: metadata.eventStartTime, // M: I'm now keeping this as a string.
 	};
 }
 
 /**
- * Specialized extraction for Lu.ma event pages.
- * Lu.ma appends " · Luma" to page titles which we want to remove.
+ * Specialized extraction for Luma event pages.
+ * Luma appends " · Luma" to page titles which we want to remove.
  *
- * @param html - Raw HTML string from Lu.ma
+ * @param html - Raw HTML string from Luma
  * @returns Structured event data with cleaned title
  */
-function extractLumaData(html: string): Event {
+function extractLumaData(html: string, originalUrl: string): Event {
 	const metadata = extractMetadata(html);
 	return {
 		// Remove the " · Luma" branding from the title
 		title: metadata.title.replace(" · Luma", ""),
 		description: metadata.description,
-		url: metadata.ogUrl,
+		url: metadata.ogUrl || originalUrl,
 		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
 		startTime: metadata.eventStartTime,
 	};
@@ -231,10 +231,10 @@ export async function POST(request: NextRequest) {
 		let metadata: Event;
 		if (url.includes("eventbrite.")) {
 			console.log("Detected Eventbrite URL. Scraping Eventbrite data...");
-			metadata = extractEventbriteData(html);
-		} else if (url.includes("lu.ma")) {
+			metadata = extractEventbriteData(html, url);
+		} else if (url.includes("luma")) {
 			console.log("Detected Lu.ma URL. Scraping Lu.ma data...");
-			metadata = extractLumaData(html);
+			metadata = extractLumaData(html, url);
 		} else {
 			console.log("Did not detect any special event URL. Using default metadata extraction...");
 			metadata = extractDefaultEventData(html, url);
