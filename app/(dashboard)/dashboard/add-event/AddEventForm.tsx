@@ -18,21 +18,9 @@ import { useEffect, useState } from "react";
 import { type UseFormReturn, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { detectCityFromText } from "./city-mappings";
 
 const TIMEZONE = "Europe/Lisbon";
-
-const CITY_MAPPINGS = {
-	lisboa: ["lisboa", "lisbon", "lx"],
-	porto: ["porto", "oporto"],
-	online: ["online", "virtual", "remote", "zoom"],
-	algarve: ["algarve", "faro", "albufeira", "portimão", "portimao"],
-	aveiro: ["aveiro"],
-	braga: ["braga"],
-	coimbra: ["coimbra"],
-	guimaraes: ["guimarães", "guimaraes"],
-	leiria: ["leiria"],
-	viseu: ["viseu"],
-};
 
 const urlFormSchema = z.object({
 	url: z.string().url("Please enter a valid URL"),
@@ -430,7 +418,7 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 						render={({ field }) => {
 							// Check if there's a city in the title
 							const titleValue = form.watch("title");
-							const detectedCity = detectCityInText(titleValue);
+							const detectedCity = detectCityFromText(titleValue);
 							const showCityHelper = detectedCity && field.value !== detectedCity.value;
 
 							return (
@@ -552,22 +540,4 @@ function EventPreview({ title, description, url, bannerUrl }: EventPreviewProps)
 			</CardContent>
 		</Card>
 	);
-}
-
-// Helper function to detect city in text
-function detectCityInText(text: string): { value: string; display: string } | null {
-	const lowerText = text.toLowerCase();
-
-	for (const [value, variations] of Object.entries(CITY_MAPPINGS)) {
-		for (const variation of variations) {
-			if (lowerText.includes(variation)) {
-				return {
-					value,
-					display: value.charAt(0).toUpperCase() + value.slice(1),
-				};
-			}
-		}
-	}
-
-	return null;
 }

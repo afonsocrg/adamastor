@@ -1,3 +1,4 @@
+import { detectCityFromText } from "@/app/(dashboard)/dashboard/add-event/city-mappings";
 import type { MetadataResult } from "@/app/types";
 import { type CheerioAPI, load } from "cheerio";
 import { type NextRequest, NextResponse } from "next/server";
@@ -164,9 +165,20 @@ function extractDefaultEventData(html: string, originalUrl: string): Event {
  */
 function extractEventbriteData(html: string, originalUrl: string): Event {
 	const metadata = extractMetadata(html);
+	const $ = load(html);
 
-	// Parse the ISO timestamp from the event:start_time meta tag
-	const eventStartTime = metadata.eventStartTime ? new Date(metadata.eventStartTime) : undefined;
+	// Extract location from the address section using stable heading ID
+	let city: string | undefined;
+	const locationSection = $("#location-heading").parent().next();
+	if (locationSection.length > 0) {
+		const addressLines: string[] = [];
+		locationSection.find("p").each((_, el) => {
+			const text = $(el).text().trim();
+			if (text) addressLines.push(text);
+		});
+		const fullAddress = addressLines.join(" ");
+		city = detectCityFromText(fullAddress)?.value;
+	}
 
 	return {
 		// Prefer og:title over page title for Eventbrite
@@ -175,6 +187,7 @@ function extractEventbriteData(html: string, originalUrl: string): Event {
 		url: metadata.ogUrl || originalUrl,
 		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
 		startTime: metadata.eventStartTime, // M: I'm now keeping this as a string.
+		city,
 	};
 }
 
@@ -187,13 +200,42 @@ function extractEventbriteData(html: string, originalUrl: string): Event {
  */
 function extractLumaData(html: string, originalUrl: string): Event {
 	const metadata = extractMetadata(html);
+	const $ = load(html);
+
+	let city: string | undefined;
+	let startTime: string | undefined;
+
+	// Luma uses JSON-LD structured data
+	const jsonLdScript = $('script[type="application/ld+json"]').first().html();
+	if (jsonLdScript) {
+		try {
+			const jsonLd = JSON.parse(jsonLdScript);
+
+			// Extract city from location
+			const address =
+				jsonLd?.location?.address?.addressLocality ||
+				jsonLd?.location?.address?.addressRegion ||
+				jsonLd?.location?.name;
+			if (address) {
+				city = detectCityFromText(address)?.value;
+			}
+
+			// Extract start time (Schema.org uses startDate)
+			if (jsonLd?.startDate) {
+				startTime = jsonLd.startDate;
+			}
+		} catch (e) {
+			// JSON parse failed, continue with fallbacks
+		}
+	}
+
 	return {
-		// Remove the " · Luma" branding from the title
 		title: metadata.title.replace(" · Luma", ""),
 		description: metadata.description,
 		url: metadata.ogUrl || originalUrl,
 		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
-		startTime: metadata.eventStartTime,
+		startTime: startTime || metadata.eventStartTime,
+		city,
 	};
 }
 
