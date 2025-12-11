@@ -137,6 +137,50 @@ function extractMetadata(html: string): MetadataResult {
 }
 
 /**
+ * Extracts event data from JSON-LD structured data (Schema.org Event format).
+ * Returns partial event data that can be merged with other sources.
+ */
+function extractFromJsonLd($: CheerioAPI): Partial<Event> {
+	const scripts = $('script[type="application/ld+json"]');
+
+	for (let i = 0; i < scripts.length; i++) {
+		try {
+			const jsonLd = JSON.parse($(scripts[i]).html() || "");
+
+			// Handle both single objects and arrays of objects
+			const data = Array.isArray(jsonLd)
+				? jsonLd.find((item) => item["@type"] === "Event")
+				: jsonLd["@type"] === "Event"
+					? jsonLd
+					: null;
+
+			if (!data) continue;
+
+			// Extract city from location
+			let city: string | undefined;
+			const address = data?.location?.address;
+			if (typeof address === "string") {
+				city = detectCityFromText(address)?.value;
+			} else if (address?.addressLocality || address?.addressRegion) {
+				city = detectCityFromText(`${address.addressLocality || ""} ${address.addressRegion || ""}`)?.value;
+			} else if (data?.location?.name) {
+				city = detectCityFromText(data.location.name)?.value;
+			}
+
+			return {
+				title: data.name,
+				description: data.description,
+				startTime: data.startDate,
+				bannerUrl: typeof data.image === "string" ? data.image : data.image?.[0],
+				city,
+			};
+		} catch (e) {}
+	}
+
+	return {};
+}
+
+/**
  * Default extraction strategy for generic websites.
  * Used when the URL doesn't match any known event platform.
  *
@@ -146,13 +190,17 @@ function extractMetadata(html: string): MetadataResult {
  */
 function extractDefaultEventData(html: string, originalUrl: string): Event {
 	const metadata = extractMetadata(html);
+	const $ = load(html);
+	const jsonLdData = extractFromJsonLd($);
 	return {
-		title: metadata.title,
-		description: metadata.description,
+		title: cleanEventTitle(jsonLdData.title || metadata.ogTitle || metadata.title || ""),
+		description: jsonLdData.description || metadata.ogDescription || metadata.description,
 		// Fall back to original URL if og:url meta tag is missing
 		url: metadata.ogUrl || originalUrl,
 		// Try OG image first, then Twitter image
 		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
+		startTime: jsonLdData.startTime || metadata.eventStartTime,
+		city: jsonLdData.city,
 	};
 }
 
@@ -201,41 +249,15 @@ function extractEventbriteData(html: string, originalUrl: string): Event {
 function extractLumaData(html: string, originalUrl: string): Event {
 	const metadata = extractMetadata(html);
 	const $ = load(html);
-
-	let city: string | undefined;
-	let startTime: string | undefined;
-
-	// Luma uses JSON-LD structured data
-	const jsonLdScript = $('script[type="application/ld+json"]').first().html();
-	if (jsonLdScript) {
-		try {
-			const jsonLd = JSON.parse(jsonLdScript);
-
-			// Extract city from location
-			const address =
-				jsonLd?.location?.address?.addressLocality ||
-				jsonLd?.location?.address?.addressRegion ||
-				jsonLd?.location?.name;
-			if (address) {
-				city = detectCityFromText(address)?.value;
-			}
-
-			// Extract start time (Schema.org uses startDate)
-			if (jsonLd?.startDate) {
-				startTime = jsonLd.startDate;
-			}
-		} catch (e) {
-			// JSON parse failed, continue with fallbacks
-		}
-	}
+	const jsonLdData = extractFromJsonLd($);
 
 	return {
-		title: metadata.title.replace(" · Luma", ""),
-		description: metadata.description,
+		title: cleanEventTitle((metadata.title || "").replace(" · Luma", "")),
+		description: jsonLdData.description || metadata.description,
 		url: metadata.ogUrl || originalUrl,
-		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
-		startTime: startTime || metadata.eventStartTime,
-		city,
+		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url || jsonLdData.bannerUrl,
+		startTime: jsonLdData.startTime || metadata.eventStartTime,
+		city: jsonLdData.city,
 	};
 }
 
@@ -287,4 +309,31 @@ export async function POST(request: NextRequest) {
 		console.error("Error in scrape API:", error);
 		return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
 	}
+}
+
+/**
+ * Cleans common prefixes/suffixes from event titles.
+ * Removes things like "[Online]", "(Virtual)", "🌐", etc.
+ */
+function cleanEventTitle(title: string): string {
+	return (
+		title
+			// Remove bracketed online indicators
+			.replace(/\[online\]/gi, "")
+			.replace(/\[virtual\]/gi, "")
+			.replace(/\[remote\]/gi, "")
+			.replace(/\[webinar\]/gi, "")
+			// Remove parenthesized online indicators
+			.replace(/\(online\)/gi, "")
+			.replace(/\(virtual\)/gi, "")
+			.replace(/\(remote\)/gi, "")
+			.replace(/\(webinar\)/gi, "")
+			// Remove common emoji indicators
+			.replace(/🌐/g, "")
+			.replace(/💻/g, "")
+			.replace(/🖥️/g, "")
+			// Clean up extra whitespace
+			.replace(/\s+/g, " ")
+			.trim()
+	);
 }
