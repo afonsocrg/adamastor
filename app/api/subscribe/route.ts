@@ -1,5 +1,6 @@
 import { EmailTemplate } from "@/components/email/email-template";
 import { SubscribeEmailAlertTemplate } from "@/components/email/team/subscribe-alert";
+import { waitUntil } from "@vercel/functions";
 import type { NextRequest } from "next/server";
 import { Resend } from "resend";
 
@@ -52,30 +53,33 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Send team notification and get subscriber count in the background
-		// Don't await - let it happen after response is sent
-		(async () => {
-			try {
-				await delay(500);
+		// Don't await - let it happen after response is sent.
+		// We're using a Vercel specific function, waitUntil for that.
+		waitUntil(
+			(async () => {
+				try {
+					await delay(500);
 
-				const { data: contacts } = await resend.contacts.list();
-				const totalSubscribers = contacts?.data?.length;
+					const { data: contacts } = await resend.contacts.list();
+					const totalSubscribers = contacts?.data?.length;
 
-				await delay(500);
+					await delay(500);
 
-				await resend.emails.send({
-					from: "hi@digest.adamastor.blog",
-					to: TEAM_EMAILS,
-					subject: `New subscriber: ${firstName} just joined!`,
-					react: SubscribeEmailAlertTemplate({
-						subscriber_name: name,
-						subscriber_email: email,
-						total_subscribers: totalSubscribers,
-					}),
-				});
-			} catch (err) {
-				console.error("Team notification error:", err);
-			}
-		})();
+					await resend.emails.send({
+						from: "hi@digest.adamastor.blog",
+						to: TEAM_EMAILS,
+						subject: `New subscriber: ${firstName} just joined!`,
+						react: SubscribeEmailAlertTemplate({
+							subscriber_name: name,
+							subscriber_email: email,
+							total_subscribers: totalSubscribers,
+						}),
+					});
+				} catch (err) {
+					console.error("Team notification error:", err);
+				}
+			})(),
+		);
 
 		// Capture event in PostHog (server-side)
 		if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
