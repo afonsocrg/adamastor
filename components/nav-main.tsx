@@ -1,10 +1,9 @@
 "use client";
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/tailwind/ui/collapsible";
+import { Collapsible } from "@/components/tailwind/ui/collapsible";
 import {
 	SidebarGroup,
 	SidebarMenu,
-	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarMenuSub,
@@ -12,7 +11,7 @@ import {
 	SidebarMenuSubItem,
 } from "@/components/tailwind/ui/sidebar";
 import { cn } from "@/lib/utils"; // Assuming you have this utility
-import { ChevronRight, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export function NavMain({
@@ -96,41 +95,28 @@ export function NavMain({
 
 								{item.items?.length ? (
 									<>
-										<CollapsibleTrigger asChild>
-											<SidebarMenuAction
-												className={cn(
-													"data-[state=open]:rotate-90 transition-transform duration-200",
-													itemActive && "text-primary",
-												)}
-											>
-												<ChevronRight />
-												<span className="sr-only">Toggle</span>
-											</SidebarMenuAction>
-										</CollapsibleTrigger>
-										<CollapsibleContent>
-											<SidebarMenuSub>
-												{item.items?.map((subItem) => {
-													const subItemActive = isSubItemActive(subItem.url);
+										<SidebarMenuSub>
+											{item.items?.map((subItem) => {
+												const subItemActive = isSubItemActive(subItem.url);
 
-													return (
-														<SidebarMenuSubItem key={subItem.title}>
-															<SidebarMenuSubButton asChild className={cn("transition-colors duration-200 p-4")}>
-																<a href={subItem.url}>
-																	<span
-																		className={cn(
-																			"transition-colors duration-200",
-																			subItemActive && "text-accent-foreground",
-																		)}
-																	>
-																		{subItem.title}
-																	</span>
-																</a>
-															</SidebarMenuSubButton>
-														</SidebarMenuSubItem>
-													);
-												})}
-											</SidebarMenuSub>
-										</CollapsibleContent>
+												return (
+													<SidebarMenuSubItem key={subItem.title}>
+														<SidebarMenuSubButton asChild className={cn("transition-colors duration-200 p-4")}>
+															<a href={subItem.url}>
+																<span
+																	className={cn(
+																		"transition-colors duration-200",
+																		subItemActive && "text-accent-foreground",
+																	)}
+																>
+																	{subItem.title}
+																</span>
+															</a>
+														</SidebarMenuSubButton>
+													</SidebarMenuSubItem>
+												);
+											})}
+										</SidebarMenuSub>
 									</>
 								) : null}
 							</SidebarMenuItem>

@@ -41,17 +41,17 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
 		user: userData,
 		navMain: [
 			{
-				title: "Posts",
+				title: "Articles",
 				url: "/dashboard/posts",
 				icon: NewspaperIcon,
 				isActive: true,
 				items: [
 					{
-						title: "My Posts",
+						title: "My Articles",
 						url: "/dashboard/posts",
 					},
 					{
-						title: "Other's Posts",
+						title: "Other Articles",
 						url: "/dashboard/posts",
 					},
 				],

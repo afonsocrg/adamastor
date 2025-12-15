@@ -15,7 +15,7 @@ export default async function ProfilePage() {
 	return (
 		<div className="w-full mx-auto p-6 animate-in">
 			<div className="flex justify-between items-center mb-6">
-				<h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Articles</h2>
+				<h2 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Articles</h2>
 				<Button
 					className="inline-flex items-center px-4 py-2 text-white transition-all duration-200 rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90"
 					asChild
@@ -25,20 +25,22 @@ export default async function ProfilePage() {
 			</div>
 
 			{isAdmin ? (
-				<Tabs defaultValue="my-posts" className="w-full">
-					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="my-posts">My Articles</TabsTrigger>
-						<TabsTrigger value="others-posts">Other Articles</TabsTrigger>
-					</TabsList>
+				<section className="w-full">
+					<Tabs defaultValue="my-posts" className="space-y-4">
+						<TabsList>
+							<TabsTrigger value="my-posts">My Articles</TabsTrigger>
+							<TabsTrigger value="others-posts">Other Articles</TabsTrigger>
+						</TabsList>
 
-					<TabsContent value="my-posts" className="animate-in">
-						<MyPosts userId={profile.id} />
-					</TabsContent>
+						<TabsContent value="my-posts" className="animate-in w-full">
+							<MyPosts userId={profile.id} />
+						</TabsContent>
 
-					<TabsContent value="others-posts" className="animate-in">
-						<OthersPosts currentUserId={profile.id} />
-					</TabsContent>
-				</Tabs>
+						<TabsContent value="others-posts" className="animate-in w-full">
+							<OthersPosts currentUserId={profile.id} />
+						</TabsContent>
+					</Tabs>
+				</section>
 			) : (
 				<MyPosts userId={profile.id} />
 			)}

@@ -152,7 +152,7 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 							<TableHead>Title</TableHead>
 							{showAuthor && <TableHead>Author</TableHead>}
 							<TableHead>Status</TableHead>
-							<TableHead>Created</TableHead>
+							<TableHead>Views</TableHead>
 							<TableHead className="text-right">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
@@ -170,22 +170,25 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 							filteredPosts.map((post) => (
 								<TableRow key={post.id}>
 									{/* Title */}
-									<TableCell className="font-medium max-w-[300px]">
-										<span className="truncate block">{post.title}</span>
+									<TableCell className="max-w-[300px] px-4 py-8">
+										<span className="font-medium truncate block">{post.title}</span>
+										<span className="text-xs text-muted-foreground">{formatRelativeDate(post.created_at)}</span>
 									</TableCell>
 
 									{/* Author (conditional) */}
 									{showAuthor && (
-										<TableCell className="text-muted-foreground">{post.author?.name ?? "Carlos Resende"}</TableCell>
+										<TableCell className="text-muted-foreground px-4 py-8">
+											{post.author?.name ?? "Carlos Resende"}
+										</TableCell>
 									)}
 
 									{/* Status Badge */}
-									<TableCell>
+									<TableCell className="px-4 py-8">
 										<Badge
 											className={
 												post.is_public
-													? "bg-cyan-100 text-cyan-700 border-cyan-200"
-													: "bg-amber-100 text-amber-700 border-amber-200"
+													? "bg-cyan-50 text-cyan-600 border-cyan-200"
+													: "bg-amber-50 text-amber-600 border-amber-200"
 											}
 											variant={post.is_public ? "outline" : "secondary"}
 										>
@@ -193,11 +196,11 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 										</Badge>
 									</TableCell>
 
-									{/* Created Date */}
-									<TableCell className="text-muted-foreground">{formatRelativeDate(post.created_at)}</TableCell>
+									{/* Number of Unique Views */}
+									<TableCell className="text-muted-foreground px-4 py-8">{/* TODO: Fetch PostHog */}22</TableCell>
 
 									{/* Actions */}
-									<TableCell className="text-right">
+									<TableCell className="text-right px-4 py-8">
 										<PostActions post={post} />
 									</TableCell>
 								</TableRow>
