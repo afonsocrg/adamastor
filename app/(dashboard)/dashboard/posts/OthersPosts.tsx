@@ -18,9 +18,21 @@ interface OthersPostsProps {
 export async function OthersPosts({ currentUserId }: OthersPostsProps) {
 	const supabase = await createClient();
 
+	// ---------------------------------------------------------------------------
+	// QUERY WITH JOIN
+	// ---------------------------------------------------------------------------
+	// The `authors (id, name)` syntax tells Supabase to JOIN with the authors table
+	// It auto-detects the FK relationship (posts.author_id → authors.id)
+	// The result will have an `authors` key with { id, name } or null
 	const { data: posts, error } = await supabase
 		.from("posts")
-		.select("*")
+		.select(`
+			*,
+			authors (
+				id,
+				name
+			)
+		`)
 		.neq("created_by", currentUserId)
 		.order("created_at", { ascending: false });
 
@@ -28,11 +40,5 @@ export async function OthersPosts({ currentUserId }: OthersPostsProps) {
 		console.error("Error fetching others' posts:", error);
 	}
 
-	return (
-		<PostsTableClient
-			posts={posts}
-			emptyMessage="No other posts found."
-			showAuthor={true} // Show author column so we know who wrote each post
-		/>
-	);
+	return <PostsTableClient posts={posts} emptyMessage="No other posts found." showAuthor={true} />;
 }

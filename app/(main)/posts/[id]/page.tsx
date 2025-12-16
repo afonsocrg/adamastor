@@ -141,9 +141,7 @@ export async function generateMetadata({ params }: PostPageProps) {
 		console.log("Continuing with default content preview");
 	}
 
-	// TODO: Generate Open Graph image with post title dynamically @malik.
-	// @malik, I think the best here would be to have a default metadata object
-	// exported somewhere, and then override its properties in each page.
+	// Generate Open Graph image with post title dynamically
 	return {
 		title: post.title,
 		description: contentPreview,
