@@ -6,24 +6,45 @@ interface OthersPostsProps {
 }
 
 /**
+ * Fetches view counts from PostHog for a list of post IDs.
+ */
+async function getPostViewCounts(postIds: string[]): Promise<Record<string, number>> {
+	if (postIds.length === 0) {
+		return {};
+	}
+
+	try {
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+		const url = `${baseUrl}/api/analytics/post-views?ids=${postIds.join(",")}`;
+
+		const response = await fetch(url, {
+			next: { revalidate: 300 },
+		});
+
+		if (!response.ok) {
+			console.error("Failed to fetch view counts:", response.status);
+			return {};
+		}
+
+		const data = await response.json();
+		return data.views || {};
+	} catch (error) {
+		console.error("Error fetching view counts:", error);
+		return {};
+	}
+}
+
+/**
  * OthersPosts - Server Component
  *
- * Fetches posts from OTHER users (not the current user).
- *
- * Key difference from MyPosts:
- * - Uses .neq() instead of .eq() to exclude current user's posts
- * - Includes author information via a JOIN
- * - Passes showAuthor={true} to display who wrote each post
+ * Fetches posts from OTHER users (not the current user) along with view counts.
  */
 export async function OthersPosts({ currentUserId }: OthersPostsProps) {
 	const supabase = await createClient();
 
-	// ---------------------------------------------------------------------------
-	// QUERY WITH JOIN
-	// ---------------------------------------------------------------------------
-	// The `authors (id, name)` syntax tells Supabase to JOIN with the authors table
-	// It auto-detects the FK relationship (posts.author_id → authors.id)
-	// The result will have an `authors` key with { id, name } or null
+	// -------------------------------------------------------------------------
+	// 1. FETCH POSTS WITH AUTHOR INFO
+	// -------------------------------------------------------------------------
 	const { data: posts, error } = await supabase
 		.from("posts")
 		.select(`
@@ -40,5 +61,19 @@ export async function OthersPosts({ currentUserId }: OthersPostsProps) {
 		console.error("Error fetching others' posts:", error);
 	}
 
-	return <PostsTableClient posts={posts} emptyMessage="No other posts found." showAuthor={true} />;
+	// -------------------------------------------------------------------------
+	// 2. FETCH VIEW COUNTS FROM POSTHOG
+	// -------------------------------------------------------------------------
+	const postIds = posts?.map((post) => String(post.id)) || [];
+	const viewCounts = await getPostViewCounts(postIds);
+
+	// -------------------------------------------------------------------------
+	// 3. MERGE DATA
+	// -------------------------------------------------------------------------
+	const postsWithViews = posts?.map((post) => ({
+		...post,
+		views: viewCounts[String(post.id)] || 0,
+	}));
+
+	return <PostsTableClient posts={postsWithViews || null} emptyMessage="No other posts found." showAuthor={true} />;
 }

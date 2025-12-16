@@ -12,11 +12,7 @@ import { PostActions } from "./PostAction";
 // =============================================================================
 
 /**
- * Post interface with optional author information from JOIN.
- *
- * IMPORTANT: Supabase returns JOIN results using the TABLE NAME as the key.
- * Since your table is called "authors", the key is "authors" (plural),
- * not "author" (singular).
+ * Post interface with author and view count information.
  */
 export interface PostWithAuthor {
 	id: string;
@@ -24,11 +20,13 @@ export interface PostWithAuthor {
 	slug: string;
 	is_public: boolean;
 	created_at: string;
-	// Key is "authors" (plural) because that's the table name in Supabase
+	// Author info from JOIN (key matches table name "authors")
 	authors?: {
 		id: string;
 		name: string;
 	} | null;
+	// View count from PostHog
+	views?: number;
 }
 
 interface PostsTableClientProps {
@@ -66,6 +64,15 @@ function formatRelativeDate(dateString: string): string {
 	});
 }
 
+/**
+ * Formats view count with locale-aware number formatting.
+ * e.g., 1234 → "1,234"
+ */
+function formatViewCount(views: number | undefined): string {
+	if (views === undefined || views === null) return "—";
+	return views.toLocaleString();
+}
+
 export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: PostsTableClientProps) {
 	const [search, setSearch] = useState("");
 
@@ -76,7 +83,6 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 		const searchLower = search.toLowerCase();
 		return posts.filter((post) => {
 			const titleMatch = post.title.toLowerCase().includes(searchLower);
-			// Note: using "authors" (plural) to match Supabase return shape
 			const authorMatch = post.authors?.name?.toLowerCase().includes(searchLower);
 			return titleMatch || authorMatch;
 		});
@@ -126,7 +132,7 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 										<span className="text-xs text-muted-foreground">{formatRelativeDate(post.created_at)}</span>
 									</TableCell>
 
-									{/* Author (conditional) - using "authors" (plural) */}
+									{/* Author (conditional) */}
 									{showAuthor && (
 										<TableCell className="text-muted-foreground px-4 py-8">{post.authors?.name ?? "—"}</TableCell>
 									)}
@@ -145,8 +151,10 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 										</Badge>
 									</TableCell>
 
-									{/* Number of Unique Views */}
-									<TableCell className="text-muted-foreground px-4 py-8">{/* TODO: Fetch PostHog */}22</TableCell>
+									{/* Unique Views from PostHog */}
+									<TableCell className="text-muted-foreground px-4 py-8 font-semibold">
+										{formatViewCount(post.views)}
+									</TableCell>
 
 									{/* Actions */}
 									<TableCell className="text-right px-4 py-8">
