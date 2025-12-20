@@ -91,7 +91,7 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 	return (
 		<div className="space-y-4">
 			{/* Search Bar */}
-			<div className="relative">
+			<div className="sticky top-1 z-10 bg-background">
 				<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 				<Input
 					placeholder="Search articles or authors"
@@ -102,11 +102,11 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 			</div>
 
 			{/* Table */}
-			<div className="border rounded-lg">
+			<div className="border rounded-lg overflow-visible">
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead>Title</TableHead>
+							<TableHead className="sticky top-0">Title</TableHead>
 							{showAuthor && <TableHead>Author</TableHead>}
 							<TableHead>Status</TableHead>
 							<TableHead>Views</TableHead>
