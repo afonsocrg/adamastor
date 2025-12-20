@@ -3,7 +3,7 @@ import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs";
 import { Separator } from "@/components/tailwind/ui/separator";
 import { SidebarInset, SidebarProvider } from "@/components/tailwind/ui/sidebar";
 import { SidebarTrigger } from "@/components/tailwind/ui/sidebar";
-import { assertAuthenticated } from "@/lib/supabase/authentication";
+import { type UserWithProfile, assertAuthenticated } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type React from "react";
@@ -16,9 +16,13 @@ export default async function DashboardLayout({
 }) {
 	// Fetch user profile data at layout level
 	const supabase = await createClient();
-	const profile = await assertAuthenticated(supabase);
+	let profile: UserWithProfile;
+	try {
+		profile = await assertAuthenticated(supabase);
+	} catch {
+		redirect("/login");
+	}
 
-	// Only allow admins to view this page
 	if (profile.role !== "admin") {
 		redirect("/dashboard");
 	}
