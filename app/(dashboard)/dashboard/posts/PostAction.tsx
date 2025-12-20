@@ -24,7 +24,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Post } from "./PostList";
+import type { PostWithAuthor as Post } from "./PostsTableClient";
 
 interface PostActionsProps {
 	post: Post;
