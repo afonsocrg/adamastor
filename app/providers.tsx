@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Analytics } from "@vercel/analytics/react";
+
 import { ThemeProvider, useTheme } from "next-themes";
 import { type Dispatch, type ReactNode, type SetStateAction, createContext } from "react";
 import { Toaster } from "sonner";
@@ -46,7 +46,6 @@ export default function Providers({ children }: { children: ReactNode }) {
 			>
 				<ToasterProvider />
 				{children}
-				<Analytics />
 			</AppContext.Provider>
 		</ThemeProvider>
 	);
