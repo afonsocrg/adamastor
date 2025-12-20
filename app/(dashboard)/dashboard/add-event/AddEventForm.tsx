@@ -14,7 +14,7 @@ import { dateTimeStringWithNoTimezoneToTzDateString, tzDateStringToDateTimeStrin
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { type UseFormReturn, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -74,7 +74,6 @@ export default function AddEventForm() {
 	const [isScraping, setIsScraping] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [hasLoadedMetadata, setHasLoadedMetadata] = useState(false);
-	const [isInitialLoad, setIsInitialLoad] = useState(true);
 
 	const eventForm = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -94,12 +93,6 @@ export default function AddEventForm() {
 	// Check if the event form is valid
 	const isEventFormValid =
 		formValues.title && formValues.description && formValues.url && formValues.startTime && formValues.city;
-
-	// Animation on mount
-	useEffect(() => {
-		const timer = setTimeout(() => setIsInitialLoad(false), 100);
-		return () => clearTimeout(timer);
-	}, []);
 
 	const handleUrlSubmit = async (values: { url: string }) => {
 		setIsScraping(true);
@@ -175,13 +168,8 @@ export default function AddEventForm() {
 	};
 
 	return (
-		<main
-			className={cn(
-				"container px-4",
-				isInitialLoad ? "opacity-0" : "animate-in fade-in-0 slide-in-from-bottom-4 duration-500",
-			)}
-		>
-			<h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center mb-6">
+		<main className={cn("container p-6 animate-fade-in")}>
+			<h2 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center mb-6">
 				Add Event to the Agenda
 			</h2>
 

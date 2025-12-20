@@ -25,8 +25,9 @@ export interface PostWithAuthor {
 		id: string;
 		name: string;
 	} | null;
-	// View count from PostHog
+	// Analytics from PostHog
 	views?: number;
+	subscriptions?: number;
 }
 
 interface PostsTableClientProps {
@@ -65,12 +66,12 @@ function formatRelativeDate(dateString: string): string {
 }
 
 /**
- * Formats view count with locale-aware number formatting.
+ * Formats a count with locale-aware number formatting.
  * e.g., 1234 → "1,234"
  */
-function formatViewCount(views: number | undefined): string {
-	if (views === undefined || views === null) return "—";
-	return views.toLocaleString();
+function formatCount(count: number | undefined): string {
+	if (count === undefined || count === null) return "—";
+	return count.toLocaleString();
 }
 
 export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: PostsTableClientProps) {
@@ -103,21 +104,23 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 
 			{/* Table */}
 			<div className="border rounded-lg overflow-visible">
-				<Table>
+				<Table className="table-fixed">
 					<TableHeader>
 						<TableRow>
-							<TableHead className="sticky top-0">Title</TableHead>
-							{showAuthor && <TableHead>Author</TableHead>}
-							<TableHead>Status</TableHead>
-							<TableHead>Views</TableHead>
-							<TableHead className="text-right">Actions</TableHead>
+							<TableHead className="w-[40%]">Title</TableHead>
+							{showAuthor && <TableHead className="w-[45px]">Author</TableHead>}
+							<TableHead className="w-[40px]">Status</TableHead>
+							<TableHead className="w-[30px]">Views</TableHead>
+							<TableHead className="w-[30px]">Subs</TableHead>
+							<TableHead className="w-[30px]">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{/* Empty State */}
 						{filteredPosts.length === 0 ? (
 							<TableRow>
-								<TableCell colSpan={showAuthor ? 5 : 4} className="text-center py-8">
+								{/* FIX: colSpan was wrong. 6 columns without author, 7 with author */}
+								<TableCell colSpan={showAuthor ? 7 : 6} className="text-center py-8">
 									<FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
 									<p className="text-muted-foreground">{search ? "No posts match your search" : emptyMessage}</p>
 								</TableCell>
@@ -129,7 +132,7 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 									{/* Title */}
 									<TableCell className="max-w-[300px] px-4 py-8">
 										<span className="font-medium truncate block">{post.title}</span>
-										<span className="text-xs text-muted-foreground">{formatRelativeDate(post.created_at)}</span>
+										<span className="text-[13px] text-muted-foreground">{formatRelativeDate(post.created_at)}</span>
 									</TableCell>
 
 									{/* Author (conditional) */}
@@ -152,8 +155,11 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 									</TableCell>
 
 									{/* Unique Views from PostHog */}
-									<TableCell className="text-muted-foreground px-4 py-8 font-semibold">
-										{formatViewCount(post.views)}
+									<TableCell className="text-muted-foreground px-4 py-8 text-lg">{formatCount(post.views)}</TableCell>
+
+									{/* Subscriptions from PostHog */}
+									<TableCell className="text-muted-foreground px-4 py-8 text-lg">
+										{formatCount(post.subscriptions)}
 									</TableCell>
 
 									{/* Actions */}

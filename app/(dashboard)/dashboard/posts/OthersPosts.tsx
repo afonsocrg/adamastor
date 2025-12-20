@@ -8,10 +8,8 @@ interface OthersPostsProps {
 /**
  * Fetches view counts from PostHog for a list of post IDs.
  */
-async function getPostViewCounts(postIds: string[]): Promise<Record<string, number>> {
-	if (postIds.length === 0) {
-		return {};
-	}
+async function fetchViewCounts(postIds: string[]): Promise<Record<string, number>> {
+	if (postIds.length === 0) return {};
 
 	try {
 		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -35,9 +33,39 @@ async function getPostViewCounts(postIds: string[]): Promise<Record<string, numb
 }
 
 /**
+ * Fetches subscription counts from PostHog for a list of post IDs.
+ *
+ * Queries the "subscribed_newsletter" custom event, grouped by page_url.
+ */
+async function fetchSubscriptionCounts(postIds: string[]): Promise<Record<string, number>> {
+	if (postIds.length === 0) return {};
+
+	try {
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+		const url = `${baseUrl}/api/analytics/post-subscriptions?ids=${postIds.join(",")}`;
+
+		const response = await fetch(url, {
+			next: { revalidate: 300 },
+		});
+
+		if (!response.ok) {
+			console.error("Failed to fetch subscription counts:", response.status);
+			return {};
+		}
+
+		const data = await response.json();
+		return data.subscriptions || {};
+	} catch (error) {
+		console.error("Error fetching subscription counts:", error);
+		return {};
+	}
+}
+
+/**
  * OthersPosts - Server Component
  *
- * Fetches posts from OTHER users (not the current user) along with view counts.
+ * Fetches posts from OTHER users (not the current user) along with
+ * view and subscription counts from PostHog.
  */
 export async function OthersPosts({ currentUserId }: OthersPostsProps) {
 	const supabase = await createClient();
@@ -62,18 +90,23 @@ export async function OthersPosts({ currentUserId }: OthersPostsProps) {
 	}
 
 	// -------------------------------------------------------------------------
-	// 2. FETCH VIEW COUNTS FROM POSTHOG
+	// 2. FETCH ANALYTICS FROM POSTHOG (IN PARALLEL)
 	// -------------------------------------------------------------------------
 	const postIds = posts?.map((post) => String(post.id)) || [];
-	const viewCounts = await getPostViewCounts(postIds);
+
+	const [viewCounts, subscriptionCounts] = await Promise.all([
+		fetchViewCounts(postIds),
+		fetchSubscriptionCounts(postIds),
+	]);
 
 	// -------------------------------------------------------------------------
 	// 3. MERGE DATA
 	// -------------------------------------------------------------------------
-	const postsWithViews = posts?.map((post) => ({
+	const postsWithAnalytics = posts?.map((post) => ({
 		...post,
-		views: viewCounts[String(post.id)] || 0,
+		views: viewCounts[String(post.id)] ?? 0,
+		subscriptions: subscriptionCounts[String(post.id)] ?? 0,
 	}));
 
-	return <PostsTableClient posts={postsWithViews || null} emptyMessage="No other posts found." showAuthor={true} />;
+	return <PostsTableClient posts={postsWithAnalytics || null} emptyMessage="No other posts found." showAuthor={true} />;
 }

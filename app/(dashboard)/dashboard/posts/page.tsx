@@ -13,7 +13,7 @@ export default async function ProfilePage() {
 	const isAdmin = profile.role === "admin";
 
 	return (
-		<div className="w-full mx-auto p-6 animate-in">
+		<div className="w-full mx-auto p-6 animate-fade-in">
 			<div className="flex justify-between items-center mb-6">
 				<h2 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Articles</h2>
 				<Button

@@ -11,20 +11,14 @@ interface MyPostsProps {
  * @param postIds - Array of post IDs to fetch views for
  * @returns Object mapping post ID to view count, e.g., { "147": 42, "148": 18 }
  */
-async function getPostViewCounts(postIds: string[]): Promise<Record<string, number>> {
-	// Don't make API call if no posts
-	if (postIds.length === 0) {
-		return {};
-	}
+async function fetchViewCounts(postIds: string[]): Promise<Record<string, number>> {
+	if (postIds.length === 0) return {};
 
 	try {
-		// Build the API URL with post IDs
-		// Note: In server components, we need the full URL
 		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 		const url = `${baseUrl}/api/analytics/post-views?ids=${postIds.join(",")}`;
 
 		const response = await fetch(url, {
-			// Cache for 5 minutes (matches the API route's revalidate)
 			next: { revalidate: 300 },
 		});
 
@@ -37,7 +31,38 @@ async function getPostViewCounts(postIds: string[]): Promise<Record<string, numb
 		return data.views || {};
 	} catch (error) {
 		console.error("Error fetching view counts:", error);
-		// Return empty object on error - table will show 0 or "—"
+		return {};
+	}
+}
+
+/**
+ * Fetches subscription counts from PostHog for a list of post IDs.
+ *
+ * Queries the "subscribed_newsletter" custom event, grouped by page_url.
+ *
+ * @param postIds - Array of post IDs to fetch subscriptions for
+ * @returns Object mapping post ID to subscription count
+ */
+async function fetchSubscriptionCounts(postIds: string[]): Promise<Record<string, number>> {
+	if (postIds.length === 0) return {};
+
+	try {
+		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+		const url = `${baseUrl}/api/analytics/post-subscriptions?ids=${postIds.join(",")}`;
+
+		const response = await fetch(url, {
+			next: { revalidate: 300 },
+		});
+
+		if (!response.ok) {
+			console.error("Failed to fetch subscription counts:", response.status);
+			return {};
+		}
+
+		const data = await response.json();
+		return data.subscriptions || {};
+	} catch (error) {
+		console.error("Error fetching subscription counts:", error);
 		return {};
 	}
 }
@@ -45,8 +70,8 @@ async function getPostViewCounts(postIds: string[]): Promise<Record<string, numb
 /**
  * MyPosts - Server Component
  *
- * Fetches the current user's posts and their view counts, then passes
- * the combined data to the client component for rendering.
+ * Fetches the current user's posts along with view and subscription counts,
+ * then passes the combined data to the client component for rendering.
  */
 export async function MyPosts({ userId }: MyPostsProps) {
 	const supabase = await createClient();
@@ -65,27 +90,34 @@ export async function MyPosts({ userId }: MyPostsProps) {
 	}
 
 	// -------------------------------------------------------------------------
-	// 2. FETCH VIEW COUNTS FROM POSTHOG
+	// 2. FETCH ANALYTICS FROM POSTHOG (IN PARALLEL)
 	// -------------------------------------------------------------------------
+	/**
+	 * Using Promise.all to fetch views and subscriptions concurrently.
+	 *
+	 * Why this matters:
+	 * - Sequential: 200ms + 200ms = 400ms total
+	 * - Parallel:   max(200ms, 200ms) = 200ms total
+	 */
 	const postIds = posts?.map((post) => String(post.id)) || [];
-	const viewCounts = await getPostViewCounts(postIds);
+
+	const [viewCounts, subscriptionCounts] = await Promise.all([
+		fetchViewCounts(postIds),
+		fetchSubscriptionCounts(postIds),
+	]);
 
 	// -------------------------------------------------------------------------
 	// 3. MERGE DATA
 	// -------------------------------------------------------------------------
-	/**
-	 * We add the `views` property to each post object.
-	 * This keeps the data fetching in the server component while
-	 * the client component just receives the complete data.
-	 */
-	const postsWithViews = posts?.map((post) => ({
+	const postsWithAnalytics = posts?.map((post) => ({
 		...post,
-		views: viewCounts[String(post.id)] || 0,
+		views: viewCounts[String(post.id)] ?? 0,
+		subscriptions: subscriptionCounts[String(post.id)] ?? 0,
 	}));
 
 	return (
 		<PostsTableClient
-			posts={postsWithViews || null}
+			posts={postsWithAnalytics || null}
 			emptyMessage="You haven't created any posts yet."
 			showAuthor={false}
 		/>
