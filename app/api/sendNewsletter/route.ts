@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 			id: post.id.toString(),
 			title: post.title,
 			htmlContent: articleHtml,
-			authorName: post.authors?.name || "Adamastor Team",
+			authorName: post.authors?.[0]?.name || "Carlos Resende",
 			// Use slug if available, otherwise fall back to ID
 			url: post.slug ? `https://adamastor.blog/posts/${post.slug}` : `https://adamastor.blog/posts/${post.id}`,
 		};

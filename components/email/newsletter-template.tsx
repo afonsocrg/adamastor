@@ -187,7 +187,7 @@ function ArticleSection({ article }: { article: Article }) {
 	return (
 		<Section className="mb-[32px]">
 			{/* Article Header */}
-			<Link href={article.url} style={{ textDecoration: "none" }}>
+			<Link href={article.url} style={{ textDecoration: "none !important" }}>
 				<Heading className="text-[24px] font-bold text-[#104357] mb-[8px]">{article.title}</Heading>
 			</Link>
 
@@ -397,7 +397,7 @@ blockquote p:last-child::before {
 						</Section>
 
 						{/* Events CTA */}
-						<Section className="text-center my-[32px]">
+						<Section className="text-center my-[16px]">
 							<Button
 								href="https://adamastor.blog/events"
 								className="bg-[#04c9d8] text-white px-[32px] py-[16px] rounded-[6px] text-[14px] font-semibold no-underline box-border inline-block"
