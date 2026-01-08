@@ -187,7 +187,7 @@ function ArticleSection({ article }: { article: Article }) {
 	return (
 		<Section className="mb-[32px]">
 			{/* Article Header */}
-			<Link href={article.url} style={{ textDecoration: "none !important" }}>
+			<Link href={article.url} className="heading-link" style={{ textDecoration: "none" }}>
 				<Heading className="text-[24px] font-bold text-[#104357] mb-[8px]">{article.title}</Heading>
 			</Link>
 
@@ -269,7 +269,7 @@ export const NewsletterTemplate = ({
               }
 
               /* ================================
-                 Links - Adamastor cyan
+                 Links
                  ================================ */
               a {
                 color: #41ACB5;
@@ -278,6 +278,9 @@ export const NewsletterTemplate = ({
               a:hover {
                 color: #039aa8 !important;
               }
+							.heading-link * {
+						  	text-decoration: none !important;
+							}
 
               /* ================================
                  Lists

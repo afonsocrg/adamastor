@@ -127,8 +127,9 @@ export async function POST(request: NextRequest) {
 		// Step 5: Send Email via Resend
 		// ============================================
 		const { data: emailData, error: emailError } = await resend.emails.send({
-			from: "hi@digest.adamastor.blog",
+			from: "Adamastor <hi@digest.adamastor.blog>",
 			to: [testEmail],
+			replyTo: "carlos@adamastor.blog",
 			subject: `Adamastor: ${post.title}`,
 			react: NewsletterTemplate({
 				firstName: "Malik", // TODO: Extract from subscriber data
