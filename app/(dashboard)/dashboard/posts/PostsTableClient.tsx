@@ -1,10 +1,22 @@
 "use client";
 
 import { Badge } from "@/components/tailwind/ui/badge";
+import { Button } from "@/components/tailwind/ui/button";
 import { Input } from "@/components/tailwind/ui/input";
+import { Label } from "@/components/tailwind/ui/label";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/tailwind/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/tailwind/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tailwind/ui/tabs";
 import { FileText, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { PostActions } from "./PostAction";
 
 // =============================================================================
@@ -20,12 +32,10 @@ export interface PostWithAuthor {
 	slug: string;
 	is_public: boolean;
 	created_at: string;
-	// Author info from JOIN (key matches table name "authors")
 	authors?: {
 		id: string;
 		name: string;
 	} | null;
-	// Analytics from PostHog
 	views?: number;
 	subscriptions?: number;
 }
@@ -33,17 +43,13 @@ export interface PostWithAuthor {
 interface PostsTableClientProps {
 	posts: PostWithAuthor[] | null;
 	emptyMessage: string;
-	/**
-	 * Whether to show the Author column.
-	 * - false for "My Posts" (you know you wrote them)
-	 * - true for "Others' Posts" (need to see who wrote each post)
-	 */
 	showAuthor?: boolean;
 }
 
-/**
- * Formats a date string into a human-readable relative time.
- */
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
 function formatRelativeDate(dateString: string): string {
 	const date = new Date(dateString);
 	const now = new Date();
@@ -65,14 +71,174 @@ function formatRelativeDate(dateString: string): string {
 	});
 }
 
-/**
- * Formats a count with locale-aware number formatting.
- * e.g., 1234 → "1,234"
- */
 function formatCount(count: number | undefined): string {
 	if (count === undefined || count === null) return "—";
 	return count.toLocaleString();
 }
+
+// =============================================================================
+// NEWSLETTER SECTION COMPONENT
+// =============================================================================
+
+interface NewsletterSectionProps {
+	postId: string;
+	postTitle: string;
+}
+
+function NewsletterSection({ postId, postTitle }: NewsletterSectionProps) {
+	const [isLoading, setIsLoading] = useState(false);
+	const [testEmail, setTestEmail] = useState("malik@hey.com");
+	const [confirmText, setConfirmText] = useState("");
+
+	async function sendTestEmail() {
+		setIsLoading(true);
+
+		try {
+			const response = await fetch("/api/sendNewsletter", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					postId: postId,
+					testEmail: testEmail,
+					weekLabel: "This Week",
+				}),
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.error || "Failed to send test email");
+			}
+
+			toast.success("Test email sent! 📧", {
+				description: `"${result.postTitle}" sent to ${result.sentTo} with ${result.eventCount} events`,
+			});
+		} catch (error) {
+			toast.error("Failed to send", {
+				description: error instanceof Error ? error.message : "Please try again.",
+			});
+		} finally {
+			setIsLoading(false);
+		}
+	}
+
+	async function sendBroadcast() {
+		if (confirmText !== "SEND") {
+			toast.error("Please type SEND to confirm");
+			return;
+		}
+
+		setIsLoading(true);
+
+		try {
+			const response = await fetch("/api/sendNewsletter", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					postId: postId,
+					weekLabel: "This Week",
+					broadcast: true,
+					confirmBroadcast: true,
+				}),
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.error || "Failed to send broadcast");
+			}
+
+			toast.success("Broadcast sent! 🚀", {
+				description: `"${result.postTitle}" sent to all subscribers with ${result.eventCount} events`,
+			});
+
+			// Reset confirmation
+			setConfirmText("");
+		} catch (error) {
+			toast.error("Failed to send broadcast", {
+				description: error instanceof Error ? error.message : "Please try again.",
+			});
+		} finally {
+			setIsLoading(false);
+		}
+	}
+
+	return (
+		<div className="mt-6 pt-6">
+			<h3 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7] mb-4">Newsletter</h3>
+
+			<Tabs defaultValue="test" className="w-full">
+				<TabsList className="grid w-full grid-cols-2">
+					<TabsTrigger value="test">Test Email</TabsTrigger>
+					<TabsTrigger value="broadcast">Send to Everyone</TabsTrigger>
+				</TabsList>
+
+				{/* Test Email Tab */}
+				<TabsContent value="test" className="space-y-4 mt-4">
+					<p className="text-sm text-muted-foreground">
+						Send a test email to preview how this article will look in the newsletter.
+					</p>
+
+					<div className="space-y-2">
+						<Label htmlFor={`testEmail-${postId}`}>Send to</Label>
+						<div className="flex gap-2">
+							<Input
+								id={`testEmail-${postId}`}
+								type="email"
+								placeholder="your@email.com"
+								value={testEmail}
+								onChange={(e) => setTestEmail(e.target.value)}
+								className="flex-1"
+							/>
+							<Button onClick={sendTestEmail} disabled={isLoading} variant="outline">
+								{isLoading ? "Sending..." : "Send Test"}
+							</Button>
+						</div>
+					</div>
+
+					<p className="text-xs text-muted-foreground">
+						The test email will include this article and upcoming events from the next 10 days. Note: Unsubscribe link
+						won't work in test mode.
+					</p>
+				</TabsContent>
+
+				{/* Broadcast Tab */}
+				<TabsContent value="broadcast" className="space-y-4 mt-4">
+					<div className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-3">
+						<p className="text-sm text-amber-800 dark:text-amber-200">
+							⚠️ This will send "{postTitle}" to <strong>all subscribers</strong>. This action cannot be undone.
+						</p>
+					</div>
+
+					<div className="space-y-2">
+						<Label htmlFor={`confirm-${postId}`}>Type SEND to confirm</Label>
+						<div className="flex gap-2">
+							<Input
+								id={`confirm-${postId}`}
+								type="text"
+								placeholder="SEND"
+								value={confirmText}
+								onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+								className="flex-1"
+							/>
+							<Button
+								onClick={sendBroadcast}
+								className="inline-flex items-center px-4 py-2 text-white transition-all duration-200 rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90"
+								disabled={isLoading || confirmText !== "SEND"}
+							>
+								{isLoading ? "Sending..." : "Send Newsletter"}
+							</Button>
+						</div>
+					</div>
+				</TabsContent>
+			</Tabs>
+		</div>
+	);
+}
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
 
 export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: PostsTableClientProps) {
 	const [search, setSearch] = useState("");
@@ -119,7 +285,6 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 						{/* Empty State */}
 						{filteredPosts.length === 0 ? (
 							<TableRow>
-								{/* FIX: colSpan was wrong. 6 columns without author, 7 with author */}
 								<TableCell colSpan={showAuthor ? 7 : 6} className="text-center py-8">
 									<FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
 									<p className="text-muted-foreground">{search ? "No posts match your search" : emptyMessage}</p>
@@ -128,45 +293,78 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 						) : (
 							/* Post Rows */
 							filteredPosts.map((post) => (
-								<TableRow key={post.id}>
-									{/* Title */}
-									<TableCell className="max-w-[300px] px-4 py-8">
-										<span className="font-medium truncate block">{post.title}</span>
-										<span className="text-[13px] text-muted-foreground">{formatRelativeDate(post.created_at)}</span>
-									</TableCell>
+								<Sheet key={post.id}>
+									<SheetTrigger asChild>
+										<TableRow key={post.id} className="cursor-pointer">
+											{/* Title */}
+											<TableCell className="max-w-[300px] px-4 py-8">
+												<span className="font-medium truncate block">{post.title}</span>
+												<span className="text-[13px] text-muted-foreground">{formatRelativeDate(post.created_at)}</span>
+											</TableCell>
 
-									{/* Author (conditional) */}
-									{showAuthor && (
-										<TableCell className="text-muted-foreground px-4 py-8">{post.authors?.name ?? "—"}</TableCell>
-									)}
+											{/* Author (conditional) */}
+											{showAuthor && (
+												<TableCell className="text-muted-foreground px-4 py-8">{post.authors?.name ?? "—"}</TableCell>
+											)}
 
-									{/* Status Badge */}
-									<TableCell className="px-4 py-8">
-										<Badge
-											className={
-												post.is_public
-													? "bg-cyan-50 text-cyan-600 border-cyan-200"
-													: "bg-amber-50 text-amber-600 border-amber-200"
-											}
-											variant={post.is_public ? "outline" : "secondary"}
-										>
-											{post.is_public ? "Published" : "Draft"}
-										</Badge>
-									</TableCell>
+											{/* Status Badge */}
+											<TableCell className="px-4 py-8">
+												<Badge
+													className={
+														post.is_public
+															? "bg-cyan-50 text-cyan-600 border-cyan-200"
+															: "bg-amber-50 text-amber-600 border-amber-200"
+													}
+													variant={post.is_public ? "outline" : "secondary"}
+												>
+													{post.is_public ? "Published" : "Draft"}
+												</Badge>
+											</TableCell>
 
-									{/* Unique Views from PostHog */}
-									<TableCell className="text-muted-foreground px-4 py-8 text-lg">{formatCount(post.views)}</TableCell>
+											{/* Unique Views from PostHog */}
+											<TableCell className="text-muted-foreground px-4 py-8 text-lg">
+												{formatCount(post.views)}
+											</TableCell>
 
-									{/* Subscriptions from PostHog */}
-									<TableCell className="text-muted-foreground px-4 py-8 text-lg">
-										{formatCount(post.subscriptions)}
-									</TableCell>
+											{/* Subscriptions from PostHog */}
+											<TableCell className="text-muted-foreground px-4 py-8 text-lg">
+												{formatCount(post.subscriptions)}
+											</TableCell>
 
-									{/* Actions */}
-									<TableCell className="text-right px-4 py-8">
-										<PostActions post={post} />
-									</TableCell>
-								</TableRow>
+											{/* Actions */}
+											<TableCell className="text-right px-4 py-8">
+												<PostActions post={post} />
+											</TableCell>
+										</TableRow>
+									</SheetTrigger>
+									<SheetContent className="sm:max-w-[800px]">
+										<SheetHeader>
+											<SheetTitle className="text-2xl font-bold text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">
+												{post.title}
+											</SheetTitle>
+											<SheetDescription>Published {formatRelativeDate(post.created_at)}</SheetDescription>
+										</SheetHeader>
+
+										{/* Stats Cards */}
+										<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+											<div className="bg-card border rounded-lg p-4">
+												<p className="text-sm text-muted-foreground uppercase tracking-wide">Views</p>
+												<p className="text-3xl font-semibold mt-1">{formatCount(post.views)}</p>
+											</div>
+											<div className="bg-card border rounded-lg p-4">
+												<p className="text-sm text-muted-foreground uppercase tracking-wide">New Subscribers</p>
+												<p className="text-3xl font-semibold mt-1">{formatCount(post.subscriptions)}</p>
+											</div>
+											<div className="bg-card border rounded-lg p-4">
+												<p className="text-sm text-muted-foreground uppercase tracking-wide">Email Recipients</p>
+												<p className="text-3xl mt-1">-</p>
+											</div>
+										</div>
+
+										{/* Newsletter Section */}
+										<NewsletterSection postId={post.id} postTitle={post.title} />
+									</SheetContent>
+								</Sheet>
 							))
 						)}
 					</TableBody>

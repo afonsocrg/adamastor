@@ -52,7 +52,6 @@ interface Article {
 }
 
 interface NewsletterTemplateProps {
-	firstName: string;
 	events: Event[];
 	weekLabel?: string;
 	article?: Article;
@@ -221,12 +220,7 @@ function ArticleSection({ article }: { article: Article }) {
 // Main Template
 // ============================================
 
-export const NewsletterTemplate = ({
-	firstName,
-	events,
-	weekLabel = "This Week",
-	article,
-}: NewsletterTemplateProps) => {
+export const NewsletterTemplate = ({ events, weekLabel = "This Week", article }: NewsletterTemplateProps) => {
 	const eventCount = events.length;
 
 	const previewText = article
@@ -424,7 +418,7 @@ blockquote p:last-child::before {
 									adamastor.blog
 								</Link>
 								{" • "}
-								<Link href="#" className="text-gray-500 underline">
+								<Link href="{{{RESEND_UNSUBSCRIBE_URL}}}" className="text-gray-500 underline">
 									Unsubscribe
 								</Link>
 							</Text>
@@ -441,7 +435,6 @@ blockquote p:last-child::before {
 // ============================================
 
 NewsletterTemplate.PreviewProps = {
-	firstName: "Malik",
 	weekLabel: "January 8-15",
 	article: {
 		id: "147",
