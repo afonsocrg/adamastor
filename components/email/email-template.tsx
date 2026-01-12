@@ -1,4 +1,3 @@
-// TODO: Handle "© 2025 Adamastor" dynamically.
 // TODO: Implement unsubscription. Right now link doesn't work.
 
 import {
@@ -75,7 +74,7 @@ export const EmailTemplate = ({ firstName }: EmailTemplateProps) => {
 
 						<Section className="border-t border-solid border-gray-200 pt-[24px]">
 							<Text className="text-[12px] text-gray-500 text-center m-0 mb-[8px]">
-								© 2025 Adamastor. All rights reserved.
+								© {new Date().getFullYear()} Adamastor. All rights reserved.
 							</Text>
 
 							<Text className="text-[12px] text-gray-500 text-center m-0">
