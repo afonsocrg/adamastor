@@ -76,11 +76,6 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
 				url: "/dashboard/subscribers",
 				icon: MailIcon,
 			},
-			{
-				title: "Newsletter (Test)",
-				url: "/dashboard/newsletter",
-				icon: MailIcon,
-			},
 		],
 		navSecondary: [],
 		projects: [
