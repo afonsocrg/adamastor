@@ -1,104 +1,107 @@
-<a href="https://novel.sh">
-  <img alt="Novel is a Notion-style WYSIWYG editor with AI-powered autocompletions." src="https://novel.sh/opengraph-image.png">
-  <h1 align="center">Novel</h1>
-</a>
+# Building Adamastor
 
-<p align="center">
-  An open-source Notion-style WYSIWYG editor with AI-powered autocompletions. 
-</p>
+A publication covering the Portuguese startup ecosystem. It features a blog, an event discovery page and a weekly newsletter.
 
-<p align="center">
-  <a href="https://news.ycombinator.com/item?id=36360789"><img src="https://img.shields.io/badge/Hacker%20News-369-%23FF6600" alt="Hacker News"></a>
-  <a href="https://github.com/steven-tey/novel/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/steven-tey/novel?label=license&logo=github&color=f80&logoColor=fff" alt="License" />
-  </a>
-  <a href="https://github.com/steven-tey/novel"><img src="https://img.shields.io/github/stars/steven-tey/novel?style=social" alt="Novel.sh's GitHub repo"></a>
-</p>
+**Live at [adamastor.blog](https://adamastor.blog)**
 
-<p align="center">
-  <a href="#introduction"><strong>Introduction</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#setting-up-locally"><strong>Setting Up Locally</strong></a> ·
-  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
-  <a href="#contributing"><strong>Contributing</strong></a> ·
-  <a href="#license"><strong>License</strong></a>
-</p>
-<br/>
+## Our Tech Stack
 
-## Docs (WIP)
+- **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
+- **Database & Auth:** [Supabase](https://supabase.com/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- **Editor:** [Novel](https://novel.sh/) (Tiptap-based)
+- **Email:** [Resend](https://resend.com/) + [React Email](https://react.email/)
+- **Analytics:** [PostHog](https://posthog.com/)
+- **Deployment:** [Vercel](https://vercel.com/)
+- **DNS:** [Cloudflare](https://cloudflare.com/)
 
-https://novel.sh/docs/introduction
+## Getting Started
 
-## Introduction
+### Prerequisites
 
-[Novel](https://novel.sh/) is a Notion-style WYSIWYG editor with AI-powered autocompletions.
+- Node.js 18+
+- [pnpm](https://pnpm.io/) (v9.5.0+)
 
-https://github.com/steven-tey/novel/assets/28986134/2099877f-4f2b-4b1c-8782-5d803d63be5c
+### Installation
 
-<br />
+```bash
+# Clone the repository
+git clone https://github.com/your-org/adamastor.git
+cd adamastor
 
-## Deploy Your Own
+# Install dependencies
+pnpm install
 
-You can deploy your own version of Novel to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://stey.me/novel-deploy)
-
-## Setting Up Locally
-
-To set up Novel locally, you'll need to clone the repository and set up the following environment variables:
-
-- `OPENAI_API_KEY` – your OpenAI API key (you can get one [here](https://platform.openai.com/account/api-keys))
-- `BLOB_READ_WRITE_TOKEN` – your Vercel Blob read/write token (currently [still in beta](https://vercel.com/docs/storage/vercel-blob/quickstart#quickstart), but feel free to [sign up on this form](https://vercel.fyi/blob-beta) for access)
-
-If you've deployed this to Vercel, you can also use [`vc env pull`](https://vercel.com/docs/cli/env#exporting-development-environment-variables) to pull the environment variables from your Vercel project.
-
-To run the app locally, you can run the following commands:
-
+# Set up environment variables
+cp .env.example .env.local
+# Then fill in your values in .env.local
 ```
-pnpm i
+
+### Development
+
+```bash
+# Start the dev server
 pnpm dev
+
+# Run type checking
+pnpm typecheck
+
+# Lint and format
+pnpm lint
+pnpm format
 ```
 
-## Cross-framework support
+### Email Development
 
-While Novel is built for React, we also have a few community-maintained packages for non-React frameworks:
+We're using React Email for newsletter and transactional email templates. To preview and develop the templates in real time use the following command:
 
-- Svelte: https://novel.sh/svelte
-- Vue: https://novel.sh/vue
+```bash
+pnpm email
+```
 
-## VSCode Extension
+This starts a local preview server at `http://localhost:3001` where you can see live updates to templates in `components/email/`.
 
-Thanks to @bennykok, Novel also has a VSCode Extension: https://novel.sh/vscode
+## Project Structure
 
-https://github.com/steven-tey/novel/assets/28986134/58ebf7e3-cdb3-43df-878b-119e304f7373
+```
+app/
+├── (main)/          # Public-facing pages (blog, events, about)
+├── (dashboard)/     # Admin dashboard (posts, events, subscribers)
+├── api/             # API routes
+└── login/           # Auth pages
 
-## Tech Stack
+components/
+├── email/           # React Email templates
+├── tailwind/ui/     # shadcn/ui components
+└── ...              # Shared components
 
-Novel is built on the following stack:
+lib/
+├── supabase/        # Supabase client utilities
+└── ...              # Helper functions
+```
 
-- [Next.js](https://nextjs.org/) – framework
-- [Tiptap](https://tiptap.dev/) – text editor
-- [OpenAI](https://openai.com/) - AI completions
-- [Vercel AI SDK](https://sdk.vercel.ai/docs) – AI library
-- [Vercel](https://vercel.com) – deployments
-- [TailwindCSS](https://tailwindcss.com/) – styles
-- [Cal Sans](https://github.com/calcom/font) – font
+## Scripts
 
-## Contributing
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build for production |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run Biome linter |
+| `pnpm format` | Run Biome formatter |
+| `pnpm typecheck` | Run TypeScript type checking |
+| `pnpm email` | Start React Email preview server |
 
-Here's how you can contribute:
+## Environment Variables
 
-- [Open an issue](https://github.com/steven-tey/novel/issues) if you believe you've encountered a bug.
-- Make a [pull request](https://github.com/steven-tey/novel/pull) to add new features/make quality-of-life improvements/fix bugs.
+Copy `.env.example` to `.env.local` and fill in the values. See the example file for required variables.
 
-<a href="https://github.com/steven-tey/novel/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=steven-tey/novel" />
-</a>
+Key services you'll need accounts for:
+- **Supabase** — Database and authentication
+- **Resend** — Email delivery and newsletter broadcasts
+- **PostHog** — Product analytics
+- **Vercel** — Deployment (optional for local dev)
 
-## Repo Activity
+## Dependency Updates
 
-![Novel.sh repo activity – generated by Axiom](https://repobeats.axiom.co/api/embed/2ebdaa143b0ad6e7c2ee23151da7b37f67da0b36.svg)
-
-## License
-
-Licensed under the [Apache-2.0 license](https://github.com/steven-tey/novel/blob/main/LICENSE).
+We're using [Dependabot](https://docs.github.com/en/code-security/dependabot) to keep dependencies up to date. It automatically opens PRs for outdated packages weekly. Review these PRs, check the changelog for breaking changes, and merge when CI passes.
