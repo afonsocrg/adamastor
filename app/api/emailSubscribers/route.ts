@@ -4,7 +4,9 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function GET() {
 	try {
-		const { data, error } = await resend.contacts.list();
+		const { data, error } = await resend.contacts.list({
+			limit: 100,
+		});
 
 		if (error) {
 			console.error("Error fetching contacts:", error);
