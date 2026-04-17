@@ -30,7 +30,7 @@ const formSchema = z.object({
 	title: z.string().min(1, "Title is required"),
 	description: z.string().min(1, "Description is required"),
 	url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
-	bannerUrl: z.string().url("Please enter a valid banner URL").optional(),
+	bannerUrl: z.string().url("Please enter a valid banner URL").optional().or(z.literal("")),
 	startTime: z.string().min(1, "Start time is required"),
 	city: z.string().min(1, "City is required"),
 });
@@ -73,7 +73,6 @@ async function scrapeUrl(url: string): Promise<{ data?: MetadataResult; error?: 
 export default function AddEventForm() {
 	const [isScraping, setIsScraping] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [hasLoadedMetadata, setHasLoadedMetadata] = useState(false);
 
 	const eventForm = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -91,40 +90,43 @@ export default function AddEventForm() {
 	const formValues = eventForm.watch();
 
 	// Check if the event form is valid
-	const isEventFormValid =
-		formValues.title && formValues.description && formValues.url && formValues.startTime && formValues.city;
+	const isEventFormValid = formValues.title && formValues.description && formValues.startTime && formValues.city;
 
 	const handleUrlSubmit = async (values: { url: string }) => {
 		setIsScraping(true);
+		eventForm.setValue("url", values.url, { shouldValidate: true, shouldDirty: true });
+
 		try {
 			const result = await scrapeUrl(values.url);
 
 			if (result.error) {
-				toast.error(result.error);
+				toast.error(`${result.error} You can still finish the event manually.`);
 			} else if (result.data) {
 				const { title, description, url, bannerUrl, startTime, city } = result.data;
+				const currentValues = eventForm.getValues();
 
 				// Animate form population
-				eventForm.setValue("title", title ?? "");
+				eventForm.setValue("title", title ?? currentValues.title);
 				await new Promise((resolve) => setTimeout(resolve, 50));
-				eventForm.setValue("description", description ?? "");
+				eventForm.setValue("description", description ?? currentValues.description);
 				await new Promise((resolve) => setTimeout(resolve, 50));
-				eventForm.setValue("url", url ?? "");
+				eventForm.setValue("url", url ?? values.url, { shouldValidate: true });
 				await new Promise((resolve) => setTimeout(resolve, 50));
-				eventForm.setValue("bannerUrl", bannerUrl ?? "");
+				eventForm.setValue("bannerUrl", bannerUrl ?? currentValues.bannerUrl, { shouldValidate: true });
 				await new Promise((resolve) => setTimeout(resolve, 50));
 				eventForm.setValue(
 					"startTime",
-					startTime ? tzDateStringToDateTimeStringWithNoTimezone(startTime, TIMEZONE) : "",
+					startTime
+						? tzDateStringToDateTimeStringWithNoTimezone(startTime, TIMEZONE)
+						: currentValues.startTime,
 				);
 				await new Promise((resolve) => setTimeout(resolve, 50));
-				eventForm.setValue("city", city ?? "");
+				eventForm.setValue("city", city ?? currentValues.city);
 
-				setHasLoadedMetadata(true);
-				toast.success("Event data loaded successfully");
+				toast.success("Event data loaded. Review it and create the event when ready.");
 			}
-		} catch (error) {
-			toast.error("Failed to scrape URL");
+		} catch (_error) {
+			toast.error("Failed to scrape URL. You can still fill the event details manually.");
 		}
 		setIsScraping(false);
 	};
@@ -158,9 +160,8 @@ export default function AddEventForm() {
 			// Reset form after successful submission
 			eventForm.reset();
 			urlForm.reset();
-			setHasLoadedMetadata(false);
 			toast.success("Event created successfully");
-		} catch (err) {
+		} catch (_err) {
 			toast.error("Failed to create event");
 		} finally {
 			setIsSubmitting(false);
@@ -191,7 +192,7 @@ export default function AddEventForm() {
 													onClick={async () => {
 														try {
 															const text = await navigator.clipboard.readText();
-															if (text && text.startsWith("http")) {
+															if (text?.startsWith("http")) {
 																field.onChange(text);
 															}
 														} catch (err) {
@@ -222,65 +223,53 @@ export default function AddEventForm() {
 									)}
 								</Button>
 							</div>
+							<p className="text-sm text-muted-foreground">
+								Paste an event link to prefill the form, or complete the fields manually below.
+							</p>
 						</form>
 					</Form>
 				</div>
 
-				{/* Loading Skeleton */}
-				{isScraping && !hasLoadedMetadata && (
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in-0 duration-300">
-						<Card className="p-4 rounded-xl">
-							<div className="space-y-4">
-								<Skeleton className="h-10 w-full" />
-								<Skeleton className="h-24 w-full" />
-								<div className="grid grid-cols-2 gap-4">
-									<Skeleton className="h-10 w-full" />
-									<Skeleton className="h-10 w-full" />
-								</div>
-								<Skeleton className="h-10 w-24 ml-auto" />
-							</div>
-						</Card>
-						<Card className="rounded-xl">
-							<CardHeader>
-								<Skeleton className="h-6 w-3/4" />
-								<Skeleton className="h-4 w-full" />
-							</CardHeader>
-							<CardContent>
-								<Skeleton className="h-48 w-full mb-4" />
-								<Skeleton className="h-4 w-1/2" />
-							</CardContent>
-						</Card>
-					</div>
-				)}
-
 				{/* Event Details Form and Preview */}
-				{hasLoadedMetadata && !isScraping && (
-					<div
-						className={cn(
-							"grid grid-cols-1 md:grid-cols-2 gap-4",
-							"animate-in fade-in-0 slide-in-from-bottom-4 duration-500",
-						)}
-					>
-						<div className="w-full animate-in fade-in-0 slide-in-from-left-4 duration-500 delay-200">
-							<Card className="p-4 gap-4 flex flex-col h-full transition-all duration-200 rounded-xl">
+				<div
+					className={cn(
+						"grid grid-cols-1 md:grid-cols-2 gap-4",
+						"animate-in fade-in-0 slide-in-from-bottom-4 duration-500",
+					)}
+				>
+					<div className="w-full animate-in fade-in-0 slide-in-from-left-4 duration-500 delay-200">
+						<Card className="p-4 gap-4 flex flex-col h-full transition-all duration-200 rounded-xl">
+							{isScraping ? (
+								<div className="space-y-4">
+									<Skeleton className="h-10 w-full" />
+									<Skeleton className="h-24 w-full" />
+									<div className="grid grid-cols-2 gap-4">
+										<Skeleton className="h-10 w-full" />
+										<Skeleton className="h-10 w-full" />
+									</div>
+									<Skeleton className="h-10 w-full" />
+									<Skeleton className="h-10 w-full" />
+									<Skeleton className="h-10 w-24 ml-auto" />
+								</div>
+							) : (
 								<EventDetailsForm
 									form={eventForm}
 									isSubmitting={isSubmitting}
 									handleEventSubmit={handleEventSubmit}
 									isFormValid={!!isEventFormValid}
 								/>
-							</Card>
-						</div>
-						<div className="w-full animate-in fade-in-0 slide-in-from-right-4 duration-500 delay-300">
-							<EventPreview
-								title={formValues.title}
-								description={formValues.description}
-								url={formValues.url}
-								bannerUrl={formValues.bannerUrl}
-							/>
-						</div>
+							)}
+						</Card>
 					</div>
-				)}
+					<div className="w-full animate-in fade-in-0 slide-in-from-right-4 duration-500 delay-300">
+						<EventPreview
+							title={formValues.title}
+							description={formValues.description}
+							url={formValues.url}
+							bannerUrl={formValues.bannerUrl}
+						/>
+					</div>
+				</div>
 			</div>
 		</main>
 	);
@@ -318,7 +307,8 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 									</FormControl>
 
 									{hasMeetupDatePattern && (
-										<div
+										<button
+											type="button"
 											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
 											onClick={() => {
 												const cleanedValue = field.value.replace(meetupDatePattern, "").trim();
@@ -326,11 +316,12 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 											}}
 										>
 											Remove date and "| Meetup" suffix?
-										</div>
+										</button>
 									)}
 
 									{hasJustMeetup && (
-										<div
+										<button
+											type="button"
 											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
 											onClick={() => {
 												const cleanedValue = field.value.replace(/\|\s*Meetup/g, "").trim();
@@ -338,7 +329,7 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 											}}
 										>
 											Remove "| Meetup" suffix?
-										</div>
+										</button>
 									)}
 
 									<FormMessage />
@@ -363,7 +354,8 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 									/>
 								</FormControl>
 								{field.value.includes("*") && (
-									<div
+									<button
+										type="button"
 										className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
 										onClick={() => {
 											// Remove all asterisks from the value
@@ -372,9 +364,39 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 										}}
 									>
 										Is the asterisk (*) intentional? Click here to remove it.
-									</div>
+									</button>
 								)}
 
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</section>
+
+				<section className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-250">
+					<FormField
+						control={form.control}
+						name="url"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Event URL</FormLabel>
+								<FormControl>
+									<Input placeholder="https://event-page.com" {...field} className="transition-all duration-200" />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="bannerUrl"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Banner URL</FormLabel>
+								<FormControl>
+									<Input placeholder="https://image-host.com/banner.jpg" {...field} className="transition-all duration-200" />
+								</FormControl>
 								<FormMessage />
 							</FormItem>
 						)}
@@ -434,14 +456,15 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 									</FormControl>
 
 									{showCityHelper && (
-										<div
+										<button
+											type="button"
 											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer mt-2"
 											onClick={() => {
 												field.onChange(detectedCity.value);
 											}}
 										>
 											Set "{detectedCity.display}" as city.
-										</div>
+										</button>
 									)}
 
 									<FormMessage />

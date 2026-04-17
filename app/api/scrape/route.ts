@@ -16,6 +16,27 @@ interface Event {
 	city?: string;
 }
 
+function normalizeUrl(value: string | undefined, baseUrl: string) {
+	if (!value) return undefined;
+
+	try {
+		return new URL(value, baseUrl).toString();
+	} catch {
+		return value;
+	}
+}
+
+function detectCityFromCandidates(...candidates: Array<string | undefined>) {
+	for (const candidate of candidates) {
+		if (!candidate) continue;
+
+		const detectedCity = detectCityFromText(candidate);
+		if (detectedCity) return detectedCity.value;
+	}
+
+	return undefined;
+}
+
 /**
  * Capitalizes the first letter of a string.
  * Used for converting metadata property names to camelCase.
@@ -69,7 +90,7 @@ function extractOGMetadata($: CheerioAPI) {
 				metadata.ogImage = metadata.ogImage || [];
 				metadata.ogImage.push({ url: content });
 			} else {
-				(metadata as any)[key] = content;
+				(metadata as MetadataResult & Record<string, unknown>)[key] = content;
 			}
 		}
 	});
@@ -100,7 +121,7 @@ function extractTwitterMetadata($: CheerioAPI) {
 				metadata.twitterImage = metadata.twitterImage || [];
 				metadata.twitterImage.push({ url: content });
 			} else {
-				(metadata as any)[key] = content;
+				(metadata as MetadataResult & Record<string, unknown>)[key] = content;
 			}
 		}
 	});
@@ -140,7 +161,7 @@ function extractMetadata(html: string): MetadataResult {
  * Extracts event data from JSON-LD structured data (Schema.org Event format).
  * Returns partial event data that can be merged with other sources.
  */
-function extractFromJsonLd($: CheerioAPI): Partial<Event> {
+function extractFromJsonLd($: CheerioAPI, baseUrl: string): Partial<Event> {
 	const scripts = $('script[type="application/ld+json"]');
 
 	for (let i = 0; i < scripts.length; i++) {
@@ -171,10 +192,10 @@ function extractFromJsonLd($: CheerioAPI): Partial<Event> {
 				title: data.name,
 				description: data.description,
 				startTime: data.startDate,
-				bannerUrl: typeof data.image === "string" ? data.image : data.image?.[0],
+				bannerUrl: normalizeUrl(typeof data.image === "string" ? data.image : data.image?.[0], baseUrl),
 				city,
 			};
-		} catch (e) {}
+		} catch (_e) {}
 	}
 
 	return {};
@@ -191,16 +212,19 @@ function extractFromJsonLd($: CheerioAPI): Partial<Event> {
 function extractDefaultEventData(html: string, originalUrl: string): Event {
 	const metadata = extractMetadata(html);
 	const $ = load(html);
-	const jsonLdData = extractFromJsonLd($);
+	const jsonLdData = extractFromJsonLd($, originalUrl);
 	return {
 		title: cleanEventTitle(jsonLdData.title || metadata.ogTitle || metadata.title || ""),
 		description: jsonLdData.description || metadata.ogDescription || metadata.description,
 		// Fall back to original URL if og:url meta tag is missing
-		url: metadata.ogUrl || originalUrl,
+		url: normalizeUrl(metadata.ogUrl, originalUrl) || originalUrl,
 		// Try OG image first, then Twitter image
-		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
+		bannerUrl:
+			jsonLdData.bannerUrl ||
+			normalizeUrl(metadata.ogImage?.[0]?.url, originalUrl) ||
+			normalizeUrl(metadata.twitterImage?.[0]?.url, originalUrl),
 		startTime: jsonLdData.startTime || metadata.eventStartTime,
-		city: jsonLdData.city,
+		city: jsonLdData.city || detectCityFromCandidates(metadata.ogTitle, metadata.ogDescription, metadata.description),
 	};
 }
 
@@ -216,26 +240,27 @@ function extractEventbriteData(html: string, originalUrl: string): Event {
 	const $ = load(html);
 
 	// Extract location from the address section using stable heading ID
-	let city: string | undefined;
+	let locationText = $('meta[name="twitter:data1"]').attr("content")?.trim();
 	const locationSection = $("#location-heading").parent().next();
-	if (locationSection.length > 0) {
+	if (!locationText && locationSection.length > 0) {
 		const addressLines: string[] = [];
 		locationSection.find("p").each((_, el) => {
 			const text = $(el).text().trim();
 			if (text) addressLines.push(text);
 		});
-		const fullAddress = addressLines.join(" ");
-		city = detectCityFromText(fullAddress)?.value;
+		locationText = addressLines.join(" ");
 	}
 
 	return {
 		// Prefer og:title over page title for Eventbrite
-		title: metadata.ogTitle || metadata.title,
+		title: cleanEventTitle(metadata.ogTitle || metadata.title || ""),
 		description: metadata.ogDescription || metadata.description,
-		url: metadata.ogUrl || originalUrl,
-		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url,
+		url: normalizeUrl(metadata.ogUrl, originalUrl) || originalUrl,
+		bannerUrl:
+			normalizeUrl(metadata.ogImage?.[0]?.url, originalUrl) ||
+			normalizeUrl(metadata.twitterImage?.[0]?.url, originalUrl),
 		startTime: metadata.eventStartTime, // M: I'm now keeping this as a string.
-		city,
+		city: detectCityFromCandidates(locationText, metadata.description, metadata.title),
 	};
 }
 
@@ -249,15 +274,18 @@ function extractEventbriteData(html: string, originalUrl: string): Event {
 function extractLumaData(html: string, originalUrl: string): Event {
 	const metadata = extractMetadata(html);
 	const $ = load(html);
-	const jsonLdData = extractFromJsonLd($);
+	const jsonLdData = extractFromJsonLd($, originalUrl);
 
 	return {
 		title: cleanEventTitle((metadata.title || "").replace(" · Luma", "")),
 		description: jsonLdData.description || metadata.description,
-		url: metadata.ogUrl || originalUrl,
-		bannerUrl: metadata.ogImage?.[0]?.url || metadata.twitterImage?.[0]?.url || jsonLdData.bannerUrl,
+		url: normalizeUrl(metadata.ogUrl, originalUrl) || originalUrl,
+		bannerUrl:
+			normalizeUrl(metadata.ogImage?.[0]?.url, originalUrl) ||
+			normalizeUrl(metadata.twitterImage?.[0]?.url, originalUrl) ||
+			jsonLdData.bannerUrl,
 		startTime: jsonLdData.startTime || metadata.eventStartTime,
-		city: jsonLdData.city,
+		city: jsonLdData.city || detectCityFromCandidates(metadata.description, metadata.title),
 	};
 }
 
@@ -290,18 +318,19 @@ export async function POST(request: NextRequest) {
 		}
 
 		const html = await response.text();
+		const finalUrl = response.url || url;
 
 		// Route to the appropriate extractor based on URL pattern
 		let metadata: Event;
-		if (url.includes("eventbrite.")) {
+		if (finalUrl.includes("eventbrite.")) {
 			console.log("Detected Eventbrite URL. Scraping Eventbrite data...");
-			metadata = extractEventbriteData(html, url);
-		} else if (url.includes("luma")) {
+			metadata = extractEventbriteData(html, finalUrl);
+		} else if (finalUrl.includes("luma")) {
 			console.log("Detected Lu.ma URL. Scraping Lu.ma data...");
-			metadata = extractLumaData(html, url);
+			metadata = extractLumaData(html, finalUrl);
 		} else {
 			console.log("Did not detect any special event URL. Using default metadata extraction...");
-			metadata = extractDefaultEventData(html, url);
+			metadata = extractDefaultEventData(html, finalUrl);
 		}
 
 		return NextResponse.json({ data: metadata });
