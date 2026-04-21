@@ -1,23 +1,35 @@
+import { ForbiddenError, handleError } from "@/lib/errors";
+import { listAllContacts } from "@/lib/resend/contacts";
+import { assertAuthenticated } from "@/lib/supabase/authentication";
+import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const audienceId = process.env.RESEND_AUDIENCE_ID;
 
 export async function GET() {
 	try {
-		const { data, error } = await resend.contacts.list({
-			limit: 100,
-		});
+		const supabase = await createClient();
+		const profile = await assertAuthenticated(supabase);
 
-		if (error) {
-			console.error("Error fetching contacts:", error);
-			return Response.json({ error: error.message }, { status: 500 });
+		if (profile.role !== "admin") {
+			throw new ForbiddenError("Admin access required");
 		}
 
-		return Response.json({
-			contacts: data?.data ?? [],
-		});
+		const contacts = await listAllContacts(resend, { audienceId });
+
+		return NextResponse.json(
+			{
+				contacts,
+			},
+			{
+				headers: {
+					"Cache-Control": "no-store",
+				},
+			},
+		);
 	} catch (error) {
-		console.error("Contacts fetch error:", error);
-		return Response.json({ error: error instanceof Error ? error.message : "An error occurred" }, { status: 500 });
+		return handleError(error);
 	}
 }

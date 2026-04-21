@@ -62,7 +62,7 @@ export const SubscribeEmailAlertTemplate = ({
 									<strong>Email:</strong> {subscriber_email}
 								</Text>
 
-								{total_subscribers && (
+								{typeof total_subscribers === "number" && (
 									<Text className="text-[16px] text-[#374151] leading-[24px]">
 										<strong>Total subscribers:</strong> {total_subscribers.toLocaleString()}
 									</Text>

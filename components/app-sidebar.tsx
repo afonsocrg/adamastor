@@ -48,11 +48,11 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
 				items: [
 					{
 						title: "My Articles",
-						url: "/dashboard/posts",
+						url: "/dashboard/posts?tab=my-posts",
 					},
 					{
 						title: "Other Articles",
-						url: "/dashboard/posts",
+						url: "/dashboard/posts?tab=others-posts",
 					},
 				],
 			},

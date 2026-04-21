@@ -1,10 +1,12 @@
 import { EmailTemplate } from "@/components/email/email-template";
 import { SubscribeEmailAlertTemplate } from "@/components/email/team/subscribe-alert";
+import { countActiveSubscribers, listAllContacts } from "@/lib/resend/contacts";
 import { waitUntil } from "@vercel/functions";
 import type { NextRequest } from "next/server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const audienceId = process.env.RESEND_AUDIENCE_ID;
 
 const TEAM_EMAILS = ["malik@hey.com", "afonso.crg@gmail.com", "carlosjoseresende@gmail.com"];
 
@@ -28,6 +30,7 @@ export async function POST(request: NextRequest) {
 			email: email,
 			firstName: firstName,
 			lastName: lastName,
+			...(audienceId ? { audienceId } : {}),
 		});
 
 		if (contactError) {
@@ -60,8 +63,8 @@ export async function POST(request: NextRequest) {
 				try {
 					await delay(500);
 
-					const { data: contacts } = await resend.contacts.list();
-					const totalSubscribers = contacts?.data?.length;
+					const contacts = await listAllContacts(resend, { audienceId });
+					const totalSubscribers = countActiveSubscribers(contacts);
 
 					await delay(500);
 

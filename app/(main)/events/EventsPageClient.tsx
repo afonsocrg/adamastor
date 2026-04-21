@@ -61,6 +61,10 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 	// Extract event dates for the calendar
 	const eventDates = events?.map((event) => new Date(event.start_time)) || [];
 
+	useEffect(() => {
+		setEvents(initialEvents);
+	}, [initialEvents]);
+
 	// Filter events when selectedDate changes
 	useEffect(() => {
 		if (selectedDate) {
@@ -109,7 +113,7 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 		posthog.capture("city_filter", {
 			city: city,
 		});
-		window.location.href = city === "all" ? "/events" : `/events?city=${city}`;
+		router.push(city === "all" ? "/events" : `/events?city=${city}`);
 	};
 
 	// Handle calendar date click
@@ -155,9 +159,9 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 	let lastDate: string | null = null;
 
 	return (
-		<div className="space-y-4 md:p-4">
-			<div className="flex  justify-between mb-6">
-				<h1 className="text-2xl font-bold">
+		<div className="space-y-8 md:p-4 animate-in">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+				<h1 className="text-2xl font-bold leading-tight [text-wrap:pretty]">
 					{selectedDate
 						? `Events for ${formatShortDate(selectedDate)}`
 						: city
@@ -166,7 +170,11 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 				</h1>
 
 				{selectedDate && (
-					<Button onClick={clearFilter} variant="default" className="transition-all animate-in rounded-lg">
+					<Button
+						onClick={clearFilter}
+						variant="default"
+						className="self-start rounded-md transition-[background-color,color,box-shadow,transform] duration-150 ease hover:shadow-sm motion-reduce:transition-none motion-safe:active:scale-[0.98]"
+					>
 						Show All Events
 					</Button>
 				)}
@@ -174,9 +182,9 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 				{/* Events List - Takes up 2/3 of the space on large screens */}
-				<div className="lg:col-span-2 space-y-4">
+				<div className="space-y-4 lg:col-span-2">
 					{filteredEvents.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">
+						<div className="rounded-md border border-dashed px-6 py-10 text-center text-base leading-relaxed text-muted-foreground">
 							{selectedDate ? `No events found for ${formatShortDate(selectedDate)}` : "No upcoming events found"}
 						</div>
 					) : (
@@ -189,7 +197,7 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 								<div key={event.id} className="space-y-4">
 									{showDateHeading && (
 										<>
-											<h2 className="text-lg font-semibold text-muted-foreground mt-6">
+											<h2 className="mt-6 text-lg font-semibold text-muted-foreground">
 												{formatShortDate(event.start_time)}
 											</h2>
 										</>
@@ -197,7 +205,6 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 
 									<EventCard
 										event={event}
-										position={filteredEvents.indexOf(event)}
 										onEventClick={() => {
 											setHasClickedEvent(true);
 											posthog.capture("event_clicked", {
@@ -222,10 +229,10 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 				{/* Calendar Sidebar - Takes up 1/3 of the space on large screens */}
 				<div className="lg:col-span-1">
 					<div className="sticky top-4 flex flex-col gap-10">
-						<section id="city_filters" className="space-y-2 flex flex-col gap-2">
-							<h6 className="block font-medium text-[#104357] dark:text-[#E3F2F7]">Events by City</h6>
+						<section id="city_filters" className="flex flex-col gap-3">
+							<h2 className="text-sm font-semibold leading-5 text-[#104357] dark:text-[#E3F2F7]">Events by City</h2>
 
-							<div className="flex gap-2">
+							<div className="flex flex-wrap gap-2">
 								<Button
 									asChild
 									onClick={(e) => {
@@ -234,7 +241,7 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 									}}
 									variant="outline"
 									className={cn(
-										"rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
+										"rounded-full border-none bg-neutral-100 text-muted-foreground transition-[background-color,color,box-shadow,transform] duration-150 ease hover:shadow-sm motion-reduce:transition-none motion-safe:active:scale-[0.98]",
 										cityParam === "all"
 											? "bg-[#dff6f7] text-[#28aeb8]  hover:bg-[#dff6f7] hover:text-[#28aeb8]"
 											: "text-neutral-600 hover:text-neutral-900",
@@ -250,7 +257,7 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 									}}
 									variant="outline"
 									className={cn(
-										"rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
+										"rounded-full border-none bg-neutral-100 text-muted-foreground transition-[background-color,color,box-shadow,transform] duration-150 ease hover:shadow-sm motion-reduce:transition-none motion-safe:active:scale-[0.98]",
 										cityParam === "lisboa" && "bg-[#dff6f7] text-[#28aeb8] hover:bg-[#dff6f7] hover:text-[#28aeb8]",
 									)}
 								>
@@ -264,7 +271,7 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 									}}
 									variant="outline"
 									className={cn(
-										"rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
+										"rounded-full border-none bg-neutral-100 text-muted-foreground transition-[background-color,color,box-shadow,transform] duration-150 ease hover:shadow-sm motion-reduce:transition-none motion-safe:active:scale-[0.98]",
 										cityParam === "porto" && "bg-[#dff6f7] text-[#28aeb8]  hover:bg-[#dff6f7] hover:text-[#28aeb8]",
 									)}
 								>
@@ -278,7 +285,7 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 									}}
 									variant="outline"
 									className={cn(
-										"rounded-full bg-neutral-100 border-none text-muted-foreground transition-colors",
+										"rounded-full border-none bg-neutral-100 text-muted-foreground transition-[background-color,color,box-shadow,transform] duration-150 ease hover:shadow-sm motion-reduce:transition-none motion-safe:active:scale-[0.98]",
 										cityParam === "online" && "bg-[#dff6f7] text-[#28aeb8]  hover:bg-[#dff6f7] hover:text-[#28aeb8]",
 									)}
 								>
@@ -286,9 +293,9 @@ export default function EventsPageClient({ initialEvents, city, user }: EventsPa
 								</Button>
 							</div>
 						</section>
-						<div className="rounded-xl border bg-card p-3 shadow-sm">
+						<div className="rounded-lg border bg-card p-3 shadow-sm">
 							<EventCalendar eventDates={eventDates} onDateClick={handleDateClick} selectedDate={selectedDate} />
-							<div className="mt-4 space-y-2 text-xs text-muted-foreground">
+							<div className="mt-4 space-y-2 text-xs leading-5 text-muted-foreground">
 								<div className="flex items-center gap-2">
 									<div className="h-2 w-2 rounded-full bg-[#04C9D8]" />
 									<span>Days with events (click to filter)</span>

@@ -6,11 +6,19 @@ import Link from "next/link";
 import { MyPosts } from "./MyPosts";
 import { OthersPosts } from "./OthersPosts";
 
-export default async function ProfilePage() {
+type PostsPageProps = {
+	searchParams?: Promise<{
+		tab?: string;
+	}>;
+};
+
+export default async function ProfilePage({ searchParams }: PostsPageProps) {
 	const supabase = await createClient();
 	const profile = await assertAuthenticated(supabase);
+	const params = await searchParams;
 
 	const isAdmin = profile.role === "admin";
+	const activeTab = params?.tab === "others-posts" ? "others-posts" : "my-posts";
 
 	return (
 		<div className="w-full mx-auto p-6 animate-fade-in">
@@ -26,7 +34,7 @@ export default async function ProfilePage() {
 
 			{isAdmin ? (
 				<section className="w-full">
-					<Tabs defaultValue="my-posts" className="space-y-4">
+					<Tabs defaultValue={activeTab} className="space-y-4">
 						<TabsList>
 							<TabsTrigger value="my-posts">My Articles</TabsTrigger>
 							<TabsTrigger value="others-posts">Other Articles</TabsTrigger>

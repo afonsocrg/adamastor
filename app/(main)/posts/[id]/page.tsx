@@ -91,9 +91,9 @@ export default async function PostPage({ params }: PostPageProps) {
 						)}
 					</div>
 					<div className="mb-4">
-						<h2 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7] [font-family:var(--font-default)]">
+						<h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-balance text-[#104357] dark:text-[#E3F2F7] [font-family:var(--font-default)]">
 							{post.title}
-						</h2>
+						</h1>
 					</div>
 					<div className="flex justify-between items-start mt-6">
 						<AuthorCard author={post.authors} publishedAt={formattedPublishedDate} />
@@ -134,7 +134,7 @@ export async function generateMetadata({ params }: PostPageProps) {
 		]).slice(0, 160);
 		if (contentText.length > 0) {
 			const lastSpaceIndex = contentText.lastIndexOf(" ");
-			contentPreview = `${contentText.substring(0, lastSpaceIndex)}...`;
+			contentPreview = `${contentText.substring(0, lastSpaceIndex)}…`;
 		}
 	} catch (error) {
 		console.error("Error generating content preview", error);

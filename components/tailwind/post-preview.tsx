@@ -4,8 +4,19 @@ import type { JSONContent } from "novel";
 import RichTextEditor from "./rich-text-editor";
 
 const PostPreview = ({ initialContent }: { initialContent: JSONContent }) => {
-  if (!initialContent) return null;
-  return <RichTextEditor initialContent={initialContent} editorProps={{ editable: () => false }} />;
+	if (!initialContent) return null;
+	return (
+		<RichTextEditor
+			initialContent={initialContent}
+			editorProps={{
+				editable: () => false,
+				attributes: {
+					class:
+						"article-prose prose prose-lg dark:prose-invert prose-headings:font-title prose-headings:text-balance prose-h1:leading-tight prose-h2:leading-tight prose-h3:leading-snug font-default focus:outline-none max-w-[68ch] mx-auto leading-relaxed prose-p:leading-relaxed prose-li:leading-relaxed",
+				},
+			}}
+		/>
+	);
 };
 
 export default PostPreview;

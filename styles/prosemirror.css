@@ -219,3 +219,25 @@ mark[style] > strong {
 .prose blockquote p:last-of-type::after {
   content: none;
 }
+
+.article-prose blockquote {
+  quotes: none;
+  max-width: 60ch;
+  margin: 2rem 0;
+  padding: 0.125rem 0 0.125rem 1.25rem;
+  border-left: 2px solid #24acb5;
+  color: hsl(var(--foreground));
+  font-family: var(--font-default);
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.article-prose blockquote p {
+  margin-top: 0;
+  margin-bottom: 0.85rem;
+}
+
+.article-prose blockquote p:last-child {
+  margin-bottom: 0;
+}

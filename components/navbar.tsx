@@ -3,7 +3,6 @@ import { CalendarPlusIcon, FileTextIcon, LogOutIcon, SquarePenIcon } from "lucid
 import Image from "next/image";
 import Link from "next/link";
 import SearchBar from "./search-bar";
-import { Badge } from "./tailwind/ui/badge";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./tailwind/ui/hover-card";
 import { Separator } from "./tailwind/ui/separator";
 
@@ -53,7 +52,6 @@ const Navbar = async () => {
 							</Link>
 							<Link href="/events" className="hover:underline hover:text-primary flex gap-1 group transition-colors">
 								Events
-								<Badge variant="default">NEW</Badge>
 							</Link>
 
 							{user && (

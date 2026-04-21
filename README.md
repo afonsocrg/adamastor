@@ -102,6 +102,13 @@ Key services you'll need accounts for:
 - **PostHog** — Product analytics
 - **Vercel** — Deployment (optional for local dev)
 
+### Operations Notes
+
+- Subscriber totals are sourced from Resend contacts and count active subscribers only. Set `RESEND_AUDIENCE_ID` when using an audience-specific list, otherwise the app falls back to the account contact list.
+- The subscribers API and analytics API are admin-only dashboard routes. Keep `RESEND_API_KEY`, `POSTHOG_PERSONAL_API_KEY`, and `POSTHOG_PROJECT_ID` server-side only.
+- Weekly active users on `/dashboard/analytics` come from PostHog pageview events over the last seven days.
+- Public route motion should stay subtle and fast: prefer opacity-only page entrances, color transitions around 150ms for hover states, and no list-dimming during frequent filters.
+
 ## Dependency Updates
 
 We're using [Dependabot](https://docs.github.com/en/code-security/dependabot) to keep dependencies up to date. It automatically opens PRs for outdated packages weekly. Review these PRs, check the changelog for breaking changes, and merge when CI passes.

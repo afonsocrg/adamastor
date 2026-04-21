@@ -33,13 +33,12 @@ interface Event {
 
 interface EventCardProps {
 	event: Event;
-	position: number;
 	onEventClick: () => void;
 	onDelete: (eventId: string) => void;
 	isAdmin: boolean;
 }
 
-export function EventCard({ event, position, onEventClick, onDelete, isAdmin }: EventCardProps) {
+export function EventCard({ event, onEventClick, onDelete, isAdmin }: EventCardProps) {
 	const router = useRouter();
 
 	return (
@@ -51,19 +50,21 @@ export function EventCard({ event, position, onEventClick, onDelete, isAdmin }: 
 						target="_blank"
 						rel="noopener noreferrer"
 						onClick={onEventClick}
-						className="flex flex-col px-4 py-4 rounded-lg hover:bg-accent/50 transition-all animate-in border-l-4 border-[#04C9D8] rounded-l"
+						className="flex flex-col rounded-lg rounded-l border-l-4 border-[#04C9D8] px-4 py-4 transition-colors duration-150 ease hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
 					>
-						<div className="flex gap-8 align-top ml-1">
-							<section className="space-y-3 mb-3 w-full">
+						<div className="ml-1 flex gap-8 align-top">
+							<section className="w-full space-y-3">
 								<div className="flex justify-between items-start">
-									<h3 className="text-xl font-bold group-hover:text-[#24acb5] [font-family:var(--font-default)]">
+									<h3 className="text-xl font-bold leading-tight [text-wrap:pretty] transition-colors duration-150 ease group-hover:text-[#24acb5] [font-family:var(--font-default)]">
 										{event.title}
 									</h3>
 								</div>
-								<p className="text-muted-foreground prose line-clamp-2">{event.description}</p>
+								<p className="line-clamp-2 max-w-[70ch] text-base leading-relaxed text-muted-foreground">
+									{event.description}
+								</p>
 
-								<div className="text-muted-foreground flex items-center gap-1">
-									<MapPinIcon className="h-5 w-5" />
+								<div className="flex items-center gap-1.5 text-sm leading-5 text-muted-foreground">
+									<MapPinIcon className="h-4 w-4 shrink-0" />
 									{event.city.charAt(0).toUpperCase() + event.city.slice(1)}
 								</div>
 							</section>

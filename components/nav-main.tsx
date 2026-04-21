@@ -12,7 +12,7 @@ import {
 } from "@/components/tailwind/ui/sidebar";
 import { cn } from "@/lib/utils"; // Assuming you have this utility
 import type { LucideIcon } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export function NavMain({
 	items,
@@ -29,20 +29,28 @@ export function NavMain({
 	}[];
 }) {
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const currentPathWithSearch = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+
+	const getUrlPathname = (itemUrl: string) => {
+		return itemUrl.split("?")[0];
+	};
 
 	// Helper function to check if an item is active
 	const isItemActive = (itemUrl: string, subItems?: { url: string }[]) => {
+		const itemPathname = getUrlPathname(itemUrl);
+
 		// Direct match
-		if (pathname === itemUrl) return true;
+		if (pathname === itemPathname) return true;
 
 		// Check if any sub-item is active (for parent highlighting)
 		if (subItems) {
-			return subItems.some((subItem) => pathname === subItem.url);
+			return subItems.some((subItem) => pathname === getUrlPathname(subItem.url));
 		}
 
 		// For dashboard-like routes, you might want partial matching
 		// Example: '/dashboard' should be active for '/dashboard/profile'
-		if (itemUrl !== "/" && pathname.startsWith(itemUrl)) {
+		if (itemPathname !== "/" && pathname.startsWith(itemPathname)) {
 			return true;
 		}
 
@@ -50,7 +58,7 @@ export function NavMain({
 	};
 
 	const isSubItemActive = (subItemUrl: string) => {
-		return pathname === subItemUrl;
+		return currentPathWithSearch === subItemUrl;
 	};
 
 	return (

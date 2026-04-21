@@ -35,7 +35,7 @@ function getContentPreview(postContent) {
 
 		if (contentText.length > 0) {
 			const lastSpaceIndex = contentText.lastIndexOf(" ");
-			contentPreview = lastSpaceIndex > 0 ? `${contentText.substring(0, lastSpaceIndex)}...` : `${contentText}...`;
+			contentPreview = lastSpaceIndex > 0 ? `${contentText.substring(0, lastSpaceIndex)}…` : `${contentText}…`;
 		}
 	} catch (error) {
 		console.error("Error generating content preview", error);
@@ -72,15 +72,17 @@ export default async function Home() {
 							<article className="group" key={post.id}>
 								<Link
 									href={`/posts/${post.id}`}
-									className="flex flex-col sm:px-4 py-4 rounded-lg hover:bg-accent/50 transition-all animate-in"
+									className="flex flex-col sm:px-4 py-4 rounded-lg hover:bg-accent/50 transition-colors duration-150 ease-out animate-in"
 								>
 									<div className="flex gap-8 align-top">
 										<section className="space-y-3 mb-3">
-											<h2 className="text-xl font-bold group-hover:text-[#24acb5] duration-300 [font-family:var(--font-default)] space-x-4">
+											<h2 className="text-xl font-bold leading-tight [text-wrap:pretty] group-hover:text-[#24acb5] transition-colors duration-150 ease-out [font-family:var(--font-default)]">
 												{post.title}
 											</h2>
-											<p className="text-muted-foreground prose line-clamp-2">{contentPreview}</p>
-											<p className="text-muted-foreground text-sm">{formatDate(post.created_at)}</p>
+											<p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground line-clamp-2">
+												{contentPreview}
+											</p>
+											<p className="text-muted-foreground text-sm leading-5">{formatDate(post.created_at)}</p>
 										</section>
 										{/* <div className="bg-neutral-50 w-60 h-40 sm:flex rounded-lg m-0 text-neutral-500 justify-center items-center font-light text-xl hidden">
                       {post.title.includes("#") ? post.title.slice(post.title.indexOf("#")) : ""}
@@ -100,15 +102,17 @@ export default async function Home() {
 							<article className="group" key={post.id}>
 								<Link
 									href={`/posts/${post.id}`}
-									className="flex flex-col sm:px-4 py-4 rounded-lg hover:bg-accent/50 transition-all animate-in"
+									className="flex flex-col sm:px-4 py-4 rounded-lg hover:bg-accent/50 transition-colors duration-150 ease-out animate-in"
 								>
 									<div className="flex gap-8 align-top">
 										<section className="space-y-3 mb-3">
-											<h2 className="text-xl font-bold group-hover:text-[#24acb5] [font-family:var(--font-default)] space-x-4">
+											<h2 className="text-xl font-bold leading-tight [text-wrap:pretty] group-hover:text-[#24acb5] transition-colors duration-150 ease-out [font-family:var(--font-default)]">
 												{post.title.includes("|") ? post.title.split("|")[0] : post.title}
 											</h2>
-											<p className="text-muted-foreground prose line-clamp-2">{contentPreview}</p>
-											<p className="text-muted-foreground text-sm">{formatDate(post.created_at)}</p>
+											<p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground line-clamp-2">
+												{contentPreview}
+											</p>
+											<p className="text-muted-foreground text-sm leading-5">{formatDate(post.created_at)}</p>
 										</section>
 										<div className="bg-neutral-50 w-60 h-40 sm:flex rounded-lg m-0 text-neutral-500 justify-center items-center font-light text-xl hidden">
 											{post.title.includes("#") ? post.title.slice(post.title.indexOf("#")) : ""}
