@@ -14,6 +14,7 @@
  */
 
 import { NewsletterTemplate } from "@/components/email/newsletter-template";
+import { getNewsletterSegmentId } from "@/lib/resend/segment";
 import { createClient } from "@/lib/supabase/server";
 import { convertPostContentForEmail } from "@/lib/tiptap-to-html";
 import { render } from "@react-email/components";
@@ -21,6 +22,7 @@ import type { NextRequest } from "next/server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const segmentId = getNewsletterSegmentId();
 
 const DEFAULT_TEST_EMAIL = "malik@hey.com";
 const DEFAULT_TEST_POST_ID = "147";
@@ -53,9 +55,8 @@ export async function POST(request: NextRequest) {
 		// Validate Environment Variables for Broadcast
 		// ============================================
 		if (broadcast) {
-			const audienceId = process.env.RESEND_AUDIENCE_ID;
-			if (!audienceId) {
-				return Response.json({ error: "RESEND_AUDIENCE_ID environment variable is not set" }, { status: 500 });
+			if (!segmentId) {
+				return Response.json({ error: "Newsletter segment ID is not configured" }, { status: 500 });
 			}
 		}
 
@@ -142,13 +143,12 @@ export async function POST(request: NextRequest) {
 
 		if (broadcast) {
 			// ----------------------------------------
-			// BROADCAST MODE: Send to entire audience
+			// BROADCAST MODE: Send to the newsletter segment
 			// ----------------------------------------
-			console.log("📣 BROADCAST MODE: Sending to entire audience");
+			console.log("📣 BROADCAST MODE: Sending to the newsletter segment");
 
-			const audienceId = process.env.RESEND_AUDIENCE_ID;
-			if (!audienceId) {
-				return Response.json({ error: "RESEND_AUDIENCE_ID is not configured" }, { status: 500 });
+			if (!segmentId) {
+				return Response.json({ error: "Newsletter segment ID is not configured" }, { status: 500 });
 			}
 
 			// Render the React component to HTML string
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
 
 			// Step 5a: Create the broadcast
 			const { data: broadcastData, error: createError } = await resend.broadcasts.create({
-				audienceId: audienceId,
+				segmentId,
 				from: "Adamastor <hi@digest.adamastor.blog>",
 				replyTo: "carlos@adamastor.blog",
 				subject: `Adamastor: ${post.title}`,

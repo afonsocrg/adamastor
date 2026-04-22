@@ -1,12 +1,13 @@
 import { EmailTemplate } from "@/components/email/email-template";
 import { SubscribeEmailAlertTemplate } from "@/components/email/team/subscribe-alert";
 import { countActiveSubscribers, listAllContacts } from "@/lib/resend/contacts";
+import { ensureContactInSegment, getNewsletterSegmentId } from "@/lib/resend/segment";
 import { waitUntil } from "@vercel/functions";
 import type { NextRequest } from "next/server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const audienceId = process.env.RESEND_AUDIENCE_ID;
+const segmentId = getNewsletterSegmentId();
 
 const TEAM_EMAILS = ["malik@hey.com", "afonso.crg@gmail.com", "carlosjoseresende@gmail.com"];
 
@@ -30,7 +31,6 @@ export async function POST(request: NextRequest) {
 			email: email,
 			firstName: firstName,
 			lastName: lastName,
-			...(audienceId ? { audienceId } : {}),
 		});
 
 		if (contactError) {
@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
 				return Response.json({ error: contactError.message }, { status: 500 });
 			}
 		}
+
+		await ensureContactInSegment(resend, email, segmentId);
 
 		await delay(500); // Wait before next API call
 
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest) {
 				try {
 					await delay(500);
 
-					const contacts = await listAllContacts(resend, { audienceId });
+					const contacts = await listAllContacts(resend, { segmentId });
 					const totalSubscribers = countActiveSubscribers(contacts);
 
 					await delay(500);

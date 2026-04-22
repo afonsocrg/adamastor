@@ -104,7 +104,8 @@ Key services you'll need accounts for:
 
 ### Operations Notes
 
-- Subscriber totals are sourced from Resend contacts and count active subscribers only. Set `RESEND_AUDIENCE_ID` when using an audience-specific list, otherwise the app falls back to the account contact list.
+- Newsletter subscribers are tracked against the `Adamastor Weekly` Resend segment. Set `RESEND_SEGMENT_ID` to override it, or keep the legacy `RESEND_AUDIENCE_ID` for backward compatibility.
+- New newsletter signups are always added to the newsletter segment, even when the contact already exists globally in Resend.
 - The subscribers API and analytics API are admin-only dashboard routes. Keep `RESEND_API_KEY`, `POSTHOG_PERSONAL_API_KEY`, and `POSTHOG_PROJECT_ID` server-side only.
 - Weekly active users on `/dashboard/analytics` come from PostHog pageview events over the last seven days.
 - Public route motion should stay subtle and fast: prefer opacity-only page entrances, color transitions around 150ms for hover states, and no list-dimming during frequent filters.
