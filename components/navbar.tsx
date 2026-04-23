@@ -1,34 +1,26 @@
-import { createClient } from "@/lib/supabase/server";
-import { CalendarPlusIcon, FileTextIcon, LogOutIcon, SquarePenIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import NavbarUserMenu from "./navbar-user-menu";
 import SearchBar from "./search-bar";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./tailwind/ui/hover-card";
-import { Separator } from "./tailwind/ui/separator";
 
-const Navbar = async () => {
-	const supabase = await createClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-
+const Navbar = () => {
 	return (
 		<>
 			<div className="bg-[#04C9D8] w-full h-1" />
 
 			<nav className="p-4 mb-2 border-b">
-				<div className="max-w-screen-xl mx-auto flex justify-between items-center">
-					<div className="w-60 leading-tight font-normal text-muted-foreground text-sm">
+				<div className="max-w-screen-xl mx-auto flex justify-between items-center gap-4">
+					<div className="order-2 w-auto max-w-[13rem] text-right text-sm font-normal leading-tight text-muted-foreground md:order-1 md:w-60 md:max-w-none md:text-left">
 						<Link href="/">
 							<p className="max-w-48">A digital publication about all things startup in Portugal</p>
 						</Link>
 					</div>
 
-					<div className="flex-1 flex justify-center">
+					<div className="order-1 flex flex-none justify-start md:order-2 md:flex-1 md:justify-center">
 						<Link href="/">
 							<Image
 								priority
-								className="dark:hidden"
+								className="w-40 dark:hidden"
 								src={"/adamastorLogotype.svg"}
 								height={160}
 								width={160}
@@ -36,7 +28,7 @@ const Navbar = async () => {
 							/>
 							<Image
 								priority
-								className="hidden dark:block"
+								className="hidden w-40 dark:block"
 								src={"/adamastorLogotypeDark.svg"}
 								height={160}
 								width={160}
@@ -45,7 +37,7 @@ const Navbar = async () => {
 						</Link>
 					</div>
 
-					<div className="w-60 justify-end">
+					<div className="order-3 hidden w-60 justify-end md:block">
 						<div className="flex gap-3 justify-end !text-muted-foreground">
 							<Link href="/about" className="hover:underline hover:text-primary transition-colors">
 								About
@@ -53,55 +45,13 @@ const Navbar = async () => {
 							<Link href="/events" className="hover:underline hover:text-primary flex gap-1 group transition-colors">
 								Events
 							</Link>
-
-							{user && (
-								<>
-									<HoverCard>
-										<HoverCardTrigger asChild className="cursor-pointer">
-											<Link href="/dashboard/calendar">Account</Link>
-										</HoverCardTrigger>
-										<HoverCardContent className="flex flex-col rounded-xl space-y-2 p-2 !text-muted-foreground">
-											<Link
-												href="/dashboard/posts/new"
-												className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
-											>
-												<SquarePenIcon className="h-4 w-4" />
-												New Post
-											</Link>
-											<Link
-												href="/dashboard/posts"
-												className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
-											>
-												<FileTextIcon className="h-4 w-4" />
-												View Posts
-											</Link>
-											<Link
-												href="/dashboard/add-event"
-												className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
-											>
-												<CalendarPlusIcon className="h-4 w-4" />
-												New Event
-											</Link>
-											<Separator />
-
-											<Link
-												prefetch={false}
-												href="/logout"
-												className="hover:underline hover:text-primary hover:bg-muted p-2 rounded-md transition-all flex items-center gap-2"
-											>
-												<LogOutIcon className="h-4 w-4" />
-												Sign out
-											</Link>
-										</HoverCardContent>
-									</HoverCard>
-								</>
-							)}
+							<NavbarUserMenu />
 						</div>
 					</div>
 				</div>
 			</nav>
 
-			<div className="p-4 md:mb-6 border-b flex justify-center ">
+			<div className="hidden border-b p-4 md:mb-6 md:flex md:justify-center">
 				<SearchBar />
 			</div>
 		</>

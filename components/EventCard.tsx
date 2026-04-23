@@ -17,6 +17,7 @@ import {
 	ContextMenuItem,
 	ContextMenuTrigger,
 } from "@/components/tailwind/ui/context-menu";
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { MapPinIcon, PencilIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,11 +36,12 @@ interface EventCardProps {
 	event: Event;
 	onEventClick: () => void;
 	onDelete: (eventId: string) => void;
-	isAdmin: boolean;
 }
 
-export function EventCard({ event, onEventClick, onDelete, isAdmin }: EventCardProps) {
+export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 	const router = useRouter();
+	const { profile } = useUserProfile();
+	const isAdmin = profile?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true";
 
 	return (
 		<article className="group">
@@ -55,7 +57,7 @@ export function EventCard({ event, onEventClick, onDelete, isAdmin }: EventCardP
 						<div className="ml-1 flex gap-8 align-top">
 							<section className="w-full space-y-3">
 								<div className="flex justify-between items-start">
-									<h3 className="text-xl font-bold leading-tight [text-wrap:pretty] transition-colors duration-150 ease group-hover:text-[#24acb5] [font-family:var(--font-default)]">
+									<h3 className="text-xl font-bold leading-tight text-[#104357] transition-colors duration-150 ease [text-wrap:pretty] group-hover:text-[#24acb5] dark:text-[#E3F2F7] [font-family:var(--font-default)]">
 										{event.title}
 									</h3>
 								</div>

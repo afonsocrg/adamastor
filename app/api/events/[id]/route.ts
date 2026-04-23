@@ -1,4 +1,5 @@
 import { handleError } from "@/lib/errors";
+import { revalidateEventsListing } from "@/lib/revalidate-public";
 import { assertAuthenticated } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
@@ -29,14 +30,12 @@ export async function PUT(
 		console.log("Update request payload:", { id, ...body });
 
 		// First, let's verify the event exists
-		const { data: existingEvent, error: fetchError } = await supabase.from("events").select("*").eq("id", id).single();
+		const { error: fetchError } = await supabase.from("events").select("id").eq("id", id).single();
 
 		if (fetchError) {
 			console.error("Error fetching existing event:", fetchError);
 			throw fetchError;
 		}
-
-		console.log("Existing event:", existingEvent);
 
 		const { data: updatedEvent, error: updateError } = await supabase
 			.from("events")
@@ -52,6 +51,8 @@ export async function PUT(
 
 		console.log("Updated event:", updatedEvent);
 
+		revalidateEventsListing();
+
 		return NextResponse.json({ success: true, data: updatedEvent });
 	} catch (error) {
 		console.error("Error in PUT /api/events/[id]:", error);
@@ -60,7 +61,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-	request: NextRequest,
+	_request: NextRequest,
 	routeParams: {
 		params: Promise<{
 			id: string;
@@ -74,7 +75,7 @@ export async function DELETE(
 		const { id } = await routeParams.params;
 
 		// First, let's verify the event exists
-		const { data: existingEvent, error: fetchError } = await supabase.from("events").select("*").eq("id", id).single();
+		const { error: fetchError } = await supabase.from("events").select("id").eq("id", id).single();
 
 		if (fetchError) {
 			console.error("Error fetching existing event:", fetchError);
@@ -87,6 +88,8 @@ export async function DELETE(
 			console.error("Error deleting event:", deleteError);
 			throw deleteError;
 		}
+
+		revalidateEventsListing();
 
 		return NextResponse.json({ success: true });
 	} catch (error) {

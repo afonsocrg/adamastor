@@ -1,50 +1,31 @@
-import { getUserProfile } from "@/lib/supabase/authentication";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
+import { Suspense } from "react";
 import EventsPageClient from "./EventsPageClient";
 
-// This list affects the filters parameters. I think we need to refactor this in the future.
-const VALID_CITIES = [
-	"lisboa",
-	"porto",
-	"online",
-	"algarve",
-	"aveiro",
-	"braga",
-	"coimbra",
-	"guimaraes",
-	"leiria",
-	"viseu",
-];
+export const revalidate = 3600;
 
-export default async function EventsPage({ searchParams }) {
-	const supabase = await createClient();
-	const user = await getUserProfile(supabase);
-
-	// Check if the city parameter is valid
-	const cityParam = searchParams.city?.toLowerCase();
-	const city = VALID_CITIES.includes(cityParam) ? cityParam : undefined;
+export default async function EventsPage() {
+	const supabase = createPublicClient();
 
 	const today = new Date();
 	today.setHours(0, 0, 0, 0); // Set to 00:00:00.000
 
-	const query = supabase
+	const { data: events, error } = await supabase
 		.from("events")
 		.select("*")
 		.gte("start_time", today.toISOString())
 		.order("start_time", { ascending: true });
-
-	if (city) {
-		query.ilike("city", city);
-	}
-
-	const { data: events, error } = await query;
 
 	if (error) {
 		console.error("Error fetching events:", error);
 		return <div>Error loading events</div>;
 	}
 
-	return <EventsPageClient initialEvents={events || []} user={user} city={city} />;
+	return (
+		<Suspense fallback={null}>
+			<EventsPageClient initialEvents={events || []} />
+		</Suspense>
+	);
 }
 
 // import { Button } from "@/components/tailwind/ui/button";

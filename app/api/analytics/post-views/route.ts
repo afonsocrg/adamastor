@@ -1,5 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 300;
+
 /**
  * Fetches unique view counts for posts from PostHog using the Query API.
  *
@@ -144,6 +147,3 @@ export async function GET(request: NextRequest) {
 		);
 	}
 }
-
-// Cache for 5 minutes to reduce API calls
-export const revalidate = 300;

@@ -1,3 +1,4 @@
+import MobileTabBar from "@/components/MobileTabBar";
 import Navbar from "@/components/navbar";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -22,6 +23,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 					LinkedIn
 				</Link>
 			</footer>
+			<MobileTabBar />
 		</div>
 	);
 }

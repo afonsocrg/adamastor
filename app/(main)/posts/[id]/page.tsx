@@ -1,17 +1,10 @@
-import { PublishButton } from "@/app/(dashboard)/dashboard/posts/PublishButton";
 import AuthorCard from "@/components/authorCard";
+import PostAdminControls from "@/components/post-admin-controls";
 import ShareWidget from "@/components/shareWidget";
 import PostPreview from "@/components/tailwind/post-preview";
-import { Button } from "@/components/tailwind/ui/button";
-import {
-	ContextMenu,
-	ContextMenuContent,
-	ContextMenuItem,
-	ContextMenuTrigger,
-} from "@/components/tailwind/ui/context-menu";
+import { ContextMenu, ContextMenuTrigger } from "@/components/tailwind/ui/context-menu";
 import { formatDate } from "@/lib/datetime";
-import { getUserProfile } from "@/lib/supabase/authentication";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { generateText } from "@tiptap/core";
 import { notFound } from "next/navigation";
 import {
@@ -25,12 +18,13 @@ import {
 	TiptapUnderline,
 	Youtube,
 } from "novel";
-import { DeleteButton } from "./DeleteButton";
 import { SubscribeForm } from "./SubscribeForm";
 import { FeedbackForm } from "./feedbackForm";
 
+export const revalidate = 3600;
+
 async function getPostByIdOrSlug(idOrSlug: string) {
-	const supabase = await createClient();
+	const supabase = createPublicClient();
 	const isNumeric = /^\d+$/.test(idOrSlug);
 	const query = supabase.from("posts").select(`
 			*,
@@ -56,9 +50,6 @@ interface PostPageProps {
 
 export default async function PostPage({ params }: PostPageProps) {
 	const { id } = await params;
-	const supabase = await createClient();
-	const user = await getUserProfile(supabase);
-
 	const { data: post, error } = await getPostByIdOrSlug(id);
 
 	if (error || !post) {
@@ -72,23 +63,7 @@ export default async function PostPage({ params }: PostPageProps) {
 			<ContextMenuTrigger>
 				<div className="max-w-[750px] mx-auto md:px-4 animate-in">
 					<div className="mb-4 flex gap-2 justify-end">
-						{(user?.id === post.author_id || user?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true") && (
-							<>
-								<ContextMenuContent>
-									<ContextMenuItem>
-										<Button variant="ghost" asChild>
-											<a href={`/dashboard/posts/${id}/edit`}>Edit Post</a>
-										</Button>
-									</ContextMenuItem>
-									<ContextMenuItem>
-										<PublishButton postId={id} isPublic={post.is_public} />
-									</ContextMenuItem>
-									<ContextMenuItem>
-										<DeleteButton id={id} />
-									</ContextMenuItem>
-								</ContextMenuContent>
-							</>
-						)}
+						<PostAdminControls postAuthorId={String(post.author_id)} postId={id} isPublic={post.is_public} />
 					</div>
 					<div className="mb-4">
 						<h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-balance text-[#104357] dark:text-[#E3F2F7] [font-family:var(--font-default)]">
