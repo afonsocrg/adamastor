@@ -21,6 +21,8 @@ Templates are React Email components in [`components/email/`](../components/emai
 | `event-submission-confirmation.tsx` | Public form submission | Submitter |
 | `event-submission-approved.tsx` | Admin approves a submission | Submitter |
 | `event-submission-rejected.tsx` | Admin rejects a submission | Submitter |
+| `preferences-link.tsx` | Visitor submits `/preferences` request-link form | The requester (if subscribed) |
+| `category-welcome.tsx` | First-time per-category subscribe (no digest opt-in) | Subscriber |
 
 Every template defines `PreviewProps` so you can develop it in isolation:
 

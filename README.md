@@ -129,6 +129,7 @@ Atomic docs covering individual subsystems. Start with whichever is closest to w
 | [`docs/duplicate-detection.md`](docs/duplicate-detection.md) | How event dedup scores matches, severity levels (block/warning), stopword list, how to extend. |
 | [`docs/scrape-endpoint.md`](docs/scrape-endpoint.md) | `/api/scrape` — platform-specific extractors (Eventbrite, Luma, default), in-process cache, failure modes, how to add a platform. |
 | [`docs/emails.md`](docs/emails.md) | Resend integration, template list, admin recipient resolution, `waitUntil` background sending. |
+| [`docs/newsletter-subscriptions.md`](docs/newsletter-subscriptions.md) | Per-category newsletter preferences: Supabase as source of truth, Resend segment sync, `/preferences` magic-link UX, broadcast workflow. |
 | [`docs/release-smoke-checklist.md`](docs/release-smoke-checklist.md) | Manual QA pass before shipping changes that touch public surfaces. |
 
 ## Dependency Updates
