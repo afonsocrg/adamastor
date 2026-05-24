@@ -1,3 +1,4 @@
+import { CategoryNewsletterCta } from "@/components/category-newsletter-cta";
 import { EVENT_CATEGORIES } from "@/lib/events/categories";
 import { fetchPublicEvents } from "@/lib/events/fetch-public";
 import { KNOWN_CITY_SLUGS, isKnownCategorySlug, isKnownCitySlug } from "@/lib/events/route-slugs";
@@ -98,6 +99,7 @@ export default async function EventsSlugPage({ params }: EventsSlugPageProps) {
 		const itemListJsonLd = buildEventsRouteJsonLd(events, `https://adamastor.blog${pathname}`);
 		const breadcrumbJsonLd = buildBreadcrumbListJsonLd(buildEventsRouteBreadcrumbs({ category: slug }));
 		const intro = getEventsRouteIntro({ category: slug });
+		const category = EVENT_CATEGORIES.find((c) => c.slug === slug);
 
 		return (
 			<>
@@ -119,6 +121,11 @@ export default async function EventsSlugPage({ params }: EventsSlugPageProps) {
 						intro={intro}
 					/>
 				</Suspense>
+				{category ? (
+					<div className="md:px-4 mt-8">
+						<CategoryNewsletterCta categorySlug={slug} categoryName={category.name} />
+					</div>
+				) : null}
 			</>
 		);
 	}
