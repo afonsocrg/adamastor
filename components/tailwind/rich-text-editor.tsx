@@ -1,5 +1,6 @@
 "use client";
 import {
+	EditorBubble,
 	EditorCommand,
 	EditorCommandEmpty,
 	EditorCommandItem,
@@ -14,13 +15,11 @@ import { defaultExtensions } from "./extensions";
 import { ColorSelector } from "./selectors/color-selector";
 import { LinkSelector } from "./selectors/link-selector";
 import { NodeSelector } from "./selectors/node-selector";
+import { TextButtons } from "./selectors/text-buttons";
 import { Separator } from "./ui/separator";
 
-import GenerativeMenuSwitch from "./generative/generative-menu-switch";
-import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
 
-// const extensions = [...defaultExtensions, slashCommand];
 const extensions = [...defaultExtensions, slashCommand];
 
 interface CoreEditorProps extends Omit<EditorContentProps, "extensions" | "slotAfter" | "slotBefore" | "className"> {}
@@ -29,7 +28,6 @@ const RichTextEditor = (props: CoreEditorProps) => {
 	const [openNodeTypeDropdown, setOpenNodeTypeDropdown] = useState(false);
 	const [openColor, setOpenColor] = useState(false);
 	const [openLink, setOpenLink] = useState(false);
-	const [openBubbleMenu, setOpenBubbleMenu] = useState(false);
 
 	if (!props.initialContent) return null;
 
@@ -71,19 +69,18 @@ const RichTextEditor = (props: CoreEditorProps) => {
 					</EditorCommandList>
 				</EditorCommand>
 
-				<GenerativeMenuSwitch open={openBubbleMenu} onOpenChange={setOpenBubbleMenu}>
-					<Separator orientation="vertical" />
+				<EditorBubble
+					tippyOptions={{ placement: "top" }}
+					className="flex w-fit max-w-[90vw] overflow-hidden rounded-md border border-muted bg-background shadow-xl"
+				>
 					<NodeSelector open={openNodeTypeDropdown} onOpenChange={setOpenNodeTypeDropdown} />
 					<Separator orientation="vertical" />
-
 					<LinkSelector open={openLink} onOpenChange={setOpenLink} />
-					<Separator orientation="vertical" />
-					{/* <MathSelector /> */}
 					<Separator orientation="vertical" />
 					<TextButtons />
 					<Separator orientation="vertical" />
 					<ColorSelector open={openColor} onOpenChange={setOpenColor} />
-				</GenerativeMenuSwitch>
+				</EditorBubble>
 			</EditorContent>
 		</EditorRoot>
 	);
