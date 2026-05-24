@@ -290,13 +290,52 @@ function extractLumaData(html: string, originalUrl: string): Event {
 }
 
 /**
+ * In-process scrape cache. Be honest about what this buys us:
+ *
+ *   - The dominant submission case is "organiser pastes a unique URL once
+ *     and never touches it again" — the Map does nothing for that path.
+ *   - Where it DOES help: accidental double-clicks on "Fill from event
+ *     link", two organisers from the same event submitting independently,
+ *     dev/QA hitting the same URL repeatedly, and any future admin
+ *     "refresh from source" button.
+ *
+ * Memory ceiling is small (~SCRAPE_CACHE_MAX entries × a few KB of metadata)
+ * and the per-process scope is fine because we deploy to Vercel and the
+ * extra hits a cold instance takes are the same hits we'd take without any
+ * cache at all. Trade-off accepted.
+ */
+const SCRAPE_TTL_MS = 10 * 60 * 1000;
+const SCRAPE_CACHE_MAX = 200;
+const scrapeCache = new Map<string, { data: Event; expiresAt: number }>();
+
+function getCachedScrape(url: string): Event | null {
+	const entry = scrapeCache.get(url);
+	if (!entry) return null;
+	if (entry.expiresAt < Date.now()) {
+		scrapeCache.delete(url);
+		return null;
+	}
+	return entry.data;
+}
+
+function setCachedScrape(url: string, data: Event) {
+	if (scrapeCache.size >= SCRAPE_CACHE_MAX) {
+		// Cheap "evict the oldest insertion" — Map iteration is insertion order.
+		const oldestKey = scrapeCache.keys().next().value;
+		if (oldestKey !== undefined) scrapeCache.delete(oldestKey);
+	}
+	scrapeCache.set(url, { data, expiresAt: Date.now() + SCRAPE_TTL_MS });
+}
+
+/**
  * POST endpoint for scraping event metadata from a URL.
  *
  * Request body: { url: string }
  * Response: { data: Event } or { error: string }
  *
  * The endpoint detects the event platform from the URL and uses
- * the appropriate extraction strategy for best results.
+ * the appropriate extraction strategy for best results. Results are cached
+ * in-process for SCRAPE_TTL_MS to make organiser re-submissions snappy.
  */
 export async function POST(request: NextRequest) {
 	try {
@@ -304,6 +343,19 @@ export async function POST(request: NextRequest) {
 
 		if (!url) {
 			return NextResponse.json({ error: "URL is required" }, { status: 400 });
+		}
+
+		const cached = getCachedScrape(url);
+		if (cached) {
+			return NextResponse.json(
+				{ data: cached },
+				{
+					headers: {
+						"Cache-Control": "public, max-age=300, s-maxage=300",
+						"X-Scrape-Cache": "hit",
+					},
+				},
+			);
 		}
 
 		// Fetch the page HTML with a simple user agent
@@ -333,7 +385,22 @@ export async function POST(request: NextRequest) {
 			metadata = extractDefaultEventData(html, finalUrl);
 		}
 
-		return NextResponse.json({ data: metadata });
+		setCachedScrape(url, metadata);
+		// Cache the normalised URL too so a hit on the final redirect target
+		// short-circuits the next request even if the original input differed.
+		if (finalUrl !== url) {
+			setCachedScrape(finalUrl, metadata);
+		}
+
+		return NextResponse.json(
+			{ data: metadata },
+			{
+				headers: {
+					"Cache-Control": "public, max-age=300, s-maxage=300",
+					"X-Scrape-Cache": "miss",
+				},
+			},
+		);
 	} catch (error) {
 		console.error("Error in scrape API:", error);
 		return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
