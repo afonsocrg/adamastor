@@ -107,16 +107,23 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 		},
 	});
 
-	const handleScrape = async () => {
-		const trimmed = form.getValues("url").trim();
-		if (!isValidHttpUrl(trimmed)) {
+	const handleScrape = async (overrideUrl?: string) => {
+		const candidate = (overrideUrl ?? form.getValues("url")).trim();
+		if (!isValidHttpUrl(candidate)) {
 			toast.error("Please paste a valid event link first.");
 			return;
 		}
 
+		// Keep the visible field in sync if the caller passed a URL directly
+		// (clipboard auto-paste path). Without this, the form field would stay
+		// empty even though the scrape ran on a real URL.
+		if (overrideUrl) {
+			form.setValue("url", candidate, { shouldDirty: true, shouldValidate: true });
+		}
+
 		setIsScraping(true);
 		try {
-			const result = await scrapeUrl(trimmed);
+			const result = await scrapeUrl(candidate);
 			if (result.error) {
 				toast.error(`${result.error} You can still fill the form manually below.`);
 				return;
@@ -132,7 +139,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 			const inferredCategories = inferEventCategorySlugs({
 				title: scraped.title ?? currentValues.title,
 				description: scraped.description ?? currentValues.description,
-				url: scraped.url ?? trimmed,
+				url: scraped.url ?? candidate,
 			});
 
 			startScrapeTransition(() => {
@@ -288,20 +295,41 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 														handleScrape();
 													}
 												}}
+												onClick={async () => {
+													// Auto-paste + auto-scrape on first click into an empty field.
+													// Guarded by `field.value.trim().length === 0` so re-clicking
+													// the field to edit an existing URL doesn't clobber it with
+													// whatever's in the clipboard. Mirrors the admin add-event
+													// affordance but takes it one step further by firing the
+													// scrape immediately when a valid http(s) URL lands.
+													if (field.value.trim().length > 0 || isScraping || isSubmitting) {
+														return;
+													}
+													try {
+														const text = await navigator.clipboard.readText();
+														if (text && isValidHttpUrl(text.trim())) {
+															await handleScrape(text.trim());
+														}
+													} catch {
+														// Clipboard access denied or unavailable — silent fallback
+														// (user can still type / paste manually). No toast, this
+														// is a convenience affordance, not a required path.
+													}
+												}}
 												className="flex-1"
 											/>
 										</FormControl>
 										<Button
 											type="button"
 											variant="outline"
-											onClick={handleScrape}
+											onClick={() => handleScrape()}
 											disabled={isScraping || isSubmitting || field.value.trim().length === 0}
 											className="rounded-lg"
 										>
 											{isScraping ? (
 												<>
-													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-													Loading...
+													<Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+													Loading…
 												</>
 											) : (
 												"Fill from event link"
@@ -457,6 +485,9 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 										<FormControl>
 											<Input
 												type="email"
+												autoComplete="email"
+												inputMode="email"
+												spellCheck={false}
 												placeholder="you@example.com"
 												readOnly={emailIsLocked}
 												className={emailIsLocked ? "bg-muted" : undefined}
@@ -506,8 +537,8 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 							>
 								{isSubmitting ? (
 									<>
-										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										Submitting...
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+										Submitting…
 									</>
 								) : (
 									"Submit event"
