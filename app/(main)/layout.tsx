@@ -16,6 +16,12 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
 			{/* Footer */}
 			<footer className="justify-end flex gap-3 text-muted-foreground p-4 mb-2 border-t">
+				<Link href="/feed.xml" className="hover:underline hover:text-primary transition-colors">
+					RSS
+				</Link>
+				<Link href="https://x.com/meetAdamastor" className="hover:underline hover:text-primary transition-colors">
+					X
+				</Link>
 				<Link
 					href="https://www.linkedin.com/company/adamastor-magazine/"
 					className="hover:underline hover:text-primary transition-colors"

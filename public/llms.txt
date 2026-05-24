@@ -1,0 +1,83 @@
+# Adamastor
+
+> Adamastor is a digital publication for all things startup in Portugal. We publish a weekly digest on the Portuguese startup scene and curate an events calendar for the tech and startup community.
+
+## What we do
+
+### Weekly Startup Digest
+
+Original reporting and analysis on the Portuguese startup ecosystem — fundraises, launches, founder profiles, market commentary, and community news. Delivered to subscribers weekly and archived on the site.
+
+### Events Calendar
+
+Curated meetups, conferences, workshops, and founder gatherings across Portugal. Searchable by city and category. Each event links out to the original platform (Luma, Eventbrite, Meetup, etc.) for RSVP.
+
+## Editorial team
+
+- **Carlos Resende** — Co-founder and main author. Director of Founder Institute Portugal and curator of Techstars Startup Digest.
+- **Afonso Gonçalves** — Co-founder. Chapter Director at Startup Grind Lisbon.
+- **Malik Piara** — Co-founder. Also founder of LisboaUX (UX/design community in Lisbon), LisboaJS (JavaScript community in Lisbon), and Outono.org. Previously founded 351 Startup Community (no longer associated).
+
+## Sibling properties
+
+Adamastor coordinates with Malik's other Lisbon-area community properties when syndicating event content to audience-specific channels:
+
+- **LisboaJS** — JavaScript / software-engineering community in Lisbon
+- **LisboaUX** — UX / design community in Lisbon
+
+## What we cover
+
+- **Cities**: Lisboa, Porto, Online, Algarve, Aveiro, Braga, Coimbra, Guimarães, Leiria, Viseu
+- **Event categories**: AI, Software Engineering, Design, Product Management, Startups & Fundraising
+
+## Key URLs
+
+### Editorial
+
+- [Homepage / digest feed](https://adamastor.blog/)
+- [About Adamastor](https://adamastor.blog/about)
+- [RSS feed (weekly digest)](https://adamastor.blog/feed.xml)
+
+### Events (browse by city)
+
+- [All upcoming events](https://adamastor.blog/events)
+- [Startup events in Lisboa](https://adamastor.blog/events/lisboa)
+- [Startup events in Porto](https://adamastor.blog/events/porto)
+- [Online startup events](https://adamastor.blog/events/online)
+
+### Events (browse by category)
+
+- [Design events](https://adamastor.blog/events/design)
+- [Software Engineering events](https://adamastor.blog/events/software-engineering)
+- [AI events](https://adamastor.blog/events/ai)
+- [Product Management events](https://adamastor.blog/events/product)
+- [Startup & Fundraising events](https://adamastor.blog/events/startups-fundraising)
+
+### Combined (city + category)
+
+URLs follow the pattern `/events/{city}/{category}`. Examples:
+
+- [Design events in Lisboa](https://adamastor.blog/events/lisboa/design)
+- [Software Engineering events in Porto](https://adamastor.blog/events/porto/software-engineering)
+- [AI events in Lisboa](https://adamastor.blog/events/lisboa/ai)
+
+### RSS feeds (events)
+
+Every events route has a matching RSS feed at `<route>/feed.xml` — useful for syndicating Adamastor events into Slack channels, Telegram, embeds, newsletters, or any RSS-aware tool. Examples:
+
+- [All events feed](https://adamastor.blog/events/feed.xml)
+- [Lisboa events feed](https://adamastor.blog/events/lisboa/feed.xml)
+- [Design events feed](https://adamastor.blog/events/design/feed.xml)
+- [Design events in Lisboa feed](https://adamastor.blog/events/lisboa/design/feed.xml)
+
+Outbound event links in these feeds are UTM-tagged so destination platforms (Luma, Eventbrite, Meetup) attribute traffic back to Adamastor with the specific feed that drove the click.
+
+## Data freshness
+
+The events listing is regenerated hourly. The weekly digest publishes once per week.
+
+## Contact
+
+- Email: carlos@adamastor.blog
+- X / Twitter: [@meetAdamastor](https://x.com/meetAdamastor)
+- LinkedIn: [Adamastor Magazine](https://www.linkedin.com/company/adamastor-magazine/)

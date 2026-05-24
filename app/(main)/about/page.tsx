@@ -1,9 +1,20 @@
+import { buildBreadcrumbListJsonLd } from "@/lib/events/seo";
 import Image from "next/image";
 import Link from "next/link";
+
+const breadcrumbJsonLd = buildBreadcrumbListJsonLd([
+	{ name: "Home", pathname: "/" },
+	{ name: "About", pathname: "/about" },
+]);
 
 export default function About() {
 	return (
 		<>
+			<script
+				type="application/ld+json"
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema markup
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+			/>
 			<section className="m-6">
 				<h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-[#104357] dark:text-[#E3F2F7]">
 					About Us

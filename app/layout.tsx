@@ -9,8 +9,9 @@ import type { ReactNode } from "react";
 import Providers from "./providers";
 import { PostHogProvider } from "./providers";
 
-const title = "Adamastor - All about Startups in Portugal";
-const description = "All about Startups in Portugal";
+const title = "Adamastor — All Things Startup in Portugal";
+const description =
+	"Adamastor is a digital publication for all things startup in Portugal. A weekly digest on the Portuguese startup scene and an events calendar for founders, builders, and operators.";
 
 export const metadata: Metadata = {
 	title,
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 				url: "/socialPreview2.jpg",
 				width: 1200,
 				height: 630,
-				alt: "Adamastor - All about Startups in Portugal",
+				alt: "Adamastor — A digital publication for all things startup in Portugal",
 			},
 		],
 	},
@@ -32,6 +33,13 @@ export const metadata: Metadata = {
 		description,
 		card: "summary_large_image",
 		images: ["/socialPreview2.jpg"],
+	},
+	// Advertise the RSS feed so browsers (and feed-discovery tools, RSS
+	// readers' "find feed" features, etc.) can auto-detect it from any page.
+	alternates: {
+		types: {
+			"application/rss+xml": [{ url: "/feed.xml", title: "Adamastor — Weekly Digest" }],
+		},
 	},
 	metadataBase: new URL("https://adamastor.blog"),
 };

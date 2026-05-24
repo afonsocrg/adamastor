@@ -4,6 +4,7 @@ import ShareWidget from "@/components/shareWidget";
 import PostPreview from "@/components/tailwind/post-preview";
 import { ContextMenu, ContextMenuTrigger } from "@/components/tailwind/ui/context-menu";
 import { formatDate } from "@/lib/datetime";
+import { buildArticleJsonLd, buildBreadcrumbListJsonLd } from "@/lib/events/seo";
 import { createPublicClient } from "@/lib/supabase/public";
 import { generateText } from "@tiptap/core";
 import { notFound } from "next/navigation";
@@ -22,6 +23,39 @@ import { SubscribeForm } from "./SubscribeForm";
 import { FeedbackForm } from "./feedbackForm";
 
 export const revalidate = 3600;
+
+const POST_EXTENSIONS = [
+	StarterKit,
+	TaskItem,
+	TaskList,
+	TiptapImage,
+	TiptapUnderline,
+	TextStyle,
+	Color,
+	TiptapLink,
+	Youtube,
+];
+
+const DEFAULT_CONTENT_PREVIEW = "Check out this post on our blog.";
+
+/**
+ * Extract a ~160-char preview from a post's TipTap JSON content. Used as the
+ * SEO meta description and the Article JSON-LD description, so both stay
+ * consistent. Falls back to a generic string if TipTap parsing fails (e.g.
+ * malformed historical content).
+ */
+function extractPostContentPreview(content: unknown): string {
+	try {
+		// biome-ignore lint/suspicious/noExplicitAny: TipTap's JSONContent type is permissive
+		const contentText = generateText(content as any, POST_EXTENSIONS).slice(0, 160);
+		if (contentText.length === 0) return DEFAULT_CONTENT_PREVIEW;
+		const lastSpaceIndex = contentText.lastIndexOf(" ");
+		return `${contentText.substring(0, lastSpaceIndex)}…`;
+	} catch (error) {
+		console.error("extractPostContentPreview failed; using default:", error);
+		return DEFAULT_CONTENT_PREVIEW;
+	}
+}
 
 async function getPostByIdOrSlug(idOrSlug: string) {
 	const supabase = createPublicClient();
@@ -58,9 +92,41 @@ export default async function PostPage({ params }: PostPageProps) {
 
 	const formattedPublishedDate = formatDate(post.created_at);
 
+	// No public /posts index page exists, so the breadcrumb is two levels:
+	// Home > {post title}. The post slug (or id) is the canonical pathname.
+	const postPathname = `/posts/${post.slug ?? post.id}`;
+	const contentPreview = extractPostContentPreview(post.content);
+
+	const breadcrumbJsonLd = buildBreadcrumbListJsonLd([
+		{ name: "Home", pathname: "/" },
+		{ name: post.title, pathname: postPathname },
+	]);
+
+	const articleJsonLd = buildArticleJsonLd({
+		pathname: postPathname,
+		title: post.title,
+		description: contentPreview,
+		datePublished: post.created_at,
+		dateModified: post.updated_at ?? post.created_at,
+		// Use the same dynamic OG image as the social meta so the Article
+		// schema, OG card, and on-page social preview all stay aligned.
+		imageUrl: `https://adamastor.blog/api/og?title=${encodeURIComponent(post.title)}`,
+		author: post.authors,
+	});
+
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
+				<script
+					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema markup
+					dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+				/>
+				<script
+					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema markup
+					dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+				/>
 				<div className="max-w-[750px] mx-auto md:px-4 animate-in">
 					<div className="mb-4 flex gap-2 justify-end">
 						<PostAdminControls postAuthorId={String(post.author_id)} postId={id} isPublic={post.is_public} />
@@ -93,30 +159,8 @@ export async function generateMetadata({ params }: PostPageProps) {
 		notFound();
 	}
 
-	// TODO: @afonso I wanted to slice the content but it seems this is an object. Can you help?
-	let contentPreview = "Check out this post on our blog.";
-	try {
-		const contentText = generateText(post.content, [
-			StarterKit,
-			TaskItem,
-			TaskList,
-			TiptapImage,
-			TiptapUnderline,
-			TextStyle,
-			Color,
-			TiptapLink,
-			Youtube,
-		]).slice(0, 160);
-		if (contentText.length > 0) {
-			const lastSpaceIndex = contentText.lastIndexOf(" ");
-			contentPreview = `${contentText.substring(0, lastSpaceIndex)}…`;
-		}
-	} catch (error) {
-		console.error("Error generating content preview", error);
-		console.log("Continuing with default content preview");
-	}
+	const contentPreview = extractPostContentPreview(post.content);
 
-	// Generate Open Graph image with post title dynamically
 	return {
 		title: post.title,
 		description: contentPreview,
