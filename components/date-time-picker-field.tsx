@@ -65,6 +65,25 @@ export default function DateTimePickerField({
     return slots
   }, [])
 
+  // Sync internal state when the external value prop changes after mount
+  // (e.g. scrape-and-fill in the public submission form populates the form
+  // value while this component is already rendered). Without this, the
+  // trigger keeps showing the placeholder even though the form holds a real
+  // value, because the useState initializers above only run once.
+  React.useEffect(() => {
+    if (!value) {
+      setDate(undefined)
+      setSelectedTime("18:00")
+      return
+    }
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) return
+    setDate(parsed)
+    setSelectedTime(
+      `${parsed.getHours().toString().padStart(2, "0")}:${parsed.getMinutes().toString().padStart(2, "0")}`,
+    )
+  }, [value])
+
   // Update parent form when date or time changes
   React.useEffect(() => {
     if (date && selectedTime) {
