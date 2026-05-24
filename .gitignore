@@ -42,6 +42,8 @@ coverage/
 .idea/
 .vscode/
 .claude/
+.agents/
+skills-lock.json
 
 # OS
 .DS_Store
