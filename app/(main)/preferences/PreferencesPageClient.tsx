@@ -1,5 +1,16 @@
 "use client";
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/tailwind/ui/alert-dialog";
 import { Button } from "@/components/tailwind/ui/button";
 import { Input } from "@/components/tailwind/ui/input";
 import { EVENT_CATEGORIES, type EventCategorySlug } from "@/lib/events/categories";
@@ -182,14 +193,32 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 				<Button onClick={handleSave} disabled={saving}>
 					{saving ? "Saving…" : "Save preferences"}
 				</Button>
-				<button
-					type="button"
-					onClick={handleUnsubscribeAll}
-					disabled={saving}
-					className="text-sm text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
-				>
-					Unsubscribe from everything
-				</button>
+				<AlertDialog>
+					<AlertDialogTrigger asChild>
+						<button
+							type="button"
+							disabled={saving}
+							className="text-sm text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
+						>
+							Unsubscribe from everything
+						</button>
+					</AlertDialogTrigger>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>Unsubscribe from everything?</AlertDialogTitle>
+							<AlertDialogDescription>
+								You'll stop receiving the weekly digest and any per-category event newsletters. You can opt back in any
+								time from this page.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>Cancel</AlertDialogCancel>
+							<AlertDialogAction onClick={handleUnsubscribeAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+								Yes, unsubscribe me
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
 			</div>
 		</div>
 	);
