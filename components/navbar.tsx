@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import NavbarUserMenu from "./navbar-user-menu";
-import SearchBar from "./search-bar";
 
 const Navbar = () => {
 	return (
@@ -50,10 +49,6 @@ const Navbar = () => {
 					</div>
 				</div>
 			</nav>
-
-			<div className="hidden border-b p-4 md:mb-6 md:flex md:justify-center">
-				<SearchBar />
-			</div>
 		</>
 	);
 };
