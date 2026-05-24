@@ -52,10 +52,27 @@ interface Article {
 	url: string;
 }
 
+/**
+ * When set, the template renders in per-category mode: a focused heading,
+ * an events-only body (the article section is suppressed), and a CTA that
+ * deep-links to the category's listing page rather than the all-events page.
+ */
+interface CategoryContext {
+	slug: string;
+	name: string;
+}
+
 interface NewsletterTemplateProps {
 	events: Event[];
-	weekLabel?: string;
 	article?: Article;
+	category?: CategoryContext;
+	/**
+	 * Page where subscribers can manage which newsletters they receive.
+	 * Bare URL (no per-recipient token) because Resend broadcasts can't
+	 * personalize per recipient — the page accepts an email and re-sends
+	 * a tokenized link.
+	 */
+	preferencesUrl?: string;
 }
 
 // ============================================
@@ -221,12 +238,28 @@ function ArticleSection({ article }: { article: Article }) {
 // Main Template
 // ============================================
 
-export const NewsletterTemplate = ({ events, weekLabel = "This Week", article }: NewsletterTemplateProps) => {
+export const NewsletterTemplate = ({
+	events,
+	article,
+	category,
+	preferencesUrl,
+}: NewsletterTemplateProps) => {
 	const eventCount = events.length;
+	// Per-category sends are events-only — the article slot is hidden even if
+	// one is passed by accident, so the email matches what the subscriber
+	// opted in to receive.
+	const showArticle = !!article && !category;
+	const eventsHeading = category ? `Upcoming ${category.name} Events` : "Upcoming Events";
+	const eventsCtaUrl = category
+		? `https://adamastor.blog/events/${category.slug}`
+		: "https://adamastor.blog/events";
+	const eventsCtaLabel = category ? `View all ${category.name} events` : "View All Events";
 
-	const previewText = article
-		? `${article.title} + ${eventCount} upcoming events`
-		: `${eventCount} upcoming events in Portugal's startup scene`;
+	const previewText = category
+		? `${eventCount} upcoming ${category.name.toLowerCase()} events in Portugal`
+		: article
+			? `${article.title} + ${eventCount} upcoming events`
+			: `${eventCount} upcoming events in Portugal's startup scene`;
 
 	return (
 		<Html lang="en" dir="ltr">
@@ -368,7 +401,7 @@ blockquote p:last-child::before {
 						{/* ============================================ */}
 						{/* Featured Article Section (if provided) */}
 						{/* ============================================ */}
-						{article && (
+						{showArticle && article && (
 							<>
 								<ArticleSection article={article} />
 								<Hr className="border-gray-200 my-[32px]" />
@@ -379,7 +412,17 @@ blockquote p:last-child::before {
 						{/* Events Section */}
 						{/* ============================================ */}
 						<Section>
-							<Heading className="text-[22px] font-bold text-[#104357]">Upcoming Events</Heading>
+							<Heading className="text-[22px] font-bold text-[#104357]">{eventsHeading}</Heading>
+
+							{/* Context line for per-category sends — reduces spam-flagging
+							    and reminds recipients why they're getting this. Only
+							    shown when this is a per-category newsletter; the digest
+							    has its own preview/identity. */}
+							{category ? (
+								<Text className="text-[13px] text-gray-500 m-0 mb-[16px] leading-[18px]">
+									You're getting this because you subscribed to {category.name} events on adamastor.blog.
+								</Text>
+							) : null}
 
 							{eventCount > 0 ? (
 								<>
@@ -397,10 +440,10 @@ blockquote p:last-child::before {
 						{/* Events CTA */}
 						<Section className="text-center my-[16px]">
 							<Button
-								href="https://adamastor.blog/events"
+								href={eventsCtaUrl}
 								className="bg-[#04c9d8] text-white px-[32px] py-[16px] rounded-[6px] text-[14px] font-semibold no-underline box-border inline-block"
 							>
-								View All Events
+								{eventsCtaLabel}
 							</Button>
 						</Section>
 
@@ -418,6 +461,14 @@ blockquote p:last-child::before {
 								<Link href="https://adamastor.blog" className="text-gray-500 underline">
 									adamastor.blog
 								</Link>
+								{preferencesUrl && (
+									<>
+										{" • "}
+										<Link href={preferencesUrl} className="text-gray-500 underline">
+											Manage preferences
+										</Link>
+									</>
+								)}
 								{" • "}
 								<Link href="{{{RESEND_UNSUBSCRIBE_URL}}}" className="text-gray-500 underline">
 									Unsubscribe
@@ -436,7 +487,6 @@ blockquote p:last-child::before {
 // ============================================
 
 NewsletterTemplate.PreviewProps = {
-	weekLabel: "January 8-15",
 	article: {
 		id: "147",
 		title: "Sweet as a Pastel de Nata | Week 42",
