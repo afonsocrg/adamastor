@@ -1,6 +1,6 @@
 # Building Adamastor
 
-A publication covering the Portuguese startup ecosystem. It features a blog, an event discovery page and a weekly newsletter.
+A publication covering the Portuguese startup ecosystem. It features a blog, an event discovery page (with **community submissions**), and a weekly newsletter.
 
 **Live at [adamastor.blog](https://adamastor.blog)**
 
@@ -102,6 +102,13 @@ Key services you'll need accounts for:
 - **PostHog** — Product analytics
 - **Vercel** — Deployment (optional for local dev)
 
+### Event Submissions Notes
+
+- The public submission form at `/events/submit` requires three additional env vars: `SUPABASE_SERVICE_ROLE_KEY` (server-only, bypasses RLS), and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` (Cloudflare Turnstile). If Turnstile isn't configured, captcha verification is skipped with a warning — fine for dev, **never** in prod.
+- Optionally set `EVENT_SUBMISSIONS_NOTIFY_EXTRA` (comma-separated emails) to cc additional recipients on new-submission notifications beyond the `profiles.role='admin'` set.
+- The admin review queue lives at `/dashboard/event-submissions` with a pending-count badge in the sidebar.
+- See [`docs/event-submissions.md`](docs/event-submissions.md) for the full flow and threat model.
+
 ### Operations Notes
 
 - Newsletter subscribers are tracked against the `Adamastor Weekly` Resend segment. Set `RESEND_SEGMENT_ID` to override it, or keep the legacy `RESEND_AUDIENCE_ID` for backward compatibility.
@@ -109,6 +116,20 @@ Key services you'll need accounts for:
 - The subscribers API and analytics API are admin-only dashboard routes. Keep `RESEND_API_KEY`, `POSTHOG_PERSONAL_API_KEY`, and `POSTHOG_PROJECT_ID` server-side only.
 - Weekly active users on `/dashboard/analytics` come from PostHog pageview events over the last seven days.
 - Public route motion should stay subtle and fast: prefer opacity-only page entrances, color transitions around 150ms for hover states, and no list-dimming during frequent filters.
+
+## Documentation
+
+Atomic docs covering individual subsystems. Start with whichever is closest to what you're touching:
+
+| Doc | What's in it |
+|---|---|
+| [`docs/event-submissions.md`](docs/event-submissions.md) | Public submission + admin approval feature end-to-end. File map, status model, env vars, future work. |
+| [`docs/security-and-rls.md`](docs/security-and-rls.md) | Auth model, Supabase clients (SSR / anon / service-role), RLS policies on `events`, threat model for the submissions API. Read before adding a mutating endpoint. |
+| [`docs/migrations.md`](docs/migrations.md) | Schema migration workflow: how to write them, how Malik applies them (Supabase dashboard SQL editor), idempotency conventions. |
+| [`docs/duplicate-detection.md`](docs/duplicate-detection.md) | How event dedup scores matches, severity levels (block/warning), stopword list, how to extend. |
+| [`docs/scrape-endpoint.md`](docs/scrape-endpoint.md) | `/api/scrape` — platform-specific extractors (Eventbrite, Luma, default), in-process cache, failure modes, how to add a platform. |
+| [`docs/emails.md`](docs/emails.md) | Resend integration, template list, admin recipient resolution, `waitUntil` background sending. |
+| [`docs/release-smoke-checklist.md`](docs/release-smoke-checklist.md) | Manual QA pass before shipping changes that touch public surfaces. |
 
 ## Dependency Updates
 
