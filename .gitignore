@@ -41,6 +41,7 @@ coverage/
 # IDE
 .idea/
 .vscode/
+.claude/
 
 # OS
 .DS_Store
