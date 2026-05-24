@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarIcon, DatabaseIcon, Frame, MailIcon, NewspaperIcon, PieChart, TicketIcon } from "lucide-react";
+import { CalendarIcon, DatabaseIcon, Frame, InboxIcon, MailIcon, NewspaperIcon, PieChart, TicketIcon } from "lucide-react";
 import type * as React from "react";
 
 import { NavMain } from "@/components/nav-main";
@@ -20,9 +20,10 @@ import type { UserWithProfile } from "@/lib/supabase/authentication";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 	profile?: UserWithProfile; // Use your actual type
+	pendingSubmissionsCount?: number;
 }
 
-export function AppSidebar({ profile, ...props }: AppSidebarProps) {
+export function AppSidebar({ profile, pendingSubmissionsCount = 0, ...props }: AppSidebarProps) {
 	// Create user data from profile, with fallback to existing data
 	// Handle optional email with safe navigation
 	const userData = profile
@@ -60,6 +61,12 @@ export function AppSidebar({ profile, ...props }: AppSidebarProps) {
 				title: "Events",
 				url: "/dashboard/add-event",
 				icon: TicketIcon,
+			},
+			{
+				title: "Event submissions",
+				url: "/dashboard/event-submissions",
+				icon: InboxIcon,
+				badgeCount: pendingSubmissionsCount,
 			},
 			{
 				title: "Calendar",

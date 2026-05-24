@@ -5,9 +5,28 @@ import { SidebarInset, SidebarProvider } from "@/components/tailwind/ui/sidebar"
 import { SidebarTrigger } from "@/components/tailwind/ui/sidebar";
 import { type UserWithProfile, assertAuthenticated } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { redirect } from "next/navigation";
 import type React from "react";
 import { PostHogIdentifier } from "../providers";
+
+async function getPendingSubmissionsCount(): Promise<number> {
+	try {
+		const supabase = createServiceRoleClient();
+		const { count, error } = await supabase
+			.from("events")
+			.select("id", { count: "exact", head: true })
+			.eq("status", "pending");
+		if (error) {
+			console.error("DashboardLayout: failed to count pending submissions", error);
+			return 0;
+		}
+		return count ?? 0;
+	} catch (error) {
+		console.error("DashboardLayout: pending submissions count threw", error);
+		return 0;
+	}
+}
 
 export default async function DashboardLayout({
 	children,
@@ -27,11 +46,13 @@ export default async function DashboardLayout({
 		redirect("/dashboard");
 	}
 
+	const pendingSubmissionsCount = await getPendingSubmissionsCount();
+
 	return (
 		<div className="min-h-screen flex">
 			<PostHogIdentifier userId={profile.id} userEmail={profile.email} />
 			<SidebarProvider>
-				<AppSidebar profile={profile} />
+				<AppSidebar profile={profile} pendingSubmissionsCount={pendingSubmissionsCount} />
 				<SidebarInset className="flex-1">
 					<div className="flex items-center gap-2 px-4 py-3">
 						<SidebarTrigger className="-ml-1" />

@@ -22,6 +22,7 @@ export function NavMain({
 		url: string;
 		icon: LucideIcon;
 		isActive?: boolean;
+		badgeCount?: number;
 		items?: {
 			title: string;
 			url: string;
@@ -98,6 +99,11 @@ export function NavMain({
 										>
 											{item.title}
 										</span>
+										{item.badgeCount && item.badgeCount > 0 ? (
+											<span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#04C9D8] px-1.5 text-[11px] font-semibold leading-none text-white">
+												{item.badgeCount > 99 ? "99+" : item.badgeCount}
+											</span>
+										) : null}
 									</a>
 								</SidebarMenuButton>
 
