@@ -71,14 +71,24 @@ export async function GET() {
 		// ============================================
 		const allSubscribersSegmentId = getAllSubscribersSegmentId();
 		const digestSegmentId = getDigestSegmentId();
+		const sb = createServiceRoleClient();
 
-		const [allSubsContacts, digestContacts] = await Promise.all([
+		// Three independent reads — Resend × 2 + Supabase. Parallelize all
+		// of them; the previous version awaited Supabase after the Resend
+		// Promise.all returned, which sequenced two round-trips for no reason.
+		const [allSubsContacts, digestContacts, prefRowsResult] = await Promise.all([
 			allSubscribersSegmentId ? listAllContacts(resend, { segmentId: allSubscribersSegmentId }) : Promise.resolve([] as Contact[]),
 			digestSegmentId ? listAllContacts(resend, { segmentId: digestSegmentId }) : Promise.resolve([] as Contact[]),
+			sb.from("newsletter_subscriptions").select("email,first_name,categories,digest_subscribed"),
 		]);
 
-		// Build the digest membership set BEFORE merging — used to infer
-		// digest_subscribed for legacy contacts with no Supabase row.
+		const { data: prefRows, error: prefError } = prefRowsResult;
+		if (prefError) {
+			console.error("Subscribers page: failed to load preferences:", prefError);
+		}
+
+		// Build the digest membership set — used to infer digest_subscribed
+		// for legacy contacts with no Supabase row.
 		const digestEmails = new Set(digestContacts.map((c) => c.email.toLowerCase()));
 
 		// Dedupe Resend contacts by email — prefer the All Subscribers copy
@@ -87,18 +97,6 @@ export async function GET() {
 		const contactsByEmail = new Map<string, Contact>();
 		for (const c of digestContacts) contactsByEmail.set(c.email.toLowerCase(), c);
 		for (const c of allSubsContacts) contactsByEmail.set(c.email.toLowerCase(), c);
-
-		// ============================================
-		// Pull Supabase preferences rows
-		// ============================================
-		const sb = createServiceRoleClient();
-		const { data: prefRows, error: prefError } = await sb
-			.from("newsletter_subscriptions")
-			.select("email,first_name,categories,digest_subscribed");
-
-		if (prefError) {
-			console.error("Subscribers page: failed to load preferences:", prefError);
-		}
 
 		const prefsByEmail = new Map<
 			string,

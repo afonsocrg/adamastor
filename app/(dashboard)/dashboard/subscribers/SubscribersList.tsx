@@ -6,7 +6,7 @@ import { Input } from "@/components/tailwind/ui/input";
 import { Skeleton } from "@/components/tailwind/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/tailwind/ui/table";
 import { EVENT_CATEGORIES, type EventCategorySlug } from "@/lib/events/categories";
-import { AlertCircle, CheckCircle2, RefreshCw, Search, Users } from "lucide-react";
+import { AlertCircle, RefreshCw, Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 interface Contact {
@@ -147,28 +147,34 @@ export function SubscribersList() {
 			<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 				<div className="bg-card border rounded-lg p-4">
 					<p className="text-sm text-muted-foreground uppercase tracking-wide">All Contacts</p>
-					<p className="text-3xl font-semibold mt-1">{contacts.length}</p>
+					<p className="text-3xl font-semibold mt-1 tabular-nums">{contacts.length}</p>
 				</div>
 				<div className="bg-card border rounded-lg p-4">
 					<p className="text-sm text-muted-foreground uppercase tracking-wide">Subscribed</p>
-					<p className="text-3xl font-semibold mt-1">{subscribedCount}</p>
+					<p className="text-3xl font-semibold mt-1 tabular-nums">{subscribedCount}</p>
 				</div>
 				<div className="bg-card border rounded-lg p-4">
 					<p className="text-sm text-muted-foreground uppercase tracking-wide">Weekly digest</p>
-					<p className="text-3xl font-semibold mt-1">{digestCount}</p>
+					<p className="text-3xl font-semibold mt-1 tabular-nums">{digestCount}</p>
 				</div>
 				<div className="bg-card border rounded-lg p-4">
 					<p className="text-sm text-muted-foreground uppercase tracking-wide">Unsubscribed</p>
-					<p className="text-3xl font-semibold mt-1">{unsubscribedCount}</p>
+					<p className="text-3xl font-semibold mt-1 tabular-nums">{unsubscribedCount}</p>
 				</div>
 			</div>
 
-			{/* Per-category counts — useful to see what's actually being chosen */}
+			{/* Per-category counts — useful to see what's actually being chosen.
+			    flex-col + justify-between keeps the number aligned across cards
+			    even when the label wraps (Software Engineering / Startups &
+			    Fundraising are longer than the others). */}
 			<div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
 				{EVENT_CATEGORIES.map((category) => (
-					<div key={category.slug} className="bg-card border rounded-lg p-3">
+					<div
+						key={category.slug}
+						className="bg-card border rounded-lg p-3 flex flex-col justify-between gap-2 min-h-[88px]"
+					>
 						<p className="text-xs text-muted-foreground uppercase tracking-wide leading-tight">{category.name}</p>
-						<p className="text-xl font-semibold mt-1">{categoryCounts[category.slug]}</p>
+						<p className="text-xl font-semibold tabular-nums">{categoryCounts[category.slug]}</p>
 					</div>
 				))}
 			</div>
@@ -176,8 +182,10 @@ export function SubscribersList() {
 			{/* Search and Refresh */}
 			<div className="flex gap-4">
 				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<Search aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 					<Input
+						type="search"
+						aria-label="Search subscribers by email or name"
 						placeholder="Search contacts…"
 						value={search}
 						onChange={(event) => setSearch(event.target.value)}
@@ -225,7 +233,7 @@ export function SubscribersList() {
 						) : (
 							filteredContacts.map((contact) => (
 								<TableRow key={contact.id}>
-									<TableCell className="font-medium">
+									<TableCell className="font-medium max-w-[260px] truncate" title={contact.email}>
 										{contact.email}
 										{contact.legacy_only ? (
 											<span
@@ -240,12 +248,12 @@ export function SubscribersList() {
 									<TableCell>
 										<div className="flex flex-wrap gap-1">
 											{contact.digest_subscribed ? (
-												<Badge className="rounded-md" variant="outline">
+												<Badge className="rounded-md whitespace-nowrap" variant="outline">
 													Digest
 												</Badge>
 											) : null}
 											{contact.categories.map((slug) => (
-												<Badge key={slug} className="rounded-md" variant="secondary">
+												<Badge key={slug} className="rounded-md whitespace-nowrap" variant="secondary">
 													{CATEGORY_NAME_BY_SLUG[slug] ?? slug}
 												</Badge>
 											))}
@@ -275,18 +283,11 @@ function NewsletterConfigPanel({ config }: { config: ConfigStatus }) {
 	const missingTopics = config.categoryTopics.filter((t) => !t.configured);
 	const hasMissing = missingSegments.length > 0 || missingTopics.length > 0;
 
+	// Don't render the "everything is fine" success banner — it's silent
+	// noise. Only surface this panel when something needs attention. The
+	// healthy state is the absence of the panel.
 	if (!hasMissing) {
-		return (
-			<div className="rounded-lg border border-emerald-200/60 bg-emerald-50/50 dark:border-emerald-500/30 dark:bg-emerald-500/10 px-4 py-3 flex items-start gap-3">
-				<CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-				<div className="text-sm">
-					<p className="font-medium text-emerald-900 dark:text-emerald-100">Newsletter config is complete.</p>
-					<p className="text-emerald-700/80 dark:text-emerald-300/80 text-xs mt-0.5">
-						All segments and topics are wired up. Per-category broadcasts and the digest will reach the right people.
-					</p>
-				</div>
-			</div>
-		);
+		return null;
 	}
 
 	return (
