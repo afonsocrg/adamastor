@@ -394,8 +394,8 @@ export default function AddEventForm() {
 								>
 									{isScraping ? (
 										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Scraping...
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+											Scraping…
 										</>
 									) : (
 										"Get Event Data"

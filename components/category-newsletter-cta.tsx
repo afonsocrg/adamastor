@@ -85,6 +85,9 @@ export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNe
 					<Input
 						type="email"
 						required
+						autoComplete="email"
+						inputMode="email"
+						spellCheck={false}
 						placeholder="you@example.com"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
