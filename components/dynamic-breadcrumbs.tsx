@@ -153,6 +153,13 @@ export function DynamicBreadcrumbs() {
 						.join(" ");
 			}
 
+			// Skip if the prefix-prepend block above already added this href
+			// (e.g. `/dashboard` is pushed up front for any /dashboard/* route,
+			// then the segment walk would also push it on i=0 — duplicate key).
+			if (breadcrumbs.some((b) => b.href === currentPath)) {
+				continue;
+			}
+
 			breadcrumbs.push({ label, href: currentPath });
 		}
 
