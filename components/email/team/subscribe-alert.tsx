@@ -17,13 +17,22 @@ interface SubscribeEmailAlertTemplateProps {
 	subscriber_email: string;
 	subscription_date?: string;
 	total_subscribers?: number;
+	/** Display names of categories the subscriber opted into (e.g. ["Design"]). Empty if none. */
+	category_names?: string[];
+	digest_subscribed?: boolean;
 }
 
 export const SubscribeEmailAlertTemplate = ({
 	subscriber_name,
 	subscriber_email,
 	total_subscribers,
+	category_names = [],
+	digest_subscribed = false,
 }: SubscribeEmailAlertTemplateProps) => {
+	const subscribedTo = [
+		digest_subscribed ? "Weekly digest" : null,
+		...category_names.map((name) => `${name} events`),
+	].filter(Boolean) as string[];
 	return (
 		<Html lang="en" dir="ltr">
 			<Tailwind>
@@ -62,6 +71,11 @@ export const SubscribeEmailAlertTemplate = ({
 									<strong>Email:</strong> {subscriber_email}
 								</Text>
 
+								<Text className="text-[16px] text-[#374151] mb-[12px] leading-[24px]">
+									<strong>Subscribed to:</strong>{" "}
+									{subscribedTo.length > 0 ? subscribedTo.join(", ") : "Nothing yet"}
+								</Text>
+
 								{typeof total_subscribers === "number" && (
 									<Text className="text-[16px] text-[#374151] leading-[24px]">
 										<strong>Total subscribers:</strong> {total_subscribers.toLocaleString()}
@@ -87,4 +101,6 @@ SubscribeEmailAlertTemplate.PreviewProps = {
 	subscriber_name: "João Silva",
 	subscriber_email: "joao.silva@startup.pt",
 	total_subscribers: 0,
+	category_names: ["Design", "Software Engineering"],
+	digest_subscribed: false,
 };

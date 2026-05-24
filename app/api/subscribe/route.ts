@@ -121,6 +121,22 @@ export async function POST(request: NextRequest) {
 				})(),
 			);
 
+			// Resolve display names for the team notif so the email body lists
+			// "Design" instead of "design" — matches what subscribers see in their
+			// own emails.
+			const subscribedCategoryNames = subscription.categories.map(
+				(slug) => EVENT_CATEGORIES.find((c) => c.slug === slug)?.name ?? slug,
+			);
+
+			// One-line subject summary so the team can triage at a glance from
+			// the inbox preview without opening the email — e.g.
+			// "New subscriber: Malik → Design + Weekly digest".
+			const subjectChannels = [
+				subscription.digest_subscribed ? "Weekly digest" : null,
+				...subscribedCategoryNames,
+			].filter(Boolean) as string[];
+			const subjectSummary = subjectChannels.length > 0 ? subjectChannels.join(" + ") : "no opt-ins";
+
 			waitUntil(
 				(async () => {
 					try {
@@ -134,11 +150,13 @@ export async function POST(request: NextRequest) {
 						await resend.emails.send({
 							from: "hi@digest.adamastor.blog",
 							to: TEAM_EMAILS,
-							subject: `New subscriber: ${firstName} just joined!`,
+							subject: `New subscriber: ${firstName} → ${subjectSummary}`,
 							react: SubscribeEmailAlertTemplate({
 								subscriber_name: trimmedName || firstName,
 								subscriber_email: email,
 								total_subscribers: totalSubscribers,
+								category_names: subscribedCategoryNames,
+								digest_subscribed: subscription.digest_subscribed,
 							}),
 						});
 					} catch (err) {
