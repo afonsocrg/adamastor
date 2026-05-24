@@ -1,5 +1,3 @@
-// TODO: Implement unsubscription. Right now link doesn't work.
-
 import {
 	Body,
 	Button,
@@ -7,6 +5,7 @@ import {
 	Head,
 	Heading,
 	Html,
+	Link,
 	Preview,
 	Section,
 	Tailwind,
@@ -15,9 +14,15 @@ import {
 
 interface EmailTemplateProps {
 	firstName: string;
+	/**
+	 * Tokenized /preferences URL. Optional only so existing PreviewProps and
+	 * any old callers keep compiling — every real send should pass it so the
+	 * footer "Manage preferences" link works.
+	 */
+	preferencesUrl?: string;
 }
 
-export const EmailTemplate = ({ firstName }: EmailTemplateProps) => {
+export const EmailTemplate = ({ firstName, preferencesUrl }: EmailTemplateProps) => {
 	return (
 		<Html lang="en" dir="ltr">
 			<Tailwind>
@@ -77,12 +82,13 @@ export const EmailTemplate = ({ firstName }: EmailTemplateProps) => {
 								© {new Date().getFullYear()} Adamastor. All rights reserved.
 							</Text>
 
-							<Text className="text-[12px] text-gray-500 text-center m-0">
-								{/* biome-ignore lint/a11y/useValidAnchor: <explanation> */}
-								<a href="#" className="text-gray-500 underline">
-									Unsubscribe
-								</a>
-							</Text>
+							{preferencesUrl ? (
+								<Text className="text-[12px] text-gray-500 text-center m-0">
+									<Link href={preferencesUrl} className="text-gray-500 underline">
+										Manage your preferences
+									</Link>
+								</Text>
+							) : null}
 						</Section>
 					</Container>
 				</Body>
