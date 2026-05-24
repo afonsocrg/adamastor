@@ -45,7 +45,11 @@ export async function POST(request: Request) {
 			);
 		}
 
-		// Insert the event into the database
+		// Admin instant-publish path: explicitly mark approved so the row
+		// bypasses the moderation queue that defaults new submissions to
+		// status='pending'. Stamping reviewed_by/reviewed_at keeps the audit
+		// trail consistent with the review-queue path.
+		const now = new Date().toISOString();
 		const { data, error } = await supabase
 			.from("events")
 			.insert([
@@ -56,6 +60,12 @@ export async function POST(request: Request) {
 					city,
 					url,
 					banner_url: bannerUrl,
+					status: "approved",
+					submitted_by: profile.id,
+					submitter_email: profile.email,
+					submitted_at: now,
+					reviewed_by: profile.id,
+					reviewed_at: now,
 				},
 			])
 			.select()

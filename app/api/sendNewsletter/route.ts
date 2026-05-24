@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
 		const { data: events, error: eventsError } = await supabase
 			.from("events")
 			.select("id, title, description, start_time, city, url, banner_url")
+			.eq("status", "approved")
 			.gte("start_time", today.toISOString())
 			.lte("start_time", futureDate.toISOString())
 			.order("start_time", { ascending: true });

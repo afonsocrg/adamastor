@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const { data: upcomingEvents, error: eventsError } = await supabase
 		.from("events")
 		.select("start_time, city, event_category_assignments(category_slug)")
+		.eq("status", "approved")
 		.gte("start_time", today.toISOString());
 
 	if (eventsError) {

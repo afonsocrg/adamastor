@@ -38,6 +38,7 @@ export const fetchPublicEvents = cache(
 		let query = supabase
 			.from("events")
 			.select("*, event_category_assignments(category_slug)")
+			.eq("status", "approved")
 			.gte("start_time", today.toISOString())
 			.order("start_time", { ascending: true });
 
@@ -53,6 +54,7 @@ export const fetchPublicEvents = cache(
 			let fallback = supabase
 				.from("events")
 				.select("*")
+				.eq("status", "approved")
 				.gte("start_time", today.toISOString())
 				.order("start_time", { ascending: true });
 
