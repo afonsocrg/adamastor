@@ -18,6 +18,7 @@ import {
 	ContextMenuTrigger,
 } from "@/components/tailwind/ui/context-menu";
 import { useUserProfile } from "@/hooks/use-user-profile";
+import { withUtm } from "@/lib/events/utm";
 import { MapPinIcon, PencilIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,7 +49,7 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 			<ContextMenu>
 				<ContextMenuTrigger>
 					<Link
-						href={event.url}
+						href={withUtm(event.url, { medium: "referral", campaign: "events_listing" })}
 						target="_blank"
 						rel="noopener noreferrer"
 						onClick={onEventClick}

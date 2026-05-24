@@ -2,6 +2,7 @@
 
 import type { MetadataResult } from "@/app/types";
 import DateTimePickerField from "@/components/date-time-picker-field";
+import { EventCategorySelector } from "@/components/event-category-selector";
 import { Button } from "@/components/tailwind/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/tailwind/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/tailwind/ui/form";
@@ -11,10 +12,12 @@ import { Separator } from "@/components/tailwind/ui/separator";
 import { Skeleton } from "@/components/tailwind/ui/skeleton";
 import { Textarea } from "@/components/tailwind/ui/textarea";
 import { dateTimeStringWithNoTimezoneToTzDateString, tzDateStringToDateTimeStringWithNoTimezone } from "@/lib/datetime";
+import { type EventCategorySlug, inferEventCategorySlugs } from "@/lib/events/categories";
+import type { EventDuplicateCandidate } from "@/lib/events/duplicate-detection";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, ExternalLink, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { type UseFormReturn, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -33,6 +36,7 @@ const formSchema = z.object({
 	bannerUrl: z.string().url("Please enter a valid banner URL").optional().or(z.literal("")),
 	startTime: z.string().min(1, "Start time is required"),
 	city: z.string().min(1, "City is required"),
+	categorySlugs: z.array(z.string()),
 });
 
 const defaultEventFormValues = {
@@ -42,7 +46,16 @@ const defaultEventFormValues = {
 	bannerUrl: "",
 	startTime: "",
 	city: "",
+	categorySlugs: [],
 };
+
+type EventFormValues = z.infer<typeof formSchema>;
+
+interface DuplicateReview {
+	candidates: EventDuplicateCandidate[];
+	severity: "block" | "warning";
+	values: EventFormValues;
+}
 
 // Server action for scraping URLs
 async function scrapeUrl(url: string): Promise<{ data?: MetadataResult; error?: string }> {
@@ -73,6 +86,10 @@ async function scrapeUrl(url: string): Promise<{ data?: MetadataResult; error?: 
 export default function AddEventForm() {
 	const [isScraping, setIsScraping] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+	const [duplicateCheckRevision, setDuplicateCheckRevision] = useState(0);
+	const [duplicateReview, setDuplicateReview] = useState<DuplicateReview | null>(null);
+	const [hasManuallyEditedCategories, setHasManuallyEditedCategories] = useState(false);
 
 	const eventForm = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -92,8 +109,109 @@ export default function AddEventForm() {
 	// Check if the event form is valid
 	const isEventFormValid = formValues.title && formValues.description && formValues.startTime && formValues.city;
 
+	const checkDuplicateReview = useCallback(async (values: EventFormValues, signal?: AbortSignal) => {
+		if (!(values.title && values.description && values.startTime && values.city)) {
+			setDuplicateReview(null);
+			return;
+		}
+
+		const utcDateTime = dateTimeStringWithNoTimezoneToTzDateString(values.startTime, TIMEZONE);
+		const response = await fetch("/api/events/duplicates", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				title: values.title,
+				description: values.description,
+				start_time: utcDateTime,
+				city: values.city,
+				url: values.url,
+			}),
+			signal,
+		});
+
+		if (!response.ok) {
+			setDuplicateReview(null);
+			return;
+		}
+
+		const duplicateData = await response.json();
+		if (duplicateData.duplicateCandidates?.length > 0) {
+			setDuplicateReview({
+				candidates: duplicateData.duplicateCandidates,
+				severity: duplicateData.severity === "block" ? "block" : "warning",
+				values,
+			});
+		} else {
+			setDuplicateReview(null);
+		}
+	}, []);
+
+	const duplicateCheckKey = [
+		formValues.title,
+		formValues.description,
+		formValues.startTime,
+		formValues.city,
+		formValues.url,
+		formValues.categorySlugs.join(","),
+		duplicateCheckRevision,
+	].join("|");
+
+	useEffect(() => {
+		if (hasManuallyEditedCategories) return;
+
+		const inferredCategorySlugs = inferEventCategorySlugs({
+			title: formValues.title,
+			description: formValues.description,
+			url: formValues.url,
+		});
+
+		if (inferredCategorySlugs.length === 0) return;
+
+		const currentCategorySlugs = eventForm.getValues("categorySlugs");
+		if (currentCategorySlugs.join("|") === inferredCategorySlugs.join("|")) return;
+
+		eventForm.setValue("categorySlugs", inferredCategorySlugs, {
+			shouldDirty: true,
+			shouldValidate: true,
+		});
+	}, [eventForm, formValues.description, formValues.title, formValues.url, hasManuallyEditedCategories]);
+
+	useEffect(() => {
+		if (!isEventFormValid) {
+			setDuplicateReview(null);
+			setIsCheckingDuplicates(false);
+			return;
+		}
+
+		const controller = new AbortController();
+		setDuplicateReview(null);
+		const timeoutId = window.setTimeout(async () => {
+			setIsCheckingDuplicates(true);
+
+			try {
+				const values = eventForm.getValues();
+				await checkDuplicateReview(values, controller.signal);
+			} catch (error) {
+				if (error instanceof DOMException && error.name === "AbortError") return;
+				setDuplicateReview(null);
+			} finally {
+				if (!controller.signal.aborted) {
+					setIsCheckingDuplicates(false);
+				}
+			}
+		}, 600);
+
+		return () => {
+			controller.abort();
+			window.clearTimeout(timeoutId);
+		};
+	}, [checkDuplicateReview, duplicateCheckKey, eventForm, isEventFormValid]);
+
 	const handleUrlSubmit = async (values: { url: string }) => {
 		setIsScraping(true);
+		setDuplicateReview(null);
 		eventForm.setValue("url", values.url, { shouldValidate: true, shouldDirty: true });
 
 		try {
@@ -116,42 +234,78 @@ export default function AddEventForm() {
 				await new Promise((resolve) => setTimeout(resolve, 50));
 				eventForm.setValue(
 					"startTime",
-					startTime
-						? tzDateStringToDateTimeStringWithNoTimezone(startTime, TIMEZONE)
-						: currentValues.startTime,
+					startTime ? tzDateStringToDateTimeStringWithNoTimezone(startTime, TIMEZONE) : currentValues.startTime,
 				);
 				await new Promise((resolve) => setTimeout(resolve, 50));
 				eventForm.setValue("city", city ?? currentValues.city);
+				const inferredCategorySlugs = inferEventCategorySlugs({
+					title: title ?? currentValues.title,
+					description: description ?? currentValues.description,
+					url: url ?? values.url,
+				});
+				if (!hasManuallyEditedCategories && inferredCategorySlugs.length > 0) {
+					eventForm.setValue("categorySlugs", inferredCategorySlugs, {
+						shouldDirty: true,
+						shouldValidate: true,
+					});
+				}
+				setDuplicateCheckRevision((revision) => revision + 1);
+				setIsCheckingDuplicates(true);
+				await checkDuplicateReview(eventForm.getValues());
 
 				toast.success("Event data loaded. Review it and create the event when ready.");
 			}
 		} catch (_error) {
 			toast.error("Failed to scrape URL. You can still fill the event details manually.");
+		} finally {
+			setIsCheckingDuplicates(false);
 		}
 		setIsScraping(false);
 	};
 
-	const handleEventSubmit = async (values: z.infer<typeof formSchema>) => {
-		const { title, description, startTime, city, url, bannerUrl } = values;
+	const submitEvent = async (values: EventFormValues, allowPotentialDuplicate = false) => {
+		const { title, description, startTime, city, url, bannerUrl, categorySlugs } = values;
+		const utcDateTime = dateTimeStringWithNoTimezoneToTzDateString(startTime, TIMEZONE);
+
+		return fetch("/api/events", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				title,
+				description,
+				start_time: utcDateTime,
+				city,
+				url,
+				bannerUrl,
+				categorySlugs,
+				allowPotentialDuplicate,
+			}),
+		});
+	};
+
+	const handleEventSubmit = async (values: EventFormValues) => {
 		setIsSubmitting(true);
+		setDuplicateReview(null);
 
 		try {
-			const utcDateTime = dateTimeStringWithNoTimezoneToTzDateString(startTime, TIMEZONE);
+			const response = await submitEvent(values);
 
-			const response = await fetch("/api/events", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					title,
-					description,
-					start_time: utcDateTime,
-					city,
-					url,
-					bannerUrl,
-				}),
-			});
+			if (response.status === 409) {
+				const duplicateData = await response.json();
+				setDuplicateReview({
+					candidates: duplicateData.duplicateCandidates || [],
+					severity: duplicateData.severity === "block" ? "block" : "warning",
+					values,
+				});
+				toast.error(
+					duplicateData.severity === "block"
+						? "This event already appears to be published."
+						: "Review this possible duplicate before creating the event.",
+				);
+				return;
+			}
 
 			if (!response.ok) {
 				throw new Error("Failed to create event");
@@ -160,6 +314,31 @@ export default function AddEventForm() {
 			// Reset form after successful submission
 			eventForm.reset();
 			urlForm.reset();
+			setHasManuallyEditedCategories(false);
+			toast.success("Event created successfully");
+		} catch (_err) {
+			toast.error("Failed to create event");
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	const handleCreateAnyway = async () => {
+		if (!duplicateReview || duplicateReview.severity === "block") return;
+
+		setIsSubmitting(true);
+
+		try {
+			const response = await submitEvent(duplicateReview.values, true);
+
+			if (!response.ok) {
+				throw new Error("Failed to create event");
+			}
+
+			eventForm.reset();
+			urlForm.reset();
+			setHasManuallyEditedCategories(false);
+			setDuplicateReview(null);
 			toast.success("Event created successfully");
 		} catch (_err) {
 			toast.error("Failed to create event");
@@ -255,8 +434,12 @@ export default function AddEventForm() {
 								<EventDetailsForm
 									form={eventForm}
 									isSubmitting={isSubmitting}
+									isCheckingDuplicates={isCheckingDuplicates}
 									handleEventSubmit={handleEventSubmit}
+									handleCreateAnyway={handleCreateAnyway}
 									isFormValid={!!isEventFormValid}
+									duplicateReview={duplicateReview}
+									onManualCategoryChange={() => setHasManuallyEditedCategories(true)}
 								/>
 							)}
 						</Card>
@@ -276,13 +459,26 @@ export default function AddEventForm() {
 }
 
 interface EventDetailsFormProps {
-	form: UseFormReturn<z.infer<typeof formSchema>>;
+	form: UseFormReturn<EventFormValues>;
 	isSubmitting: boolean;
-	handleEventSubmit: (values: z.infer<typeof formSchema>) => void;
+	isCheckingDuplicates: boolean;
+	handleEventSubmit: (values: EventFormValues) => void;
+	handleCreateAnyway: () => void;
 	isFormValid: boolean;
+	duplicateReview: DuplicateReview | null;
+	onManualCategoryChange: () => void;
 }
 
-function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }: EventDetailsFormProps) {
+function EventDetailsForm({
+	form,
+	isSubmitting,
+	isCheckingDuplicates,
+	handleEventSubmit,
+	handleCreateAnyway,
+	isFormValid,
+	duplicateReview,
+	onManualCategoryChange,
+}: EventDetailsFormProps) {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(handleEventSubmit)} className="space-y-4">
@@ -395,7 +591,11 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 							<FormItem>
 								<FormLabel>Banner URL</FormLabel>
 								<FormControl>
-									<Input placeholder="https://image-host.com/banner.jpg" {...field} className="transition-all duration-200" />
+									<Input
+										placeholder="https://image-host.com/banner.jpg"
+										{...field}
+										className="transition-all duration-200"
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -474,25 +674,158 @@ function EventDetailsForm({ form, isSubmitting, handleEventSubmit, isFormValid }
 					/>
 				</section>
 
+				<section className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-350">
+					<FormField
+						control={form.control}
+						name="categorySlugs"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Categories</FormLabel>
+								<FormControl>
+									<EventCategorySelector
+										value={field.value as EventCategorySlug[]}
+										onChange={field.onChange}
+										onManualChange={onManualCategoryChange}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</section>
+
 				<div className="flex justify-end animate-in fade-in-0 slide-in-from-bottom-2 duration-300 delay-400">
 					<Button
 						type="submit"
-						disabled={isSubmitting || !isFormValid}
+						disabled={isSubmitting || isCheckingDuplicates || !isFormValid || duplicateReview !== null}
 						className="transition-all duration-200 rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90"
 					>
-						{isSubmitting ? (
+						{isSubmitting || isCheckingDuplicates ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Creating Event...
+								{isCheckingDuplicates ? "Checking duplicates..." : "Creating Event..."}
 							</>
 						) : (
 							"Create Event"
 						)}
 					</Button>
 				</div>
+
+				{duplicateReview ? (
+					<DuplicateReviewPanel
+						duplicateReview={duplicateReview}
+						isSubmitting={isSubmitting}
+						onCreateAnyway={handleCreateAnyway}
+					/>
+				) : null}
 			</form>
 		</Form>
 	);
+}
+
+function DuplicateReviewPanel({
+	duplicateReview,
+	isSubmitting,
+	onCreateAnyway,
+}: {
+	duplicateReview: DuplicateReview;
+	isSubmitting: boolean;
+	onCreateAnyway: () => void;
+}) {
+	const isBlocked = duplicateReview.severity === "block";
+
+	return (
+		<section className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+			<div className="flex items-start gap-3">
+				<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+				<div className="min-w-0 flex-1 space-y-3">
+					<div className="space-y-1">
+						<div className="flex flex-wrap items-center gap-2">
+							<h3 className="text-sm font-semibold">
+								{isBlocked ? "This event already appears to be published" : "Possible duplicate event"}
+							</h3>
+						</div>
+						<p className="text-sm leading-6 text-amber-900/80 dark:text-amber-100/80">
+							{isBlocked
+								? "Adamastor found a high-confidence match that is already visible online."
+								: "Adamastor found a similar visible event. Review the match before creating a new listing."}
+						</p>
+					</div>
+
+					<div className="space-y-2">
+						{duplicateReview.candidates.map((candidate) => (
+							<div
+								key={`${candidate.event.id}-${candidate.reason}`}
+								className="border-l border-amber-300/80 pl-3 text-amber-950 dark:border-amber-700 dark:text-amber-50"
+							>
+								<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+									<div className="min-w-0 space-y-0.5">
+										<p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-900/60 dark:text-amber-100/60">
+											Matching event
+										</p>
+										<p className="line-clamp-2 text-sm font-medium leading-5 text-amber-950/90 dark:text-amber-50/90">
+											{candidate.event.title}
+										</p>
+										<p className="text-xs leading-5 text-amber-900/65 dark:text-amber-100/65">
+											{formatDuplicateEventDate(candidate.event.start_time)} · {formatCity(candidate.event.city)} ·{" "}
+											{candidate.reason}
+										</p>
+									</div>
+
+									{candidate.event.url ? (
+										<Button
+											variant="outline"
+											size="sm"
+											asChild
+											className="border-amber-300 bg-transparent text-amber-950 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-50 dark:hover:bg-amber-900/40"
+										>
+											<a href={candidate.event.url} target="_blank" rel="noopener noreferrer">
+												<ExternalLink className="mr-2 h-4 w-4" />
+												Open
+											</a>
+										</Button>
+									) : null}
+								</div>
+							</div>
+						))}
+					</div>
+
+					{isBlocked ? null : (
+						<div className="flex justify-end">
+							<Button
+								type="button"
+								variant="outline"
+								disabled={isSubmitting}
+								onClick={onCreateAnyway}
+								className="bg-background"
+							>
+								{isSubmitting ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										Creating Event...
+									</>
+								) : (
+									"Create Anyway"
+								)}
+							</Button>
+						</div>
+					)}
+				</div>
+			</div>
+		</section>
+	);
+}
+
+function formatDuplicateEventDate(value: string) {
+	return new Intl.DateTimeFormat("en-GB", {
+		dateStyle: "medium",
+		timeStyle: "short",
+		timeZone: TIMEZONE,
+	}).format(new Date(value));
+}
+
+function formatCity(value: string) {
+	return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 interface EventPreviewProps {

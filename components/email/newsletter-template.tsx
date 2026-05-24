@@ -10,6 +10,7 @@
  * The article content comes as pre-converted HTML from tiptap-to-html.ts
  */
 
+import { withUtm } from "@/lib/events/utm";
 import {
 	Body,
 	Button,
@@ -134,7 +135,7 @@ function EventItem({ event }: { event: Event }) {
 						{/* Content */}
 						<td style={{ paddingLeft: "16px" }}>
 							<Link
-								href={event.url}
+								href={withUtm(event.url, { medium: "email", campaign: "newsletter" })}
 								style={{
 									fontSize: "16px",
 									fontWeight: "600",
