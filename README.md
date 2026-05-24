@@ -131,6 +131,7 @@ Atomic docs covering individual subsystems. Start with whichever is closest to w
 | [`docs/emails.md`](docs/emails.md) | Resend integration, template list, admin recipient resolution, `waitUntil` background sending. |
 | [`docs/newsletter-subscriptions.md`](docs/newsletter-subscriptions.md) | Per-category newsletter preferences: Supabase as source of truth, Resend segment sync, `/preferences` magic-link UX, broadcast workflow. |
 | [`docs/release-smoke-checklist.md`](docs/release-smoke-checklist.md) | Manual QA pass before shipping changes that touch public surfaces. |
+| [`docs/design-system.md`](docs/design-system.md) | Brand palette, typography, color usage rules, component conventions. Read before introducing new UI tokens or aesthetics. |
 
 ## Dependency Updates
 

@@ -62,7 +62,36 @@ const config = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+  			// ─────────────────────────────────────────────────────────────────
+  			// Adamastor brand tokens (see docs/design-system.md for usage rules)
+  			// Adds named keys to color families so the default numeric scales
+  			// (cyan-50, orange-700, green-100…) stay intact. Use as:
+  			//   bg-navy, text-cyan-pastel, border-orange-dark, etc.
+  			// ─────────────────────────────────────────────────────────────────
+  			navy: {
+  				DEFAULT: '#104357',
+  				darker: '#08293A',
+  				pastel: '#4D7689',
+  				faded: '#E8F0F4',
+  			},
+  			cyan: {
+  				DEFAULT: '#04C9D8',
+  				darker: '#028E97',
+  				pastel: '#9DE8EF',
+  				faded: '#DFF6F8',
+  			},
+  			orange: {
+  				dark: '#BD5318',
+  				main: '#E05E00',
+  				bright: '#FF7F0F',
+  				pastel: '#F9B376',
+  				faded: '#FEF9F5',
+  			},
+  			green: {
+  				dark: '#236925',
+  				main: '#3DB540',
+  			},
   		},
   		borderRadius: {
 				md: 'calc(var(--radius) - 2px)',
