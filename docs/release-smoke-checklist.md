@@ -32,6 +32,21 @@ Use this before shipping changes that touch public pages, publishing, events, or
 - Use the calendar date filter and clear it with `Show All Events`.
 - Open at least one event link.
 
+## Event Submissions Flow
+
+- Open `/events/submit` while logged out and confirm the form renders.
+- Paste a real event URL (e.g. a public Luma page) into the Event link field and click `Fill from event link`.
+- Confirm the skeleton appears, then the form populates with title, description, start time, city, and inferred categories.
+- Submit the form (with a throwaway email if you don't want notifications).
+- Confirm the submitter confirmation email arrives.
+- Confirm an admin notification email arrives at every `profiles.role='admin'` address.
+- Log in as admin, open `/dashboard/event-submissions`, confirm the badge count matches and the submission is in the Pending review section.
+- Open the submission, edit something trivial, click `Approve & publish`.
+- Confirm the event appears on `/events` (no manual revalidation needed).
+- Confirm the submitter approval email arrives with the city-filtered event link.
+- Submit another test event, then reject it with a reason.
+- Confirm the rejection email arrives with the reason included.
+
 ## Auth/Admin Flow
 
 - Logged out: confirm the navbar does not show `Account`.
