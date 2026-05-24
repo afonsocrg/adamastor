@@ -307,15 +307,24 @@ export default function EventsPageClient({
 									: "Events"}
 				</h1>
 
-				{selectedDate && (
+				<div className="flex flex-wrap items-center gap-2 self-start">
 					<Button
-						onClick={clearFilter}
-						variant="default"
-						className="self-start rounded-md transition-[background-color,color,box-shadow,transform] duration-150 ease hover:shadow-sm motion-reduce:transition-none motion-safe:active:scale-[0.98]"
+						asChild
+						variant="outline"
+						className="rounded-md border-[#04C9D8] text-[#104357] hover:bg-[#DFF6F8] dark:border-[#04C9D8]/50 dark:text-[#E3F2F7] dark:hover:bg-[#04C9D8]/10"
 					>
-						Show All Events
+						<Link href="/events/submit">Submit your event</Link>
 					</Button>
-				)}
+					{selectedDate && (
+						<Button
+							onClick={clearFilter}
+							variant="default"
+							className="rounded-md transition-[background-color,color,box-shadow,transform] duration-150 ease hover:shadow-sm motion-reduce:transition-none motion-safe:active:scale-[0.98]"
+						>
+							Show All Events
+						</Button>
+					)}
+				</div>
 			</div>
 
 			{intro && !selectedDate ? (

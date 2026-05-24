@@ -79,6 +79,10 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 						<ContextMenuItem
 							onClick={(e) => {
 								e.preventDefault();
+								// `/events/[slug]/edit` — [slug] is overloaded to accept
+								// city slugs, category slugs, AND numeric event IDs. The
+								// edit page short-circuits on /^\d+$/ to pick the ID
+								// branch. See app/(main)/events/[slug]/edit/page.tsx.
 								router.push(`/events/${event.id}/edit`);
 							}}
 						>
