@@ -1,35 +1,24 @@
 import { Separator } from "@/components/tailwind/ui/separator";
 import { formatDate } from "@/lib/datetime";
 import type { HomePost } from "@/lib/home-posts";
-import { generateText } from "@tiptap/core";
 import Link from "next/link";
-import {
-	Color,
-	StarterKit,
-	TaskItem,
-	TaskList,
-	TextStyle,
-	TiptapImage,
-	TiptapLink,
-	TiptapUnderline,
-	Youtube,
-} from "novel";
+
+// Walk TipTap JSON and concatenate `text` leaves. Replaces @tiptap/core's
+// generateText so this Server Component doesn't drag the whole novel/tiptap
+// dep tree into the home route.
+function extractTiptapText(node: unknown): string {
+	if (!node || typeof node !== "object") return "";
+	const n = node as { text?: unknown; content?: unknown };
+	if (typeof n.text === "string") return n.text;
+	if (!Array.isArray(n.content)) return "";
+	return n.content.map(extractTiptapText).join(" ");
+}
 
 function getContentPreview(postContent: unknown) {
 	let contentPreview = "Check out this post on our blog.";
 
 	try {
-		const contentText = generateText(postContent, [
-			StarterKit,
-			TaskItem,
-			TaskList,
-			TiptapImage,
-			TiptapUnderline,
-			TextStyle,
-			Color,
-			TiptapLink,
-			Youtube,
-		]).slice(0, 360);
+		const contentText = extractTiptapText(postContent).slice(0, 360);
 
 		if (contentText.length > 0) {
 			const lastSpaceIndex = contentText.lastIndexOf(" ");

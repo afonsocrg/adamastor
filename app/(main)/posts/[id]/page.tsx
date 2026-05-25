@@ -6,48 +6,34 @@ import { ContextMenu, ContextMenuTrigger } from "@/components/tailwind/ui/contex
 import { formatDate } from "@/lib/datetime";
 import { buildArticleJsonLd, buildBreadcrumbListJsonLd } from "@/lib/events/seo";
 import { createPublicClient } from "@/lib/supabase/public";
-import { generateText } from "@tiptap/core";
 import { notFound } from "next/navigation";
-import {
-	Color,
-	StarterKit,
-	TaskItem,
-	TaskList,
-	TextStyle,
-	TiptapImage,
-	TiptapLink,
-	TiptapUnderline,
-	Youtube,
-} from "novel";
 import { SubscribeForm } from "./SubscribeForm";
 import { FeedbackForm } from "./feedbackForm";
 
 export const revalidate = 3600;
 
-const POST_EXTENSIONS = [
-	StarterKit,
-	TaskItem,
-	TaskList,
-	TiptapImage,
-	TiptapUnderline,
-	TextStyle,
-	Color,
-	TiptapLink,
-	Youtube,
-];
-
 const DEFAULT_CONTENT_PREVIEW = "Check out this post on our blog.";
+
+// Walk TipTap JSON and concatenate `text` leaves. Replaces @tiptap/core's
+// generateText so this route doesn't drag the whole novel/tiptap dep tree
+// into the post page's compile graph.
+function extractTiptapText(node: unknown): string {
+	if (!node || typeof node !== "object") return "";
+	const n = node as { text?: unknown; content?: unknown };
+	if (typeof n.text === "string") return n.text;
+	if (!Array.isArray(n.content)) return "";
+	return n.content.map(extractTiptapText).join(" ");
+}
 
 /**
  * Extract a ~160-char preview from a post's TipTap JSON content. Used as the
  * SEO meta description and the Article JSON-LD description, so both stay
- * consistent. Falls back to a generic string if TipTap parsing fails (e.g.
- * malformed historical content).
+ * consistent. Falls back to a generic string if parsing fails (e.g. malformed
+ * historical content).
  */
 function extractPostContentPreview(content: unknown): string {
 	try {
-		// biome-ignore lint/suspicious/noExplicitAny: TipTap's JSONContent type is permissive
-		const contentText = generateText(content as any, POST_EXTENSIONS).slice(0, 160);
+		const contentText = extractTiptapText(content).slice(0, 160);
 		if (contentText.length === 0) return DEFAULT_CONTENT_PREVIEW;
 		const lastSpaceIndex = contentText.lastIndexOf(" ");
 		return `${contentText.substring(0, lastSpaceIndex)}…`;
