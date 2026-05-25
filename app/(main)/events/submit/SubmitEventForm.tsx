@@ -4,7 +4,6 @@ import type { MetadataResult } from "@/app/types";
 import DateTimePickerField from "@/components/date-time-picker-field";
 import { EventCategorySelector } from "@/components/event-category-selector";
 import { Button } from "@/components/tailwind/ui/button";
-import { Card, CardContent } from "@/components/tailwind/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/tailwind/ui/form";
 import { Input } from "@/components/tailwind/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/tailwind/ui/select";
@@ -18,7 +17,7 @@ import {
 } from "@/lib/datetime";
 import { inferEventCategorySlugs, type EventCategorySlug } from "@/lib/events/categories";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowRightIcon, CheckCircle2, Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -248,34 +247,31 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 
 	if (submissionState.kind === "success") {
 		return (
-			<Card className="rounded-xl">
-				<CardContent className="flex flex-col items-start gap-4 p-8">
-					<CheckCircle2 className="h-10 w-10 text-[#04C9D8]" />
-					<div className="space-y-2">
-						<h2 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7]">
-							Thanks — we got "{submissionState.title}"
-						</h2>
-						<p className="text-base leading-relaxed text-muted-foreground">
-							We'll review it shortly and email you back. You can submit another event if you have more coming up.
-						</p>
-					</div>
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => setSubmissionState({ kind: "idle" })}
-						className="rounded-lg"
-					>
-						Submit another event
-					</Button>
-				</CardContent>
-			</Card>
+			<div className="rounded-lg border border-navy-faded dark:border-[rgba(76,228,240,0.18)] p-8 flex flex-col items-start gap-4">
+				<CheckCircle2 className="h-10 w-10 text-green-main" aria-hidden="true" />
+				<div className="space-y-2">
+					<h2 className="text-2xl font-bold text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]">
+						Thanks — we got "{submissionState.title}"
+					</h2>
+					<p className="text-base leading-relaxed text-muted-foreground">
+						We'll review it shortly and email you back. You can submit another event if you have more coming up.
+					</p>
+				</div>
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => setSubmissionState({ kind: "idle" })}
+					className="rounded-lg border-navy text-navy hover:bg-navy-faded hover:text-navy dark:border-[#E3F2F7] dark:text-[#E3F2F7]"
+				>
+					Submit another event
+				</Button>
+			</div>
 		);
 	}
 
 	return (
-		<Card className="rounded-xl">
-			<CardContent className="p-6">
-				<Form {...form}>
+		<div className="rounded-lg border border-navy-faded dark:border-[rgba(76,228,240,0.18)] p-6">
+			<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 						<FormField
 							control={form.control}
@@ -324,7 +320,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 											variant="outline"
 											onClick={() => handleScrape()}
 											disabled={isScraping || isSubmitting || field.value.trim().length === 0}
-											className="rounded-lg"
+											className="rounded-lg border-navy text-navy hover:bg-navy-faded hover:text-navy dark:border-[#E3F2F7] dark:text-[#E3F2F7]"
 										>
 											{isScraping ? (
 												<>
@@ -455,7 +451,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 						<Separator />
 
 						<div className="space-y-1">
-							<h3 className="text-sm font-semibold text-[#104357] dark:text-[#E3F2F7]">Your details</h3>
+							<h3 className="text-sm font-semibold text-navy dark:text-[#E3F2F7]">Your details</h3>
 							<p className="text-sm text-muted-foreground">
 								So we can reach out if we need any clarifications.
 							</p>
@@ -524,7 +520,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 						) : null}
 
 						{submissionState.kind === "duplicate" ? (
-							<div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+							<div className="rounded-md border border-orange-pastel bg-orange-faded p-4 text-sm leading-6 text-orange-dark dark:border-[rgba(189,83,24,0.4)] dark:bg-[rgba(189,83,24,0.1)] dark:text-orange-pastel">
 								{submissionState.message}
 							</div>
 						) : null}
@@ -533,7 +529,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 							<Button
 								type="submit"
 								disabled={isSubmitting || isScraping}
-								className="rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90"
+								className="rounded-full bg-gold-main text-white font-semibold hover:bg-gold-dark"
 							>
 								{isSubmitting ? (
 									<>
@@ -541,14 +537,16 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 										Submitting…
 									</>
 								) : (
-									"Submit event"
+									<>
+										Submit event
+										<ArrowRightIcon className="ml-2 h-4 w-4" aria-hidden="true" />
+									</>
 								)}
 							</Button>
 						</div>
 					</form>
 				</Form>
-			</CardContent>
-		</Card>
+			</div>
 	);
 }
 
