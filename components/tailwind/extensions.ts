@@ -7,7 +7,6 @@ import {
   GlobalDragHandle,
   HighlightExtension,
   HorizontalRule,
-  Mathematics,
   Placeholder,
   StarterKit,
   TaskItem,
@@ -136,15 +135,6 @@ const twitter = Twitter.configure({
   inline: false,
 });
 
-const mathematics = Mathematics.configure({
-  HTMLAttributes: {
-    class: cx("text-foreground rounded p-1 hover:bg-accent cursor-pointer"),
-  },
-  katexOptions: {
-    throwOnError: false,
-  },
-});
-
 const characterCount = CharacterCount.configure();
 
 const markdownExtension = Markdown.configure({
@@ -170,7 +160,6 @@ export const defaultExtensions: (Extension | Node | Mark)[] = [
   // codeBlockLowlight,
   youtube,
   twitter,
-  mathematics,
   characterCount,
   TiptapUnderline,
   markdownExtension,
