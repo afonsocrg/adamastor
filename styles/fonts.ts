@@ -25,7 +25,8 @@ export const inter = Inter({
 });
 
 export const loraBold = Lora({
-	weight: "700",
+	weight: ["700"],
+	style: ["normal", "italic"],
 	variable: "--font-lora-bold",
 	subsets: ["latin"],
 });

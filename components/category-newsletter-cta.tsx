@@ -98,7 +98,7 @@ export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNe
 				<button
 					type="submit"
 					disabled={submitting || !email.trim()}
-					className="inline-flex items-center gap-2 self-start text-sm font-semibold text-navy hover:text-cyan-darker dark:text-[#E3F2F7] dark:hover:text-cyan transition-colors disabled:opacity-50 disabled:hover:text-navy disabled:dark:hover:text-[#E3F2F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+					className="-mx-2 -my-1 inline-flex items-center gap-2 self-start rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-faded dark:text-[#E3F2F7] dark:hover:bg-[rgba(76,228,240,0.06)] disabled:opacity-50 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 				>
 					{submitting ? "Joining…" : "Subscribe"}
 					<ArrowRightIcon className="h-4 w-4 text-orange-main" aria-hidden="true" />

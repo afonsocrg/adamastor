@@ -6,7 +6,7 @@ import { EventCalendar } from "@/components/event-calendar";
 import { EVENT_CATEGORIES, type EventCategorySlug } from "@/lib/events/categories";
 import { buildEventsRoutePath } from "@/lib/events/route-slugs";
 import { cn } from "@/lib/utils";
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, CalendarDays, Check, Copy, MessageCircle, Rss } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
@@ -164,6 +164,8 @@ export default function EventsPageClient({
 	// completes).
 	const [isPending, startTransition] = useTransition();
 	const [pendingHref, setPendingHref] = useState<string | null>(null);
+	const [copiedFeedUrl, setCopiedFeedUrl] = useState(false);
+	const [copiedSlackCmd, setCopiedSlackCmd] = useState(false);
 
 	useEffect(() => {
 		if (!isPending) setPendingHref(null);
@@ -280,7 +282,7 @@ export default function EventsPageClient({
 		cn(
 			"inline-flex items-center text-sm leading-6 pb-1 transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:rounded",
 			isActive
-				? "font-semibold text-navy dark:text-[#E3F2F7] border-b-2 border-navy dark:border-[#E3F2F7]"
+				? "font-semibold text-[#24acb5] dark:text-cyan border-b-2 border-[#24acb5]"
 				: "text-navy-pastel hover:text-navy dark:text-[rgba(158,210,225,0.7)] dark:hover:text-[#E3F2F7] border-b-2 border-transparent",
 		);
 
@@ -403,27 +405,22 @@ export default function EventsPageClient({
 					</header>
 					{categoryFilteringEnabled ? (
 						<nav aria-label="Categories" className="flex flex-wrap gap-2">
-							<Link
-								href={categoryHref(null)}
-								replace
-								scroll={false}
-								onClick={categoryClickHandler("all")}
-								className={categoryChipClass(activeHref === categoryHref(null))}
-							>
-								All
-							</Link>
-							{EVENT_CATEGORIES.map((category) => (
-								<Link
-									key={category.slug}
-									href={categoryHref(category.slug)}
-									replace
-									scroll={false}
-									onClick={categoryClickHandler(category.slug)}
-									className={categoryChipClass(activeHref === categoryHref(category.slug))}
-								>
-									{category.name}
-								</Link>
-							))}
+							{EVENT_CATEGORIES.map((category) => {
+								const isActive = activeHref === categoryHref(category.slug);
+								return (
+									<Link
+										key={category.slug}
+										href={isActive ? categoryHref(null) : categoryHref(category.slug)}
+										replace
+										scroll={false}
+										onClick={categoryClickHandler(isActive ? "all" : category.slug)}
+										aria-pressed={isActive}
+										className={categoryChipClass(isActive)}
+									>
+										{category.name}
+									</Link>
+								);
+							})}
 						</nav>
 					) : null}
 
@@ -532,23 +529,178 @@ export default function EventsPageClient({
 						})
 					)}
 
-					{/* Editorial contribution prompt — sits at the END of the
-					    events list as a natural "you just browsed, now
-					    contribute" moment. Hidden when filtering by date
-					    (less contextual). */}
-					{!selectedDate && filteredEvents.length > 0 ? (
-						<div className="pt-6 border-t border-navy-faded dark:border-[rgba(76,228,240,0.12)]">
-							<p className="text-base leading-relaxed text-muted-foreground">
-								Don't see your event?{" "}
-								<Link
-									href="/events/submit"
-									className="font-medium text-navy underline underline-offset-4 decoration-cyan decoration-2 hover:text-cyan-darker dark:text-[#E3F2F7] dark:hover:text-cyan transition-colors"
-								>
-									Submit it
-								</Link>
-							</p>
-						</div>
-					) : null}
+					{/* Editorial coda — sits at the END of the events list as a
+					    "you just browsed, now subscribe" moment. The RSS link
+					    AND its label both re-point based on the active city +
+					    category filter, so it's explicit about what scope is
+					    being subscribed to (e.g. "Software Engineering events
+					    in Coimbra" vs "all our events"). Hidden when filtering
+					    by a single date (a date filter is transient — subscribing
+					    to it makes no sense) and when the list is empty. */}
+					{!selectedDate && filteredEvents.length > 0
+						? (() => {
+								const scopeLabel =
+									lockedCategory && lockedCity
+										? `${formatCategoryLabel(lockedCategory)} events in ${formatCityLabel(lockedCity)}`
+										: lockedCategory
+											? `${formatCategoryLabel(lockedCategory)} events`
+											: lockedCity
+												? `events in ${formatCityLabel(lockedCity)}`
+												: "all our events";
+								const rssHref = `${activeHref}/feed.xml`;
+								const icsHref = `${activeHref}/calendar.ics`;
+								// Absolute URLs are needed for (a) Google Calendar's render?cid= deep-link,
+								// which Google's servers fetch directly, and (b) the in-prose Slack snippet.
+								// We hardcode the production domain rather than reading window.location.origin
+								// so the link works the same in SSR, dev, and prod — Google needs a publicly
+								// reachable feed URL either way; localhost would never resolve.
+								const SITE_URL = "https://adamastor.blog";
+								const absoluteIcsUrl = `${SITE_URL}${icsHref}`;
+								const googleCalUrl = `https://www.google.com/calendar/render?cid=${encodeURIComponent(absoluteIcsUrl)}`;
+								// Uses Malik's piara.li URL shortener (Cloudflare Worker, KV-backed) so
+								// the real phone number isn't exposed in page source. The `eos` worker
+								// forwards inbound query params to the destination, so appending
+								// `?text=<encoded message>` here pre-fills the WhatsApp draft message
+								// once the redirect lands on wa.me.
+								const whatsAppMessage = encodeURIComponent(
+									`Hi Malik — I run a community / site and want to talk about sharing Adamastor events (${scopeLabel}).`,
+								);
+								const whatsAppUrl = `https://piara.li/wa?text=${whatsAppMessage}`;
+
+								const handleCopyFeedUrl = async () => {
+									try {
+										await navigator.clipboard.writeText(`${window.location.origin}${rssHref}`);
+										setCopiedFeedUrl(true);
+										setTimeout(() => setCopiedFeedUrl(false), 2000);
+									} catch {
+										// Clipboard API can fail in older browsers / non-secure contexts;
+										// silent fail is fine — the link is still visible via the RSS feed link.
+									}
+								};
+
+								const slackCommand = `/feed subscribe ${SITE_URL}${rssHref}`;
+								const handleCopySlackCmd = async () => {
+									try {
+										await navigator.clipboard.writeText(slackCommand);
+										setCopiedSlackCmd(true);
+										setTimeout(() => setCopiedSlackCmd(false), 2000);
+									} catch {
+										// silent fail
+									}
+								};
+
+								// Quieter secondary-action treatment — small, muted text links sit
+								// beneath the primary Google Calendar affordance. The visual demotion
+								// signals "alternatives if Google Cal isn't your tool" without burying
+								// them so deep that RSS power-users can't find them.
+								const quietActionClass =
+									"inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-navy hover:underline underline-offset-4 dark:hover:text-[#E3F2F7] transition-colors";
+
+								return (
+									<div className="pt-6 border-t border-navy-faded dark:border-[rgba(76,228,240,0.12)] space-y-8">
+										{/* Block 1: personal subscription. The primary affordance is
+										    "Add to Google Calendar" — calendars are where events live,
+										    one-click subscribe is the broadest UX win, and the
+										    secondary-button shape (outlined navy lozenge per design
+										    system) gives it visual weight without claiming the page's
+										    one gold-pill moment (still owned by the navbar Subscribe
+										    for logged-out visitors). RSS / .ics / Copy URL stay as
+										    quiet text links below for the niche cases. */}
+										<div>
+											<p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-pastel">
+												Subscribe to {scopeLabel}
+											</p>
+											<a
+												href={googleCalUrl}
+												target="_blank"
+												rel="noopener"
+												className="mt-4 inline-flex items-center gap-2 rounded-lg border border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy-faded dark:border-[#E3F2F7] dark:text-[#E3F2F7] dark:hover:bg-[rgba(76,228,240,0.06)]"
+											>
+												<CalendarDays className="h-4 w-4" aria-hidden="true" />
+												Add to Google Calendar
+												<ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
+											</a>
+											<div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+												<Link href={rssHref} className={quietActionClass}>
+													<Rss className="h-3.5 w-3.5" aria-hidden="true" />
+													RSS feed
+												</Link>
+												<Link href={icsHref} className={quietActionClass}>
+													<CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+													Other calendars (.ics)
+												</Link>
+												<button type="button" onClick={handleCopyFeedUrl} className={quietActionClass}>
+													{copiedFeedUrl ? (
+														<Check className="h-3.5 w-3.5" aria-hidden="true" />
+													) : (
+														<Copy className="h-3.5 w-3.5" aria-hidden="true" />
+													)}
+													{copiedFeedUrl ? "Copied" : "Copy feed URL"}
+												</button>
+											</div>
+										</div>
+
+										{/* Block 2: distribution ask for community leaders and niche
+										    builders. Different audience, different mental mode — they're
+										    not subscribing for themselves, they're considering syndicating
+										    Adamastor content into their own surface. Lead with the benefit
+										    framing ("your members get …"), close with a direct path to
+										    Malik and a self-serve "how to add to Slack or Telegram"
+										    disclosure for the channel admins who want to set it up
+										    themselves without a 1:1 conversation. */}
+										<div className="pt-6 border-t border-navy-faded dark:border-[rgba(76,228,240,0.12)]">
+											<p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-pastel">
+												Run a community or building something?
+											</p>
+											<p className="mt-3 max-w-[60ch] text-base leading-relaxed text-muted-foreground">
+												Add this feed to your Slack or Telegram channel and your members get curated{" "}
+												{scopeLabel} delivered to the channel — no extra work for you, just the relevant
+												ones. Embedding on your own site or want a custom feed? Send Malik a message.
+											</p>
+											<a
+												href={whatsAppUrl}
+												target="_blank"
+												rel="noopener"
+												className="-mx-2 -my-1 mt-2 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-faded dark:text-[#E3F2F7] dark:hover:bg-[rgba(76,228,240,0.06)]"
+											>
+												<MessageCircle className="h-4 w-4" aria-hidden="true" />
+												Message Malik on WhatsApp
+												<ArrowRightIcon className="h-4 w-4 text-orange-main" aria-hidden="true" />
+											</a>
+											<details className="mt-4 group">
+												<summary className="cursor-pointer text-sm text-muted-foreground hover:text-navy dark:hover:text-[#E3F2F7] transition-colors">
+													How to add this feed to Slack or Telegram
+												</summary>
+												<div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
+													<p>
+														<span className="font-semibold text-navy dark:text-[#E3F2F7]">In Slack —</span> type{" "}
+														<button
+															type="button"
+															onClick={handleCopySlackCmd}
+															aria-label={copiedSlackCmd ? "Copied to clipboard" : "Click to copy Slack subscribe command"}
+															className="inline-flex items-center gap-1.5 rounded bg-navy-faded/60 px-1.5 py-0.5 text-[0.85em] text-navy transition-colors hover:bg-navy-faded dark:bg-[rgba(76,228,240,0.08)] dark:text-[#E3F2F7] dark:hover:bg-[rgba(76,228,240,0.14)]"
+														>
+															<code className="font-mono">{slackCommand}</code>
+															{copiedSlackCmd ? (
+																<Check className="h-3 w-3 text-green-main" aria-hidden="true" />
+															) : (
+																<Copy className="h-3 w-3 opacity-60" aria-hidden="true" />
+															)}
+														</button>{" "}
+														in any channel and new events post automatically.
+													</p>
+													<p>
+														<span className="font-semibold text-navy dark:text-[#E3F2F7]">In Telegram —</span> add
+														an RSS bot (e.g. <em>@RssBot</em>, <em>@feedreaderbot</em>) to your channel, then
+														subscribe to the RSS URL above.
+													</p>
+												</div>
+											</details>
+										</div>
+									</div>
+								);
+							})()
+						: null}
 					</div>
 				</div>
 
@@ -601,7 +753,7 @@ export default function EventsPageClient({
 								</p>
 								<Link
 									href="/preferences"
-									className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-navy hover:text-cyan-darker dark:text-[#E3F2F7] dark:hover:text-cyan transition-colors"
+									className="-mx-2 -my-1 mt-4 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-faded dark:text-[#E3F2F7] dark:hover:bg-[rgba(76,228,240,0.06)]"
 								>
 									Subscribe
 									<ArrowRightIcon className="h-4 w-4 text-orange-main" aria-hidden="true" />
