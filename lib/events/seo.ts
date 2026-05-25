@@ -32,6 +32,10 @@ const CITY_INTROS: Partial<Record<string, string>> = {
 		"Lisboa is Portugal's startup capital — Web Summit anchors the year, and weekly meetups run year-round from Founder Institute Portugal, Startup Grind, and the local community. Adamastor curates them here.",
 	porto:
 		"Porto's startup community has grown into a tight-knit network, anchored by founder co-working spaces, a strong open-source culture, and the country's second-largest tech ecosystem.",
+	braga:
+		"Braga is northern Portugal's growing tech hub — anchored by the University of Minho and Startup Braga's accelerator, with Subvisual's community work and conferences shaping the local scene. Adamastor surfaces the events here.",
+	coimbra:
+		"Coimbra's startup scene is anchored by Instituto Pedro Nunes (IPN) — Portugal's longest-running tech incubator — and the University of Coimbra's research ecosystem. The soil that grew Critical Software and Feedzai still produces founders today; Adamastor curates the events here.",
 	online:
 		"Portugal's startup community is increasingly distributed — Lisboa, Porto, and a growing diaspora. Online events bridge them: virtual meetups, webinars, AMAs, and remote pitch nights curated by Adamastor.",
 };

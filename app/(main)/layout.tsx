@@ -7,27 +7,36 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 	return (
 		<div>
 			<Navbar />
-			<main className="max-w-screen-lg mx-auto p-4">{children}</main>
+			{/* Container widened to screen-xl (1280px) so editorial pages like
+			    /events can breathe. Text-heavy pages constrain themselves
+			    further (posts/[id] uses max-w-[750px]; preferences and
+			    events/submit use max-w-2xl). Defensive wrappers on / and
+			    /about keep them at max-w-screen-lg for comfortable text
+			    line lengths. */}
+			<main className="max-w-screen-xl mx-auto p-4">{children}</main>
 
-			{/* Your awesome vertical text */}
-			<div className="justify-start tracking-wider uppercase [writing-mode:vertical-rl] left-0 bottom-1 hidden sm:block fixed text-xs m-2 text-muted-foreground hover:blur-sm transition-all duration-1000 hover:bg-gradient-to-r hover:from-[#24acb5] hover:to-[#2cdce9] bg-clip-text hover:text-transparent cursor-pointer">
-				Only you know who you can be
-			</div>
-
-			{/* Footer */}
-			<footer className="justify-end flex gap-3 text-muted-foreground p-4 mb-2 border-t">
-				<Link href="/feed.xml" className="hover:underline hover:text-primary transition-colors">
-					RSS
+			{/* Footer: organiser-acquisition link on the left (own its own
+			    weight, navy + text-sm), passive channels on the right
+			    (RSS / X / LinkedIn, muted). Keeps the editorial vs follow
+			    distinction visible in the footer too. */}
+			<footer className="flex items-center justify-between gap-3 p-4 mb-2 border-t border-navy-faded dark:border-[rgba(76,228,240,0.12)]">
+				<Link href="/events/submit" className="text-sm text-navy hover:underline dark:text-[#E3F2F7]">
+					Submit your event
 				</Link>
-				<Link href="https://x.com/meetAdamastor" className="hover:underline hover:text-primary transition-colors">
-					X
-				</Link>
-				<Link
-					href="https://www.linkedin.com/company/adamastor-magazine/"
-					className="hover:underline hover:text-primary transition-colors"
-				>
-					LinkedIn
-				</Link>
+				<div className="flex gap-3 text-muted-foreground">
+					<Link href="/feed.xml" className="hover:underline transition-colors">
+						RSS
+					</Link>
+					<Link href="https://x.com/meetAdamastor" className="hover:underline transition-colors">
+						X
+					</Link>
+					<Link
+						href="https://www.linkedin.com/company/adamastor-magazine/"
+						className="hover:underline transition-colors"
+					>
+						LinkedIn
+					</Link>
+				</div>
 			</footer>
 			<MobileTabBar />
 		</div>

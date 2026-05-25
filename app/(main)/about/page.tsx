@@ -9,7 +9,10 @@ const breadcrumbJsonLd = buildBreadcrumbListJsonLd([
 
 export default function About() {
 	return (
-		<>
+		// Constrain to screen-lg — the wider (main) layout container is meant
+		// for editorial pages like /events. Long-form text reads more comfortably
+		// at narrower widths.
+		<div className="mx-auto max-w-screen-lg">
 			<script
 				type="application/ld+json"
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema markup
@@ -68,6 +71,6 @@ export default function About() {
 					</a>
 				</p>
 			</section>
-		</>
+		</div>
 	);
 }

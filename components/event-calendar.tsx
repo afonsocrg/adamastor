@@ -22,6 +22,123 @@ function isSameDay(date1: Date, date2: Date) {
 	);
 }
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Mobile-only horizontal date strip. The desktop month grid wastes most of
+ * the card width on small screens (7 × 36px cells, ~252px wide); this
+ * replaces it with a swipeable day strip from today through the latest
+ * event date. Same props as the desktop calendar so the parent doesn't
+ * branch — both render, CSS toggles which one shows.
+ */
+function EventCalendarMobileStrip({
+	eventDates,
+	onDateClick,
+	selectedDate,
+}: {
+	eventDates: Date[];
+	onDateClick?: (date: Date) => void;
+	selectedDate?: Date | null;
+}) {
+	const today = React.useMemo(() => {
+		const d = new Date();
+		d.setHours(0, 0, 0, 0);
+		return d;
+	}, []);
+
+	const eventDateStrings = React.useMemo(
+		() => new Set(eventDates.map((d) => d.toLocaleDateString("en-CA"))),
+		[eventDates],
+	);
+
+	// Span today → latest event date (or +14 days if there are no events at
+	// all yet). Long ranges scroll horizontally with snap; users only ever
+	// see ~6 cells at once on a typical phone.
+	const days = React.useMemo(() => {
+		const fallbackEnd = today.getTime() + 13 * ONE_DAY_MS;
+		const latestEventMs =
+			eventDates.length > 0 ? eventDates.reduce((max, d) => Math.max(max, d.getTime()), 0) : 0;
+		const endMs = Math.max(fallbackEnd, latestEventMs);
+
+		const result: Date[] = [];
+		for (let t = today.getTime(); t <= endMs; t += ONE_DAY_MS) {
+			result.push(new Date(t));
+		}
+		return result;
+	}, [eventDates, today]);
+
+	const headingLabel = today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+	return (
+		<div className="lg:hidden p-3 space-y-3">
+			<div className="text-base font-bold text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]">
+				{headingLabel}
+			</div>
+			<div
+				className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 -mx-3 px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				role="listbox"
+				aria-label="Browse events by date"
+			>
+				{days.map((day) => {
+					const dateString = day.toLocaleDateString("en-CA");
+					const hasEvent = eventDateStrings.has(dateString);
+					const isToday = isSameDay(day, today);
+					const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+					const weekday = day.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 2);
+
+					return (
+						<button
+							key={dateString}
+							type="button"
+							disabled={!hasEvent}
+							onClick={() => hasEvent && onDateClick?.(day)}
+							role="option"
+							aria-selected={isSelected}
+							aria-label={
+								hasEvent
+									? `Filter events for ${day.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}`
+									: day.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+							}
+							className={cn(
+								"snap-start flex-shrink-0 flex flex-col items-center justify-start min-w-[52px] h-[68px] rounded-lg border transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 pt-2",
+								isSelected &&
+									"border-cyan bg-cyan-faded text-cyan-darker dark:border-[rgba(4,201,216,0.4)] dark:bg-[rgba(4,201,216,0.12)] dark:text-[#4ce4f0]",
+								!isSelected &&
+									isToday &&
+									"border-navy text-navy font-bold dark:border-[#E3F2F7] dark:text-[#E3F2F7]",
+								!isSelected &&
+									!isToday &&
+									hasEvent &&
+									"border-navy-faded text-navy hover:bg-navy-faded dark:border-[rgba(76,228,240,0.18)] dark:text-[#E3F2F7] dark:hover:bg-[rgba(76,228,240,0.08)]",
+								!isSelected &&
+									!isToday &&
+									!hasEvent &&
+									"border-transparent text-muted-foreground opacity-60 cursor-default",
+							)}
+						>
+							<span className="text-[0.7rem] uppercase tracking-wide leading-none">{weekday}</span>
+							<span className={cn("mt-1 text-lg leading-none tabular-nums", isSelected || isToday ? "font-bold" : "font-semibold")}>
+								{day.getDate()}
+							</span>
+							<span
+								aria-hidden="true"
+								className={cn(
+									"mt-1.5 h-1.5 w-1.5 rounded-full",
+									hasEvent
+										? isSelected
+											? "bg-cyan-darker dark:bg-cyan"
+											: "bg-navy dark:bg-[#E3F2F7]"
+										: "bg-transparent",
+								)}
+							/>
+						</button>
+					);
+				})}
+			</div>
+		</div>
+	);
+}
+
 function EventCalendar({
 	className,
 	classNames,
@@ -66,15 +183,19 @@ function EventCalendar({
 			<div
 				className={cn(
 					"relative flex h-9 w-9 flex-col items-center justify-center rounded-md transition-colors duration-150 ease",
-					// Today styling
-					isToday && "bg-accent !text-[#28aeb8] text-accent-foreground font-medium",
-					// Selected date styling
-					isSelected && "bg-[#dff6f7] text-[#28aeb8] font-bold",
-					// Event day styling (when not selected or today)
-					hasEvent && !isToday && !isSelected && "font-medium text-[#104357] dark:text-[#E3F2F7] hover:bg-accent/50",
-					// Non-event day styling
+					// Today: subtle bold-navy emphasis, no bg fill — keeps the
+					// cyan-faded fill exclusive to the SELECTED state so the
+					// signal-vs-context distinction stays readable.
+					isToday && !isSelected && "font-bold text-navy dark:text-[#E3F2F7]",
+					// Selected: cyan-faded bg + cyan-darker text. The one cyan
+					// moment in the calendar — matches the active category chip
+					// pattern in the events column.
+					isSelected && "bg-cyan-faded text-cyan-darker font-bold dark:bg-[rgba(4,201,216,0.12)] dark:text-[#4ce4f0]",
+					// Event day (not today/selected): navy text, navy-faded hover
+					// — mirrors the rest of the page's interaction model.
+					hasEvent && !isToday && !isSelected && "font-medium text-navy dark:text-[#E3F2F7] hover:bg-navy-faded dark:hover:bg-[rgba(76,228,240,0.08)]",
+					// Non-event day: muted, non-interactive.
 					!hasEvent && !isToday && !isSelected && "text-muted-foreground opacity-60",
-					// Cursor styling
 					hasEvent && "cursor-pointer",
 					!hasEvent && "cursor-default",
 				)}
@@ -88,7 +209,10 @@ function EventCalendar({
 				<div className="flex h-full w-full items-center justify-center">{date.getDate()}</div>
 				{hasEvent && (
 					<div
-						className={cn("absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-[#04C9D8]", isSelected && " bg-[#28aeb8]")}
+						className={cn(
+							"absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-navy dark:bg-[#E3F2F7]",
+							isSelected && "bg-cyan-darker dark:bg-cyan",
+						)}
 					/>
 				)}
 			</div>
@@ -96,11 +220,17 @@ function EventCalendar({
 	};
 
 	return (
-		<DayPicker
-			locale={enGB}
-			showOutsideDays={showOutsideDays}
-			defaultMonth={new Date()}
-			className={cn("p-3", className)}
+		<>
+			<EventCalendarMobileStrip
+				eventDates={eventDates}
+				onDateClick={onDateClick}
+				selectedDate={selectedDate}
+			/>
+			<DayPicker
+				locale={enGB}
+				showOutsideDays={showOutsideDays}
+				defaultMonth={new Date()}
+				className={cn("hidden lg:block p-3", className)}
 			onDayClick={(day) => {
 				if (onDateClick) {
 					onDateClick(day);
@@ -110,7 +240,7 @@ function EventCalendar({
 				months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
 				month: "space-y-4",
 				caption: "flex justify-center pt-1 relative items-center mb-6",
-				caption_label: "font-medium absolute left-2 text-[#104357] dark:text-[#E3F2F7]",
+				caption_label: "font-bold text-base absolute left-2 text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]",
 				nav: "space-x-1 flex items-center",
 				nav_button: cn(
 					buttonVariants({ variant: "outline" }),
@@ -120,7 +250,7 @@ function EventCalendar({
 				nav_button_next: "absolute right-1",
 				table: "w-full border-collapse space-y-1",
 				head_row: "flex",
-				head_cell: "text-muted-foreground rounded-md w-9 font-semibold text-[0.8rem]",
+				head_cell: "text-navy-pastel dark:text-[rgba(158,210,225,0.7)] rounded-md w-9 font-semibold text-[0.8rem]",
 				row: "flex w-full mt-2",
 				cell: "h-9 w-9 text-center text-sm p-0 relative rounded-md transition-colors duration-150 ease",
 				day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
@@ -142,6 +272,7 @@ function EventCalendar({
 			}}
 			{...props}
 		/>
+		</>
 	);
 }
 

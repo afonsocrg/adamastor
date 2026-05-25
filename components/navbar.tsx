@@ -5,9 +5,9 @@ import NavbarUserMenu from "./navbar-user-menu";
 const Navbar = () => {
 	return (
 		<>
-			<div className="bg-[#04C9D8] w-full h-1" />
+			<div className="bg-navy dark:bg-[#E3F2F7] w-full h-[5px]" />
 
-			<nav className="p-4 mb-2 border-b">
+			<nav className="p-4 mb-2 border-b border-navy-faded dark:border-[rgba(76,228,240,0.12)]">
 				<div className="max-w-screen-xl mx-auto flex justify-between items-center gap-4">
 					<div className="order-2 w-auto max-w-[13rem] text-right text-sm font-normal leading-tight text-muted-foreground md:order-1 md:w-60 md:max-w-none md:text-left">
 						<Link href="/">
@@ -37,11 +37,11 @@ const Navbar = () => {
 					</div>
 
 					<div className="order-3 hidden w-60 justify-end md:block">
-						<div className="flex gap-3 justify-end !text-muted-foreground">
-							<Link href="/about" className="hover:underline hover:text-primary transition-colors">
+						<div className="flex gap-3 justify-end text-navy dark:text-[#E3F2F7]">
+							<Link href="/about" className="hover:underline transition-colors">
 								About
 							</Link>
-							<Link href="/events" className="hover:underline hover:text-primary flex gap-1 group transition-colors">
+							<Link href="/events" className="hover:underline flex gap-1 group transition-colors">
 								Events
 							</Link>
 							<NavbarUserMenu />

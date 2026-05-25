@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/tailwind/ui/button";
 import { Input } from "@/components/tailwind/ui/input";
 import type { EventCategorySlug } from "@/lib/events/categories";
+import { ArrowRightIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -12,11 +12,15 @@ interface CategoryNewsletterCtaProps {
 }
 
 /**
- * Inline newsletter CTA shown on a category's /events/[slug] page. Email-only
- * to minimise friction — name is optional in /api/subscribe.
+ * Inline newsletter CTA for a single event category. Lives in the sidebar
+ * of /events/[category] pages (and city × category combined routes) so the
+ * "Events in your inbox" ask is contextual to whichever category the
+ * visitor is browsing. Stacks vertically to fit the narrow sidebar column.
  *
- * Conversion-conscious copy: leads with what the subscriber gets ("Design
- * events delivered weekly") rather than asking them to "join our list".
+ * Visual treatment mirrors the generic "Events in your inbox" sidebar block
+ * in EventsPageClient — outlined navy-faded card, Lora Bold heading, navy
+ * Subscribe text + orange arrow tip as the warmth accent. Editorial, not
+ * SaaS-y.
  */
 export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNewsletterCtaProps) {
 	const [email, setEmail] = useState("");
@@ -61,44 +65,45 @@ export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNe
 
 	if (done) {
 		return (
-			<aside className="rounded-lg border border-[#04C9D8]/30 bg-[#DFF6F8] px-6 py-5 dark:border-[#04C9D8]/30 dark:bg-[#04C9D8]/10">
-				<p className="text-sm font-medium leading-relaxed text-[#104357] dark:text-[#E3F2F7]">
-					Thanks — you'll get {categoryName} events in your inbox. Check your email for a welcome message.
+			<aside className="rounded-lg border border-navy-faded p-5 dark:border-[rgba(76,228,240,0.18)]">
+				<p className="text-sm leading-relaxed text-navy dark:text-[#E3F2F7]">
+					Thanks — you'll get <span className="font-semibold">{categoryName}</span> events in your inbox. Check your email
+					for a welcome message.
 				</p>
 			</aside>
 		);
 	}
 
 	return (
-		<aside className="rounded-lg border bg-card px-6 py-5 shadow-sm">
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-				<div className="space-y-1">
-					<h2 className="text-base font-semibold leading-tight text-[#104357] dark:text-[#E3F2F7]">
-						Get {categoryName} events in your inbox
-					</h2>
-					<p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
-						A focused weekly digest of {categoryName.toLowerCase()} meetups, conferences, and workshops across Portugal.
-						Unsubscribe anytime.
-					</p>
-				</div>
-				<form onSubmit={handleSubmit} className="flex w-full max-w-sm gap-2">
-					<Input
-						type="email"
-						required
-						autoComplete="email"
-						inputMode="email"
-						spellCheck={false}
-						placeholder="you@example.com"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						disabled={submitting}
-						aria-label={`Email address to subscribe to ${categoryName} events`}
-					/>
-					<Button type="submit" disabled={submitting || !email.trim()}>
-						{submitting ? "Joining…" : "Subscribe"}
-					</Button>
-				</form>
-			</div>
+		<aside className="rounded-lg border border-navy-faded p-5 dark:border-[rgba(76,228,240,0.18)]">
+			<h2 className="text-lg font-bold text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]">
+				{categoryName} events in your inbox
+			</h2>
+			<p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+				A focused weekly digest of {categoryName.toLowerCase()} meetups, conferences, and workshops across Portugal.
+			</p>
+			<form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-2">
+				<Input
+					type="email"
+					required
+					autoComplete="email"
+					inputMode="email"
+					spellCheck={false}
+					placeholder="you@example.com"
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
+					disabled={submitting}
+					aria-label={`Email address to subscribe to ${categoryName} events`}
+				/>
+				<button
+					type="submit"
+					disabled={submitting || !email.trim()}
+					className="inline-flex items-center gap-2 self-start text-sm font-semibold text-navy hover:text-cyan-darker dark:text-[#E3F2F7] dark:hover:text-cyan transition-colors disabled:opacity-50 disabled:hover:text-navy disabled:dark:hover:text-[#E3F2F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+				>
+					{submitting ? "Joining…" : "Subscribe"}
+					<ArrowRightIcon className="h-4 w-4 text-orange-main" aria-hidden="true" />
+				</button>
+			</form>
 		</aside>
 	);
 }

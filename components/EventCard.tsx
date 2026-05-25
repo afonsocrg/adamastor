@@ -19,7 +19,7 @@ import {
 } from "@/components/tailwind/ui/context-menu";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { withUtm } from "@/lib/events/utm";
-import { MapPinIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -39,12 +39,29 @@ interface EventCardProps {
 	onDelete: (eventId: string) => void;
 }
 
+// Europe/Lisbon time formatted as HH:MM (24-hour, publication-grade).
+// Locale-agnostic, won't render as "5:30 PM" in en-US.
+const TIME_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+	timeZone: "Europe/Lisbon",
+	hour: "2-digit",
+	minute: "2-digit",
+	hour12: false,
+});
+
+function formatCity(city: string): string {
+	return city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
+}
+
 export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 	const router = useRouter();
 	const { profile } = useUserProfile();
 	const isAdmin = profile?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true";
 
 	return (
+		// Pure rail layout — events hang off the parent column's navy-faded
+		// left border (see EventsPageClient). Cyan dots live on the day
+		// headers, not the individual event rows (matches Luma's pattern —
+		// the rail marks day transitions, not every entry).
 		<article className="group">
 			<ContextMenu>
 				<ContextMenuTrigger>
@@ -53,25 +70,27 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 						target="_blank"
 						rel="noopener noreferrer"
 						onClick={onEventClick}
-						className="flex flex-col rounded-lg rounded-l border-l-4 border-[#04C9D8] px-4 py-4 transition-colors duration-150 ease hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
+						// Clean white at rest, navy-faded outline on hover.
+						// Reserves visual change for the interaction signal;
+						// default reads as an editorial entry, not a boxed item.
+						className="flex flex-col rounded-lg border border-transparent p-4 transition-colors duration-150 ease hover:border-navy-faded dark:hover:border-[rgba(76,228,240,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
 					>
-						<div className="ml-1 flex gap-8 align-top">
-							<section className="w-full space-y-3">
-								<div className="flex justify-between items-start">
-									<h3 className="text-xl font-bold leading-tight text-[#104357] transition-colors duration-150 ease [text-wrap:pretty] group-hover:text-[#24acb5] dark:text-[#E3F2F7] [font-family:var(--font-default)]">
-										{event.title}
-									</h3>
-								</div>
-								<p className="line-clamp-2 max-w-[70ch] text-base leading-relaxed text-muted-foreground">
-									{event.description}
-								</p>
-
-								<div className="flex items-center gap-1.5 text-sm leading-5 text-muted-foreground">
-									<MapPinIcon className="h-4 w-4 shrink-0" />
-									{event.city.charAt(0).toUpperCase() + event.city.slice(1)}
-								</div>
-							</section>
-						</div>
+						<section className="w-full space-y-2">
+							<h3 className="text-xl font-bold leading-tight text-[#104357] [text-wrap:pretty] dark:text-[#E3F2F7] [font-family:var(--font-inter)] decoration-cyan decoration-2 underline-offset-4 group-hover:underline">
+								{event.title}
+							</h3>
+							{/* Metadata strip — time leads (most scannable for "what's
+							    happening tonight"), then city. Bullet separator.
+							    tabular-nums keeps times column-aligned across cards. */}
+							<p className="text-sm leading-5 text-muted-foreground">
+								<span className="tabular-nums">{TIME_FORMATTER.format(new Date(event.start_time))}</span>
+								<span aria-hidden="true"> · </span>
+								<span>{formatCity(event.city)}</span>
+							</p>
+							<p className="line-clamp-2 max-w-[50ch] text-base leading-relaxed text-muted-foreground">
+								{event.description}
+							</p>
+						</section>
 					</Link>
 				</ContextMenuTrigger>
 				{isAdmin && (
