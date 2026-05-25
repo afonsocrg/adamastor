@@ -132,7 +132,7 @@ export default async function PostPage({ params }: PostPageProps) {
 						<PostAdminControls postAuthorId={String(post.author_id)} postId={id} isPublic={post.is_public} />
 					</div>
 					<div className="mb-4">
-						<h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-balance text-[#104357] dark:text-[#E3F2F7] [font-family:var(--font-default)]">
+						<h1 className="md:text-4xl scroll-m-20 tracking-tight !leading-tight text-3xl font-extrabold text-balance text-[#104357] dark:text-[#E3F2F7] [font-family:var(--font-inter)]">
 							{post.title}
 						</h1>
 					</div>

@@ -159,7 +159,7 @@ export function SubscribersList() {
 			    ───────────────────────────────────────────────────────────── */}
 			<section>
 				<p
-					className="text-6xl font-bold tabular-nums leading-none text-navy dark:text-[#E3F2F7] [font-family:var(--font-title)]"
+					className="text-6xl font-bold tabular-nums leading-none text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]"
 					aria-label={`${subscribedCount} subscribers`}
 				>
 					{subscribedCount}

@@ -108,7 +108,7 @@ export default function HomePostsFeed({ currentPage, posts, totalPages }: HomePo
 											</p>
 										)}
 									</div>
-									<h2 className="text-[1.22rem] font-bold leading-[1.22] text-[#104357] transition-colors duration-150 ease-out [text-wrap:pretty] group-hover:text-[#24acb5] dark:text-[#E3F2F7] [font-family:var(--font-default)] sm:text-[1.55rem] sm:leading-[1.18]">
+									<h2 className="text-[1.22rem] font-bold leading-[1.22] text-[#104357] transition-colors duration-150 ease-out [text-wrap:pretty] group-hover:text-[#24acb5] dark:text-[#E3F2F7] [font-family:var(--font-inter)] sm:text-[1.55rem] sm:leading-[1.18]">
 										{displayTitle}
 									</h2>
 									<p className="max-w-[32rem] text-[0.98rem] leading-[1.55] text-muted-foreground line-clamp-3 sm:max-w-[42rem] sm:line-clamp-2 sm:text-base sm:leading-[1.6]">

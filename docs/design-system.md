@@ -18,28 +18,28 @@ References that shape the voice:
 
 ## Typography
 
-Three families, all already loaded in [`app/layout.tsx`](../app/layout.tsx) via [`styles/fonts.ts`](../styles/fonts.ts). No new font loads needed for the brand.
+Three families, all loaded in [`app/layout.tsx`](../app/layout.tsx) via [`styles/fonts.ts`](../styles/fonts.ts). No new font loads needed for the brand.
 
 | Family | Variable | Use |
 |---|---|---|
-| **CalSans-SemiBold** (display) | `--font-title` | Page titles, marquee numbers, anything that wants to feel like a publication's name on the spine |
-| **Crimson Text** (serif) | `--font-default` (regular) and `--font-title` (bold) | Editorial headlines, headline numbers, opinion content, anywhere editorial warmth matters |
-| **Inter** (sans) | `--font-default` | UI labels, table content, body copy, form controls |
-| **JetBrainsMono / Inconsolata** (mono) | inline `font-family` | Code blocks, technical content, env var names |
+| **Lora Bold** (serif display) | `--font-lora-bold` | Page titles, headlines, headline numbers. Max weight is 700 — pair with Tailwind `font-bold` so the weight resolves. |
+| **Inter** (sans body) | `--font-inter` | UI labels, table content, body copy, form controls. The default body font (see `globals.css`). |
+| **Inconsolata** (mono) | `--font-inconsolata` (400) and `--font-inconsolata-bold` (700) | Code blocks, technical content, env var names. |
 
 Reference fonts via Tailwind arbitrary value:
 ```tsx
-<h1 className="[font-family:var(--font-title)]">Newsletter Subscribers</h1>
-<p className="[font-family:var(--font-default)]">42 subscribers</p>
+<h1 className="font-bold [font-family:var(--font-lora-bold)]">Newsletter Subscribers</h1>
+<p className="[font-family:var(--font-inter)]">42 subscribers</p>
 ```
 
 **Type usage:**
-- Page title (h1/h2): CalSans, large display weight
-- Section headers (h3): Crimson Text bold
-- Body, labels, table cells: Inter
-- Numerical displays (stat headlines, pull-quotes): Crimson Text + `tabular-nums`
-- Editorial pull-quotes / opinion bylines: Crimson Text italic
-- Code / env var / technical token: monospace, `text-xs`, `bg-muted` padded
+- Page title (h1/h2): Lora Bold + `font-bold` + `text-3xl` or larger
+- Section headers (h3): Inter `font-semibold`
+- Body, labels, table cells: Inter (the default)
+- Numerical displays (stat headlines, pull-quotes): Lora Bold + `font-bold` + `tabular-nums`
+- Code / env var / technical token: Inconsolata, `text-xs`, `bg-muted` padded
+
+**Why Lora and not CalSans or Crimson Text?** CalSans (modern startup display font) and Crimson Text (classical book serif) were both dropped because neither matched Adamastor's "contemporary digital publication" voice. CalSans read too "SaaS product"; Crimson read too "Victorian literary magazine." Lora Bold is designed for screen reading, sits between them in feel, and pairs cleanly with Inter for body.
 
 ## Color tokens
 
@@ -141,15 +141,15 @@ Meaning matters — pick the variant that communicates, don't default to "second
 
 ### Stat displays
 
-- **Hero numbers** (page headlines): Crimson Text, `text-5xl+`, `tabular-nums`, `text-navy`.
-- **Secondary numbers** (section totals): Crimson Text or Inter `text-2xl font-semibold`, `tabular-nums`.
+- **Hero numbers** (page headlines): Lora Bold, `font-bold`, `text-5xl+`, `tabular-nums`, `text-navy`.
+- **Secondary numbers** (section totals): Inter `text-2xl font-semibold`, `tabular-nums`.
 - **Labels under numbers**: Inter, `text-xs uppercase tracking-wide text-muted-foreground`.
 - **Growth deltas**: `text-green-main` (positive) or `text-orange-main` (decline) with arrow icon.
 
 ### Sections
 
 A "section" is a meaningful grouping (Stats, By category, Recent activity). Each section:
-- Has a heading in Crimson Text bold, `text-base` or `text-lg`
+- Has a heading in Inter `font-semibold`, `text-base` or `text-lg` (reserve Lora Bold for page titles / hero numbers)
 - May have a one-line subhead in `text-sm text-muted-foreground`
 - Sits inside `space-y-8` (or larger) with previous/next section
 
@@ -158,7 +158,7 @@ A "section" is a meaningful grouping (Stats, By category, Recent activity). Each
 ### Where tokens live
 
 - **Tailwind tokens** in [`tailwind.config.ts`](../tailwind.config.ts) — extends the default color theme with the brand keys. Use as utility classes (`bg-navy`, `text-cyan-pastel`, `border-orange-dark`).
-- **Fonts** in [`styles/fonts.ts`](../styles/fonts.ts), wired via CSS variables. Use as `[font-family:var(--font-title)]`.
+- **Fonts** in [`styles/fonts.ts`](../styles/fonts.ts), wired via CSS variables. Use as `[font-family:var(--font-lora-bold)]` etc.
 - **Shadcn theme tokens** (background, foreground, muted, etc.) in [`styles/globals.css`](../styles/globals.css). Use as `bg-background`, `text-muted-foreground`.
 
 ### Adding a new color

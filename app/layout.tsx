@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import "@/styles/prosemirror.css";
 import "katex/dist/katex.min.css";
 
-import { cal, crimson, crimsonBold, inconsolata, inconsolataBold, inter } from "@/styles/fonts";
+import { inconsolata, inconsolataBold, inter, loraBold } from "@/styles/fonts";
 
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html
 			lang="en"
-			className={`${inter.variable} ${cal.variable} ${crimsonBold.variable} ${crimson.variable} ${inconsolata.variable} ${inconsolataBold.variable}`}
+			className={`${inter.variable} ${inconsolata.variable} ${inconsolataBold.variable} ${loraBold.variable}`}
 			suppressHydrationWarning
 		>
 			<body>
