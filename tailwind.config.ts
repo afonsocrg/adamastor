@@ -88,6 +88,12 @@ const config = {
   				pastel: '#F9B376',
   				faded: '#FEF9F5',
   			},
+  			gold: {
+  				dark: '#B8893A',
+  				main: '#D4A657',
+  				pastel: '#EDD2A0',
+  				faded: '#FAF3E2',
+  			},
   			green: {
   				dark: '#236925',
   				main: '#3DB540',
