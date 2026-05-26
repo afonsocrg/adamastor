@@ -7,6 +7,7 @@ export interface PublicEvent {
 	title: string;
 	description: string;
 	start_time: string;
+	end_time?: string | null;
 	city: string;
 	url: string;
 	banner_url?: string;

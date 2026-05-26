@@ -15,6 +15,7 @@ const submissionSchema = z.object({
 	title: z.string().trim().min(3, "Title is required").max(200),
 	description: z.string().trim().min(20, "Please tell us a bit more about the event").max(5000),
 	start_time: z.string().min(1, "Start time is required"),
+	end_time: z.string().nullable().optional(),
 	city: z.string().trim().min(1, "City is required"),
 	url: z.string().trim().min(1, "Event link is required").url("Please share a valid event link"),
 	bannerUrl: z.string().url("Banner URL must be a valid URL").optional().or(z.literal("")),
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
 					title: data.title,
 					description: data.description,
 					start_time: data.start_time,
+					end_time: data.end_time ?? null,
 					city: data.city,
 					url: cleanUrl,
 					banner_url: cleanBannerUrl,
@@ -186,9 +188,7 @@ export async function POST(request: NextRequest) {
 		}
 
 		return NextResponse.json({
-			message: isAdminSubmitter
-				? "Event published."
-				: "Thanks — we've got your submission and you'll hear back soon.",
+			message: isAdminSubmitter ? "Event published." : "Thanks — we've got your submission and you'll hear back soon.",
 			status,
 			duplicateCandidates,
 		});

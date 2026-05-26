@@ -1,7 +1,4 @@
-import {
-	sendSubmissionApprovedEmail,
-	sendSubmissionRejectedEmail,
-} from "@/lib/events/notifications";
+import { sendSubmissionApprovedEmail, sendSubmissionRejectedEmail } from "@/lib/events/notifications";
 import { sanitizeEventCategorySlugs } from "@/lib/events/categories";
 import { BadRequestError, ForbiddenError, NotFoundError, handleError } from "@/lib/errors";
 import { revalidateEventsListing } from "@/lib/revalidate-public";
@@ -15,6 +12,7 @@ const patchSchema = z.object({
 	title: z.string().trim().min(3).max(200).optional(),
 	description: z.string().trim().min(1).max(5000).optional(),
 	start_time: z.string().min(1).optional(),
+	end_time: z.string().nullable().optional(),
 	city: z.string().trim().min(1).optional(),
 	url: z.string().url().nullable().optional().or(z.literal("")),
 	bannerUrl: z.string().url().nullable().optional().or(z.literal("")),
@@ -25,10 +23,7 @@ const patchSchema = z.object({
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://adamastor.blog";
 
-export async function PATCH(
-	request: NextRequest,
-	routeParams: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: NextRequest, routeParams: { params: Promise<{ id: string }> }) {
 	try {
 		const supabase = await createClient();
 		const profile = await assertAuthenticated(supabase);
@@ -65,6 +60,7 @@ export async function PATCH(
 		if (parsed.data.title !== undefined) update.title = parsed.data.title;
 		if (parsed.data.description !== undefined) update.description = parsed.data.description;
 		if (parsed.data.start_time !== undefined) update.start_time = parsed.data.start_time;
+		if (parsed.data.end_time !== undefined) update.end_time = parsed.data.end_time;
 		if (parsed.data.city !== undefined) update.city = parsed.data.city;
 		if (parsed.data.url !== undefined) update.url = parsed.data.url === "" ? null : parsed.data.url;
 		if (parsed.data.bannerUrl !== undefined)
@@ -127,9 +123,9 @@ export async function PATCH(
 			}
 
 			if (slugsToAdd.length > 0) {
-				const { error: insertError } = await supabase.from("event_category_assignments").insert(
-					slugsToAdd.map((categorySlug) => ({ event_id: eventId, category_slug: categorySlug })),
-				);
+				const { error: insertError } = await supabase
+					.from("event_category_assignments")
+					.insert(slugsToAdd.map((categorySlug) => ({ event_id: eventId, category_slug: categorySlug })));
 
 				if (insertError) {
 					console.error("[/api/events/submissions/[id]] category insert failed", insertError);

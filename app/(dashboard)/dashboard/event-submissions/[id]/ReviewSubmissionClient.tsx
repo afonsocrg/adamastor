@@ -20,10 +20,7 @@ import { Input } from "@/components/tailwind/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/tailwind/ui/select";
 import { Separator } from "@/components/tailwind/ui/separator";
 import { Textarea } from "@/components/tailwind/ui/textarea";
-import {
-	dateTimeStringWithNoTimezoneToTzDateString,
-	tzDateStringToDateTimeStringWithNoTimezone,
-} from "@/lib/datetime";
+import { dateTimeStringWithNoTimezoneToTzDateString, tzDateStringToDateTimeStringWithNoTimezone } from "@/lib/datetime";
 import { type EventCategorySlug } from "@/lib/events/categories";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -42,6 +39,7 @@ interface ReviewEvent {
 	url: string;
 	banner_url: string;
 	start_time: string;
+	end_time: string | null;
 	city: string;
 	status: "pending" | "approved" | "rejected";
 	submitter_name: string | null;
@@ -51,15 +49,21 @@ interface ReviewEvent {
 	rejection_reason: string | null;
 }
 
-const formSchema = z.object({
-	title: z.string().trim().min(3, "Title is required"),
-	description: z.string().trim().min(1, "Description is required"),
-	url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-	bannerUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-	startTime: z.string().min(1, "Start time is required"),
-	city: z.string().min(1, "City is required"),
-	categorySlugs: z.array(z.string()),
-});
+const formSchema = z
+	.object({
+		title: z.string().trim().min(3, "Title is required"),
+		description: z.string().trim().min(1, "Description is required"),
+		url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+		bannerUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+		startTime: z.string().min(1, "Start time is required"),
+		endTime: z.string().optional().or(z.literal("")),
+		city: z.string().min(1, "City is required"),
+		categorySlugs: z.array(z.string()),
+	})
+	.refine((data) => !data.endTime || data.endTime > data.startTime, {
+		message: "End time must be after start time",
+		path: ["endTime"],
+	});
 
 type ReviewFormValues = z.infer<typeof formSchema>;
 
@@ -83,6 +87,7 @@ export default function ReviewSubmissionClient({ event, initialCategorySlugs }: 
 			url: event.url,
 			bannerUrl: event.banner_url,
 			startTime: tzDateStringToDateTimeStringWithNoTimezone(event.start_time, TIMEZONE),
+			endTime: event.end_time ? tzDateStringToDateTimeStringWithNoTimezone(event.end_time, TIMEZONE) : "",
 			city: event.city,
 			categorySlugs: initialCategorySlugs,
 		},
@@ -90,10 +95,12 @@ export default function ReviewSubmissionClient({ event, initialCategorySlugs }: 
 
 	const buildPayload = (values: ReviewFormValues) => {
 		const utcStartTime = dateTimeStringWithNoTimezoneToTzDateString(values.startTime, TIMEZONE);
+		const utcEndTime = values.endTime ? dateTimeStringWithNoTimezoneToTzDateString(values.endTime, TIMEZONE) : null;
 		return {
 			title: values.title,
 			description: values.description,
 			start_time: utcStartTime,
+			end_time: utcEndTime,
 			city: values.city,
 			url: values.url || "",
 			bannerUrl: values.bannerUrl || "",
@@ -249,6 +256,23 @@ export default function ReviewSubmissionClient({ event, initialCategorySlugs }: 
 												onChange={field.onChange}
 												label="Start time (Europe/Lisbon)"
 											/>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormField
+									control={form.control}
+									name="endTime"
+									render={({ field }) => (
+										<FormItem className="flex flex-col">
+											<DateTimePickerField
+												value={field.value ?? ""}
+												onChange={field.onChange}
+												label="End time (optional)"
+												placeholder="Leave blank if unknown"
+											/>
+											<FormMessage />
 										</FormItem>
 									)}
 								/>
@@ -320,10 +344,7 @@ export default function ReviewSubmissionClient({ event, initialCategorySlugs }: 
 									<FormItem>
 										<FormLabel>Categories</FormLabel>
 										<FormControl>
-											<EventCategorySelector
-												value={field.value as EventCategorySlug[]}
-												onChange={field.onChange}
-											/>
+											<EventCategorySelector value={field.value as EventCategorySlug[]} onChange={field.onChange} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -335,13 +356,7 @@ export default function ReviewSubmissionClient({ event, initialCategorySlugs }: 
 			</Card>
 
 			<div className="flex flex-col sm:flex-row gap-3 justify-end">
-				<Button
-					type="button"
-					variant="outline"
-					onClick={handleSave}
-					disabled={isSaving}
-					className="rounded-lg"
-				>
+				<Button type="button" variant="outline" onClick={handleSave} disabled={isSaving} className="rounded-lg">
 					{pendingAction === "save" ? (
 						<>
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...

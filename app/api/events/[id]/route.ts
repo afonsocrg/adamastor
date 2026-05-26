@@ -9,6 +9,7 @@ export interface UpdateEventBody {
 	title?: string;
 	description?: string;
 	start_time?: string;
+	end_time?: string | null;
 	city?: string;
 	url?: string;
 	categorySlugs?: unknown;

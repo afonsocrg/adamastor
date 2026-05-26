@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 		}
 
 		const body = await request.json();
-		const { title, description, start_time, city, url, bannerUrl, allowPotentialDuplicate } = body;
+		const { title, description, start_time, end_time, city, url, bannerUrl, allowPotentialDuplicate } = body;
 		const categorySlugs = sanitizeEventCategorySlugs(body.categorySlugs);
 
 		// Validate required fields
@@ -57,6 +57,7 @@ export async function POST(request: Request) {
 					title,
 					description,
 					start_time,
+					end_time: end_time ?? null,
 					city,
 					url,
 					banner_url: bannerUrl,

@@ -29,15 +29,21 @@ const urlFormSchema = z.object({
 	url: z.string().url("Please enter a valid URL"),
 });
 
-const formSchema = z.object({
-	title: z.string().min(1, "Title is required"),
-	description: z.string().min(1, "Description is required"),
-	url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
-	bannerUrl: z.string().url("Please enter a valid banner URL").optional().or(z.literal("")),
-	startTime: z.string().min(1, "Start time is required"),
-	city: z.string().min(1, "City is required"),
-	categorySlugs: z.array(z.string()),
-});
+const formSchema = z
+	.object({
+		title: z.string().min(1, "Title is required"),
+		description: z.string().min(1, "Description is required"),
+		url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+		bannerUrl: z.string().url("Please enter a valid banner URL").optional().or(z.literal("")),
+		startTime: z.string().min(1, "Start time is required"),
+		endTime: z.string().optional().or(z.literal("")),
+		city: z.string().min(1, "City is required"),
+		categorySlugs: z.array(z.string()),
+	})
+	.refine((data) => !data.endTime || data.endTime > data.startTime, {
+		message: "End time must be after start time",
+		path: ["endTime"],
+	});
 
 const defaultEventFormValues = {
 	title: "",
@@ -45,6 +51,7 @@ const defaultEventFormValues = {
 	url: "",
 	bannerUrl: "",
 	startTime: "",
+	endTime: "",
 	city: "",
 	categorySlugs: [],
 };
@@ -220,7 +227,7 @@ export default function AddEventForm() {
 			if (result.error) {
 				toast.error(`${result.error} You can still finish the event manually.`);
 			} else if (result.data) {
-				const { title, description, url, bannerUrl, startTime, city } = result.data;
+				const { title, description, url, bannerUrl, startTime, endTime, city } = result.data;
 				const currentValues = eventForm.getValues();
 
 				// Animate form population
@@ -236,6 +243,11 @@ export default function AddEventForm() {
 					"startTime",
 					startTime ? tzDateStringToDateTimeStringWithNoTimezone(startTime, TIMEZONE) : currentValues.startTime,
 				);
+				if (endTime) {
+					eventForm.setValue("endTime", tzDateStringToDateTimeStringWithNoTimezone(endTime, TIMEZONE), {
+						shouldValidate: true,
+					});
+				}
 				await new Promise((resolve) => setTimeout(resolve, 50));
 				eventForm.setValue("city", city ?? currentValues.city);
 				const inferredCategorySlugs = inferEventCategorySlugs({
@@ -264,8 +276,9 @@ export default function AddEventForm() {
 	};
 
 	const submitEvent = async (values: EventFormValues, allowPotentialDuplicate = false) => {
-		const { title, description, startTime, city, url, bannerUrl, categorySlugs } = values;
+		const { title, description, startTime, endTime, city, url, bannerUrl, categorySlugs } = values;
 		const utcDateTime = dateTimeStringWithNoTimezoneToTzDateString(startTime, TIMEZONE);
+		const utcEndTime = endTime ? dateTimeStringWithNoTimezoneToTzDateString(endTime, TIMEZONE) : null;
 
 		return fetch("/api/events", {
 			method: "POST",
@@ -276,6 +289,7 @@ export default function AddEventForm() {
 				title,
 				description,
 				start_time: utcDateTime,
+				end_time: utcEndTime,
 				city,
 				url,
 				bannerUrl,
@@ -617,9 +631,27 @@ function EventDetailsForm({
 										placeholder="Select date and time"
 										disabled={field.disabled}
 									/>
+									<FormMessage />
 								</FormItem>
 							);
 						}}
+					/>
+
+					<FormField
+						control={form.control}
+						name="endTime"
+						render={({ field }) => (
+							<FormItem className="flex flex-col">
+								<DateTimePickerField
+									value={field.value ?? ""}
+									onChange={field.onChange}
+									label="End time (optional)"
+									placeholder="Leave blank if unknown"
+									disabled={field.disabled}
+								/>
+								<FormMessage />
+							</FormItem>
+						)}
 					/>
 
 					<FormField

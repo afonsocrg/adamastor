@@ -35,9 +35,7 @@ export default async function ReviewSubmissionPage({ params }: ReviewPageProps) 
 	}
 
 	const initialCategorySlugs = sanitizeEventCategorySlugs(
-		(event.event_category_assignments ?? []).map(
-			(assignment: { category_slug: string }) => assignment.category_slug,
-		),
+		(event.event_category_assignments ?? []).map((assignment: { category_slug: string }) => assignment.category_slug),
 	);
 
 	return (
@@ -50,6 +48,7 @@ export default async function ReviewSubmissionPage({ params }: ReviewPageProps) 
 					url: event.url ?? "",
 					banner_url: event.banner_url ?? "",
 					start_time: event.start_time,
+					end_time: event.end_time ?? null,
 					city: event.city,
 					status: event.status,
 					submitter_name: event.submitter_name ?? null,

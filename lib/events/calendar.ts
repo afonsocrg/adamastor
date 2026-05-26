@@ -9,6 +9,7 @@ interface CalendarEvent {
 	title: string;
 	description: string;
 	start_time: string;
+	end_time?: string | null;
 	city: string;
 	url: string;
 	created_at?: string | null;
@@ -67,8 +68,9 @@ function foldIcsLine(line: string): string {
 /**
  * Build a published-calendar .ics document for a set of events. Each event
  * gets a VEVENT with a stable UID (so calendar apps dedupe on refresh), the
- * event start time, a default 2-hour duration (events table has no end_time
- * field), and a UTM-decorated URL pointing back to the external RSVP page.
+ * event start time, an end time (real when provided, otherwise start + 2h —
+ * matches the dashboard calendar's default), and a UTM-decorated URL pointing
+ * back to the external RSVP page.
  */
 export function buildEventsIcs({
 	events,
@@ -81,7 +83,9 @@ export function buildEventsIcs({
 	const vevents = events
 		.map((event) => {
 			const start = new Date(event.start_time);
-			const end = new Date(start.getTime() + DEFAULT_DURATION_HOURS * 60 * 60 * 1000);
+			const end = event.end_time
+				? new Date(event.end_time)
+				: new Date(start.getTime() + DEFAULT_DURATION_HOURS * 60 * 60 * 1000);
 			const outboundUrl = withUtm(event.url, { medium: "ics", campaign: utmCampaign });
 			const uid = `event-${event.id}@adamastor.blog`;
 

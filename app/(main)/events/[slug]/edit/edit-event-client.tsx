@@ -25,6 +25,7 @@ interface Event {
 	title: string;
 	description: string;
 	start_time: string;
+	end_time?: string | null;
 	city: string;
 	url: string;
 	banner_url?: string;
@@ -38,14 +39,20 @@ interface EditEventClientProps {
 const TIMEZONE = "Europe/Lisbon";
 
 // Form validation schema
-const formSchema = z.object({
-	title: z.string().min(1, "Title is required"),
-	description: z.string().min(1, "Description is required"),
-	url: z.string().url("Please enter a valid URL"),
-	startTime: z.string().min(1, "Start time is required"),
-	city: z.string().min(1, "City is required"),
-	categorySlugs: z.array(z.string()),
-});
+const formSchema = z
+	.object({
+		title: z.string().min(1, "Title is required"),
+		description: z.string().min(1, "Description is required"),
+		url: z.string().url("Please enter a valid URL"),
+		startTime: z.string().min(1, "Start time is required"),
+		endTime: z.string().optional().or(z.literal("")),
+		city: z.string().min(1, "City is required"),
+		categorySlugs: z.array(z.string()),
+	})
+	.refine((data) => !data.endTime || data.endTime > data.startTime, {
+		message: "End time must be after start time",
+		path: ["endTime"],
+	});
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -67,6 +74,7 @@ export default function EditEventClient({ event, initialCategorySlugs }: EditEve
 			title: event.title,
 			description: event.description,
 			startTime: tzDateStringToDateTimeStringWithNoTimezone(event.start_time, TIMEZONE),
+			endTime: event.end_time ? tzDateStringToDateTimeStringWithNoTimezone(event.end_time, TIMEZONE) : "",
 			city: event.city,
 			url: event.url,
 			categorySlugs: initialCategorySlugs,
@@ -81,6 +89,11 @@ export default function EditEventClient({ event, initialCategorySlugs }: EditEve
 		[event.start_time],
 	);
 
+	const initialEndTime = useMemo(
+		() => (event.end_time ? tzDateStringToDateTimeStringWithNoTimezone(event.end_time, TIMEZONE) : ""),
+		[event.end_time],
+	);
+
 	useEffect(() => {
 		const hasFormChanges =
 			watchedValues.title !== event.title ||
@@ -88,10 +101,11 @@ export default function EditEventClient({ event, initialCategorySlugs }: EditEve
 			watchedValues.city !== event.city ||
 			watchedValues.url !== event.url ||
 			watchedValues.startTime !== initialStartTime ||
+			(watchedValues.endTime ?? "") !== initialEndTime ||
 			!arraysEqualAsSet(watchedValues.categorySlugs ?? [], initialCategorySlugs);
 
 		setHasChanges(hasFormChanges);
-	}, [watchedValues, event, initialStartTime, initialCategorySlugs]);
+	}, [watchedValues, event, initialStartTime, initialEndTime, initialCategorySlugs]);
 
 	// Animation on mount
 	useEffect(() => {
@@ -104,6 +118,7 @@ export default function EditEventClient({ event, initialCategorySlugs }: EditEve
 
 		try {
 			const utcDateTime = dateTimeStringWithNoTimezoneToTzDateString(values.startTime, TIMEZONE);
+			const utcEndTime = values.endTime ? dateTimeStringWithNoTimezoneToTzDateString(values.endTime, TIMEZONE) : null;
 
 			const response = await fetch(`/api/events/${event.id}`, {
 				method: "PUT",
@@ -114,6 +129,7 @@ export default function EditEventClient({ event, initialCategorySlugs }: EditEve
 					title: values.title,
 					description: values.description,
 					start_time: utcDateTime,
+					end_time: utcEndTime,
 					city: values.city,
 					url: values.url,
 					categorySlugs: values.categorySlugs,
@@ -220,6 +236,23 @@ export default function EditEventClient({ event, initialCategorySlugs }: EditEve
 														placeholder="Select date and time"
 														disabled={field.disabled}
 													/>
+												)}
+											/>
+
+											<FormField
+												control={form.control}
+												name="endTime"
+												render={({ field }) => (
+													<FormItem className="flex flex-col">
+														<DateTimePickerField
+															value={field.value ?? ""}
+															onChange={field.onChange}
+															label="End time (optional)"
+															placeholder="Leave blank if unknown"
+															disabled={field.disabled}
+														/>
+														<FormMessage />
+													</FormItem>
 												)}
 											/>
 

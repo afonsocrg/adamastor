@@ -227,6 +227,7 @@ export interface EventForJsonLd {
 	title: string;
 	description: string;
 	start_time: string;
+	end_time?: string | null;
 	city: string;
 	url?: string | null;
 	banner_url?: string | null;
@@ -256,6 +257,7 @@ function buildEventJsonLd(event: EventForJsonLd) {
 		name: event.title,
 		description: event.description,
 		startDate: event.start_time,
+		...(event.end_time ? { endDate: event.end_time } : {}),
 		eventAttendanceMode: isOnline
 			? "https://schema.org/OnlineEventAttendanceMode"
 			: "https://schema.org/OfflineEventAttendanceMode",
