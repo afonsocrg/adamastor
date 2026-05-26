@@ -120,3 +120,48 @@ export function inferEventCategorySlugs(input: {
 		),
 	).map((category) => category.slug);
 }
+
+/**
+ * Brand-family color mapping for the 5 event categories. Each category gets
+ * one tint from the design-system palette. Used by the dashboard calendar
+ * agenda + grid views to tag events visually; reusable anywhere we render an
+ * event chip.
+ *
+ * Assignments are intuitive 1:1 with the brand families:
+ *   software-engineering → navy   (architectural / dev register)
+ *   ai                   → cyan   (tech-modern, the brand-cyan moment)
+ *   design               → orange (editorial creative warmth)
+ *   product              → gold   (strategy / considered)
+ *   startups-fundraising → green  (growth / momentum)
+ *
+ * Note: `navy-tint` is also the design-system "today / selected" highlight
+ * color in light mode. In the calendar that overlap is fine because the two
+ * roles live on different layers (cell background vs event chip on top).
+ */
+export const EVENT_CATEGORY_COLORS: Record<EventCategorySlug, { chip: string; dot: string; label: string }> = {
+	"startups-fundraising": {
+		chip: "bg-green-tint text-green-shade dark:bg-green-hue/20 dark:text-green-tint",
+		dot: "bg-green-shade dark:bg-green-tint",
+		label: "Startups",
+	},
+	product: {
+		chip: "bg-gold-tint text-gold-shade dark:bg-gold-hue/20 dark:text-gold-tint",
+		dot: "bg-gold-shade dark:bg-gold-tint",
+		label: "Product",
+	},
+	design: {
+		chip: "bg-orange-tint text-orange-shade dark:bg-orange-hue/20 dark:text-orange-tint",
+		dot: "bg-orange-shade dark:bg-orange-tint",
+		label: "Design",
+	},
+	"software-engineering": {
+		chip: "bg-navy-tint text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted",
+		dot: "bg-navy dark:bg-cyan-glow",
+		label: "Engineering",
+	},
+	ai: {
+		chip: "bg-cyan-tint text-cyan-shade dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted",
+		dot: "bg-cyan-shade dark:bg-cyan-glow",
+		label: "AI",
+	},
+};

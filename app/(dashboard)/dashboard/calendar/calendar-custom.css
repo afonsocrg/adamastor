@@ -24,9 +24,10 @@
    ============================================ */
 .rbc-calendar {
 	@apply bg-white dark:bg-background;
-	@apply border rounded-xl;
 	font-family: inherit; /* Use your app's font */
-	@apply animate-in;
+	/* No border / rounded-xl here — the outer wrapper in CalendarTestClient
+	   already provides the navy-frame border. A second concentric border
+	   showed as a thin line above the today-pill in the day-headers row. */
 }
 
 /* ============================================
@@ -43,9 +44,18 @@
 	@apply border-l-0;
 }
 
-/* Month header border */
-.rbc-month-header {
-	@apply border-t;
+/* Month header — no top or bottom dividers around the weekday-name row so
+   the grid reads as one continuous surface. The MON / TUE / WED labels sit
+   on white with no chrome around them. (Inter-row dividers below still
+   carry grid structure via `.rbc-month-row + .rbc-month-row`.)
+
+   Right-aligned so the day labels stack vertically with the date numerals
+   below them — MON / 27, TUE / 28, etc., all flush against the right edge
+   of the cell with matching padding (.rbc-date-cell uses p-3 = 12px). */
+.rbc-month-view .rbc-header {
+	border-bottom: none;
+	text-align: right;
+	padding-right: 0.75rem;
 }
 
 /* Month row borders */
@@ -61,44 +71,64 @@
 	@apply transition-colors duration-200;
 }
 
-/* Today's cell highlighting */
+/* Today's cell — no wash. The navy-tint pill around the date numeral
+   (`.rbc-date-cell.rbc-now > .rbc-button-link`) carries the 'today'
+   signal alone; the cell background stays white so it reads as 'still
+   available territory' rather than washed-out. */
 .rbc-today {
-	@apply bg-accent;
+	background-color: transparent;
 }
 
-/* Today's cell in time views */
+/* Today's cell in time views — column body stays transparent so the date
+   numeral pill in the header carries the 'today' signal alone (less chrome,
+   more editorial). The header cell also drops the gray tint for the same
+   reason. The day-bg under the header all-day row stays transparent. */
 .rbc-time-content > .rbc-today,
 .rbc-header.rbc-today,
 .rbc-time-header-content .rbc-day-bg.rbc-today {
-	@apply bg-accent/20;
+	background-color: transparent;
 }
 
-/* Off-range cells (days from other months) */
+/* Off-range cells (days from other months) — no background distinction.
+   The muted date-number colour is the only off-range signal; the past
+   wash (applied via .rbc-day--past on past dates) handles all of
+   previous-month visually. Per Malik: 'no visual distinction between
+   previous-month and current-month past days.' */
 .rbc-off-range-bg {
-	@apply bg-neutral-50 dark:bg-background/50 text-neutral-200 dark:text-neutral-600;
+	background-color: transparent;
 }
 
+.rbc-date-cell.rbc-off-range > .rbc-button-link,
 .rbc-date-cell.rbc-off-range {
-	@apply text-neutral-300;
+	@apply text-navy-tone/70 dark:text-cyan-dim/60;
 }
 
-/* Selected cell */
+/* Selected cell — migrated from indigo to navy-tint per the design-system
+   highlight rule. Inert today (selectable={false} in the client), kept for
+   future date-picker use cases. */
 .rbc-day-bg.rbc-selected {
-	@apply bg-indigo-100 dark:bg-indigo-900/30;
+	@apply bg-navy-tint/40 dark:bg-cyan-glow/[0.12];
 }
 
 /* Date cell styling */
 .rbc-date-cell {
-	@apply text-left p-3 text-xs text-neutral-600 dark:text-neutral-300 font-medium;
+	@apply p-3 text-right text-xs font-medium text-navy-tone dark:text-cyan-dim;
 }
 
-.rbc-date-cell > a {
-	@apply text-neutral-700 dark:text-neutral-300 no-underline;
-	@apply text-sm;
+.rbc-date-cell > .rbc-button-link {
+	@apply text-sm font-medium text-navy dark:text-cyan-lifted;
+	background: transparent;
+	border: none;
+	cursor: pointer;
 }
 
-.rbc-date-cell.rbc-now > a {
-	@apply text-indigo-600 dark:text-indigo-400 font-bold;
+/* Today's date number wears a navy-tint pill so it reads as the 'current
+   item' marker, matching the Week view header treatment. The button is
+   shifted to inline-flex so the pill (h-7 w-7 fixed) sizes consistently
+   regardless of digit width (1 vs 2 digits). */
+.rbc-date-cell.rbc-now > .rbc-button-link {
+	@apply inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-full bg-navy-tint px-1 font-bold text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted;
+	font-family: var(--font-lora-bold);
 }
 
 /* Event container in month cells */
@@ -128,8 +158,19 @@
 	/* @apply bg-neutral-50 dark:bg-neutral-800; */
 	@apply text-neutral-500 dark:text-neutral-300;
 	@apply font-normal text-xs tracking-wider;
-	@apply py-3 px-2;
+	@apply px-2;
 	@apply border-none;
+	/* rbc's own CSS sets overflow: hidden which clipped the stacked
+	   week-header JSX (MON / 25). The custom child wants ~52px to fit
+	   day-label + numeral pill; the row needs an explicit floor below. */
+	overflow: visible;
+}
+
+/* Floor the time-header row so the stacked Week header has room to render
+   without clipping. The row's intrinsic sizing in rbc otherwise resolves
+   to ~42px regardless of child content. */
+.rbc-time-header-content > .rbc-row.rbc-time-header-cell {
+	min-height: 3.5rem; /* 56px — fits 10px day label + 4px gap + 28px numeral + breathing */
 }
 
 /* Remove adjacent header borders by default */
@@ -152,7 +193,7 @@
 }
 
 .rbc-header.rbc-today .rbc-button-link {
-	@apply bg-[#04C9D8] text-white;
+	@apply bg-navy-tint text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted;
 	@apply relative z-50;
 }
 
@@ -196,23 +237,143 @@
 /* ============================================
    5. EVENT STYLES
    ============================================ */
-/* Base event styles */
+/* Base event styles — neutral defaults. Category colour is applied via
+   `cat-{slug}` classes set by `eventPropGetter` in CalendarTestClient.tsx.
+   See [[project_event_categories]] in memory for the slug list. */
 .rbc-event {
-	@apply bg-[#dff6f7];
-	@apply hover:bg-[#dff6f7]/80 transition-colors;
-	@apply text-[#28aeb8] rounded-md px-1;
-	@apply transition-all duration-200;
+	@apply rounded-md px-1 transition-[opacity,box-shadow] duration-150;
+	background-color: transparent;
+	color: inherit;
 }
 
-/* Event containers in all views */
-.rbc-calendar .rbc-month-view .rbc-event,
+/* Hover — lift the block forward (z-10) so it sits above any overlapping
+   neighbours, and drop a subtle shadow for the 'pointed at' affordance.
+   We don't recolour the fill: tint-to-tint hover shifts read as glitchy
+   when adjacent events share the same family. */
+.rbc-event:hover {
+	@apply z-10 shadow-sm;
+}
+
+/* Sibling fade — dim the other events in the same day column when one is
+   focused so the user knows which one they're pointing at. Two mechanisms,
+   either works: (a) JS-driven `.rbc-event--dimmed` class toggled via
+   delegated mouseover/mouseout listeners in CalendarTestClient.tsx, and
+   (b) CSS `:has(...)` parent selector as a no-cost fallback for browsers
+   where (a) might miss an edge case. Both resolve to the same visual.
+
+   Scoped to time-grid views via .rbc-day-slot (which doesn't exist in
+   month view), so this never fires on the month grid. */
+.rbc-event.rbc-event--dimmed,
+.rbc-day-slot:has(.rbc-event:hover) .rbc-event:not(:hover) {
+	opacity: 0.2 !important; /* beats `.rbc-event--past` opacity 0.5 even when both classes are on the same element */
+	transform: scale(0.97);
+	transform-origin: left center;
+}
+
+/* Animate the fade so it doesn't snap. Overrides the base transition list
+   so transform also animates. */
+.rbc-event {
+	transition: opacity 150ms ease-out, box-shadow 150ms ease-out, transform 150ms ease-out;
+}
+
+/* Event containers in time-grid + agenda views — bordered chip register.
+   Month view opts out (inline 'dot · time · title' row) via the override
+   block below. */
 .rbc-calendar .rbc-time-view .rbc-event,
 .rbc-calendar .rbc-agenda-view .rbc-event {
-	@apply dark:border-border;
-	border: 1px solid rgba(40, 174, 184, 0.3);
+	@apply border;
 	padding: 5px;
-	opacity: 90%;
 	display: grid;
+}
+
+/* Month view events — inline row, no background, no border. The dot in the
+   custom `month.event` component carries the category signal.
+
+   `overflow: hidden` + `max-width: 100%` clip overlong titles to the cell
+   width; without this the un-truncated content pushes the whole row past
+   the container and slides the toolbar offscreen.
+
+   `position: relative` is the anchor for the hover-reveal popover below. */
+.rbc-calendar .rbc-month-view .rbc-event {
+	position: relative;
+	background-color: transparent !important;
+	border-color: transparent !important;
+	padding: 0 2px;
+	margin: 1px 0;
+	display: block;
+	overflow: hidden;
+	max-width: 100%;
+}
+
+/* The .rbc-event-content wraps our custom JSX. It needs to be a block-level
+   container that can shrink with its parent, so the inner flex layout can
+   truncate the title via `min-w-0` on the title span. */
+.rbc-calendar .rbc-month-view .rbc-event .rbc-event-content {
+	display: block;
+	min-width: 0;
+	overflow: hidden;
+	font-weight: 400;
+	transition: opacity 120ms ease-out;
+}
+
+/* Hover reveal — on pointer-enter, the .rbc-event-content escapes its cell
+   into an absolute-positioned popover that expands to its content width
+   (capped at 320px), gets a white background + soft navy-frame border +
+   shadow, and lifts above sibling cells via z-index. The host .rbc-event
+   needs overflow visible during the reveal so the popover can paint past
+   the cell boundary.
+
+   Scoped to NOT past events via :not(.rbc-event--past) — past items are
+   archival and shouldn't grab focus on hover. */
+.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):hover {
+	overflow: visible;
+	z-index: 30;
+}
+
+.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):hover .rbc-event-content {
+	position: absolute;
+	top: -4px;
+	left: -4px;
+	padding: 4px 8px;
+	background-color: white;
+	border: 1px solid rgba(232, 240, 244, 1);
+	border-radius: 6px;
+	box-shadow: 0 4px 14px rgba(16, 67, 87, 0.1);
+	white-space: nowrap;
+	width: max-content;
+	max-width: 320px;
+	min-width: calc(100% + 8px);
+	transform-origin: top left;
+	animation: rbc-month-event-reveal 140ms ease-out forwards;
+}
+
+/* Dark-mode popover */
+.dark .rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):hover .rbc-event-content {
+	background-color: hsla(201, 72%, 8%, 1);
+	border-color: rgba(76, 228, 240, 0.18);
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* Subtle enter animation — fades in, nudges down a hair, and lands at a
+   slight scale-up so the popover reads as 'lifting off the grid' with a
+   touch more presence than the original cell row. `forwards` fill-mode
+   holds the to-state after the animation completes. */
+@keyframes rbc-month-event-reveal {
+	from {
+		opacity: 0;
+		transform: translateY(-2px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1.05);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):hover .rbc-event-content {
+		animation: none;
+		transform: scale(1.05);
+	}
 }
 
 /* Week/Day view event layout */
@@ -220,13 +381,10 @@
 	display: flex !important;
 	flex-direction: column;
 	justify-content: flex-start;
-	@apply hover:bg-[#dff6f7]/80 transition-colors;
-	@apply dark:hover:bg-background/80 transition-colors;
 }
 
 /* Event title comes first in week/day views */
 .rbc-time-view .rbc-event-content {
-	@apply hover:bg-background/80 transition-colors;
 	order: 1; /* Pull title to top */
 	font-weight: 600;
 }
@@ -239,22 +397,13 @@
 	margin-top: 2px;
 }
 
-/* Day slot event borders */
-.rbc-day-slot .rbc-event,
-.rbc-day-slot .rbc-background-event {
-	@apply border-[#28aeb8] border-opacity-30 border-2;
-}
+/* Day slot event borders are inherited from the .cat-* category classes
+   below; no override needed here. */
 
-/* Event hover state */
-.rbc-event:hover {
-	@apply opacity-80 dark:bg-background;
-}
-
-/* Selected event */
-.rbc-event.rbc-selected {
-	@apply opacity-90;
-	@apply ring-2 ring-[#28aeb8] ring-offset-2 bg-[#dff6f7]/80;
-}
+/* Selected — no persistent visual. Clicking an event opens the external
+   source URL in a new tab (see `handleSelectEvent` in CalendarTestClient),
+   so there's no useful "stay selected" state. rbc still toggles
+   `.rbc-selected` internally; we just don't style it. */
 
 /* Event content text */
 .rbc-event-content {
@@ -262,6 +411,90 @@
 	@apply rounded-md;
 	white-space: normal; /* Allow text wrapping */
 	word-break: break-word; /* Break long words */
+}
+
+/* Past day cells — washed background so days that have already happened
+   read as quieter chrome. Applied via dayPropGetter ('rbc-day--past') in
+   CalendarTestClient. Hits both .rbc-day-bg (month + week all-day) and
+   .rbc-day-slot (week / day time columns).
+
+   Visual order from brightest → most muted (light mode):
+     future in-range     → white (no wash)
+     today               → navy-veil/40 + navy-tint date pill
+     past in-range       → navy-frame/40 (this rule)
+     off-range future    → navy-frame/60 (.rbc-off-range-bg above)
+     off-range past      → navy-frame/80 (combined rule below) */
+.rbc-day-bg.rbc-day--past,
+.rbc-day-slot.rbc-day--past {
+	background-color: rgba(232, 240, 244, 0.6); /* navy-frame at 60% */
+}
+
+.dark .rbc-day-bg.rbc-day--past,
+.dark .rbc-day-slot.rbc-day--past {
+	background-color: rgba(8, 41, 58, 0.4); /* navy-deep tint for dark mode */
+}
+
+/* Past events — readable but visibly stepped back. The hover-fade rule
+   above uses !important so it still wins when both classes apply. */
+.rbc-event.rbc-event--past {
+	opacity: 0.42;
+}
+
+/* ---- Per-category event tints ----
+   Applied via `cat-{slug}` className from `eventPropGetter`.
+   Mapping mirrors `EVENT_CATEGORY_COLORS` in lib/events/categories.ts. */
+.rbc-event.cat-software-engineering {
+	@apply bg-navy-tint text-navy;
+	border-color: rgba(16, 67, 87, 0.18);
+}
+.rbc-event.cat-ai {
+	@apply bg-cyan-tint text-cyan-shade;
+	border-color: rgba(2, 142, 151, 0.2);
+}
+.rbc-event.cat-design {
+	@apply bg-orange-tint text-orange-shade;
+	border-color: rgba(189, 83, 24, 0.2);
+}
+.rbc-event.cat-product {
+	@apply bg-gold-tint text-gold-shade;
+	border-color: rgba(184, 137, 58, 0.2);
+}
+.rbc-event.cat-startups-fundraising {
+	@apply bg-green-tint text-green-shade;
+	border-color: rgba(35, 105, 37, 0.2);
+}
+.rbc-event.cat-none {
+	@apply bg-navy-veil text-navy-tone;
+	border-color: rgba(16, 67, 87, 0.12);
+}
+
+/* Dark-mode category event variants — use family hue at low opacity so the
+   block reads on dark background, with `cyan-lifted` text for legibility. */
+.dark .rbc-event.cat-software-engineering,
+.dark .rbc-event.cat-ai {
+	background-color: rgba(76, 228, 240, 0.18);
+	border-color: rgba(76, 228, 240, 0.4);
+	@apply text-cyan-lifted;
+}
+.dark .rbc-event.cat-design {
+	background-color: rgba(224, 94, 0, 0.18);
+	border-color: rgba(224, 94, 0, 0.4);
+	@apply text-orange-tint;
+}
+.dark .rbc-event.cat-product {
+	background-color: rgba(212, 166, 87, 0.18);
+	border-color: rgba(212, 166, 87, 0.4);
+	@apply text-gold-tint;
+}
+.dark .rbc-event.cat-startups-fundraising {
+	background-color: rgba(61, 181, 64, 0.18);
+	border-color: rgba(61, 181, 64, 0.4);
+	@apply text-green-tint;
+}
+.dark .rbc-event.cat-none {
+	background-color: rgba(76, 228, 240, 0.08);
+	border-color: rgba(76, 228, 240, 0.2);
+	@apply text-cyan-dim;
 }
 
 /* ============================================
@@ -297,9 +530,12 @@
 /* ============================================
    7. TIME INDICATORS
    ============================================ */
-/* Current time indicator base styles */
+/* Current time indicator — orange-hue ('now' is the page's editorial
+   accent moment, the one high-contrast punch on an otherwise navy grid).
+   See design-system.md, stimulation tiers: this is the 'hero' beat on the
+   calendar grid. */
 .rbc-current-time-indicator {
-	@apply bg-[#04C9D8];
+	@apply bg-orange-hue;
 	height: 2px;
 	position: absolute !important;
 	left: 0 !important;
@@ -309,17 +545,19 @@
 	pointer-events: none;
 }
 
-/* Extended time indicator for week view (7 day columns) */
+/* Extended time indicator for week view (7 day columns) — gradient lets
+   the line fade in past/future days so the live 'now' position remains
+   visually anchored on today's column. Orange-hue is #E05E00 (224, 94, 0). */
 .rbc-time-content:has(.rbc-day-slot:nth-child(7)) .rbc-current-time-indicator {
 	height: 2px;
 	background: linear-gradient(
 		90deg,
-		rgba(4, 200, 216, 0.2) 0% /* Past days - faded */,
-		rgba(4, 200, 216, 0.2) var(--today-start, 85.71%),
-		#04c8d8 var(--today-start, 85.71%) /* Today - full color */,
-		#04c8d8 var(--today-end, 100%),
-		rgba(4, 200, 216, 0.3) var(--today-end, 100%) /* Future - slightly faded */,
-		rgba(4, 200, 216, 0.3) 100%
+		rgba(224, 94, 0, 0.18) 0% /* Past days — faded */,
+		rgba(224, 94, 0, 0.18) var(--today-start, 85.71%),
+		#e05e00 var(--today-start, 85.71%) /* Today — full color */,
+		#e05e00 var(--today-end, 100%),
+		rgba(224, 94, 0, 0.28) var(--today-end, 100%) /* Future — slightly faded */,
+		rgba(224, 94, 0, 0.28) 100%
 	);
 	width: 700% !important;
 	left: calc(-1 * var(--indicator-offset, 600%)) !important;
@@ -377,7 +615,7 @@
 
 /* Show more events link */
 .rbc-show-more {
-	@apply text-[#28aeb8];
+	@apply text-navy dark:text-cyan-lifted;
 	@apply text-xs font-medium;
 	@apply hover:opacity-80;
 }
@@ -385,67 +623,10 @@
 /* ============================================
    10. ANIMATIONS
    ============================================ */
-/* Define the animations */
-@keyframes fadeInUp {
-	from {
-		opacity: 0;
-		transform: translateY(10px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
-@keyframes fadeIn {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-/* Apply animation to view containers */
-.rbc-month-view,
-.rbc-time-view,
-.rbc-agenda-view {
-	animation: fadeInUp 0.3s ease-out;
-}
-
-/* Animate individual elements for a staggered effect */
-.rbc-month-view .rbc-row {
-	animation: fadeIn 0.4s ease-out;
-	animation-fill-mode: both;
-}
-
-/* Stagger the row animations */
-.rbc-month-view .rbc-row:nth-child(1) {
-	animation-delay: 0.05s;
-}
-.rbc-month-view .rbc-row:nth-child(2) {
-	animation-delay: 0.1s;
-}
-.rbc-month-view .rbc-row:nth-child(3) {
-	animation-delay: 0.15s;
-}
-.rbc-month-view .rbc-row:nth-child(4) {
-	animation-delay: 0.2s;
-}
-.rbc-month-view .rbc-row:nth-child(5) {
-	animation-delay: 0.25s;
-}
-.rbc-month-view .rbc-row:nth-child(6) {
-	animation-delay: 0.3s;
-}
-
-/* Week view animation */
-.rbc-time-view .rbc-time-content {
-	animation: fadeInUp 0.3s ease-out;
-}
-
-/* Events animation */
-.rbc-event {
-	animation: fadeIn 0.5s ease-out;
-	animation-fill-mode: both;
-}
+/* No mount/entry animations on the calendar grid. Per docs/design-system.md
+   ("No default entry animation on SSR'd pages — replaying a fade+slide on
+   hydration creates perceived jank: the page jumps in after it was already
+   there"), the calendar is server-rendered and paints in its final state.
+   User-driven animations (the .rbc-event hover popover via
+   `rbc-month-event-reveal`, the .rbc-event--dimmed sibling fade, all
+   `transition-*` utilities) live with the rules they belong to above. */

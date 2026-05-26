@@ -6,12 +6,24 @@ export default async function CalendarTestPage() {
 	// Create Supabase client on the server
 	const supabase = await createClient();
 
-	// Get user profile if needed for personalization
-	const user = await getUserProfile(supabase);
+	// Parallelize the two independent queries (user profile + events). Both
+	// depend on `supabase` but not on each other — running them sequentially
+	// added one unnecessary round-trip to the page's TTFB.
+	//
+	// `select()` lists only the columns the client actually renders. The
+	// events table has scraped-source columns (banner_url, raw_data, status,
+	// etc.) we don't need on this surface; explicit columns cut the
+	// server→client serialization payload meaningfully, which matters more
+	// once this calendar moves to public-facing surfaces.
+	const [user, eventsResult] = await Promise.all([
+		getUserProfile(supabase),
+		supabase
+			.from("events")
+			.select("id, title, start_time, end_time, city, url, event_category_assignments(category_slug)")
+			.order("start_time", { ascending: true }),
+	]);
 
-	// Fetch events from the database
-	// We'll get all events for now - you can add filters later
-	const { data: events, error } = await supabase.from("events").select("*").order("start_time", { ascending: true });
+	const { data: events, error } = eventsResult;
 
 	if (error) {
 		console.error("Error fetching events:", error);
@@ -34,15 +46,15 @@ export default async function CalendarTestPage() {
 	const calendarEvents =
 		events?.map((event) => {
 			const start = new Date(event.start_time);
+			const assignments = (event.event_category_assignments ?? []) as { category_slug: string }[];
 			return {
 				id: event.id,
-				title: event.title || event.name, // Adjust based on your schema
+				title: event.title,
 				start,
 				end: event.end_time ? new Date(event.end_time) : new Date(start.getTime() + FALLBACK_DURATION_MS),
-				// Add any additional fields you want to pass
 				city: event.city,
-				location: event.location,
-				description: event.description,
+				url: event.url ?? undefined,
+				categorySlugs: assignments.map((a) => a.category_slug),
 			};
 		}) || [];
 
