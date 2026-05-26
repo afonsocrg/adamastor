@@ -162,7 +162,7 @@ export default function ReviewSubmissionClient({ event, initialCategorySlugs }: 
 		<div className="space-y-6">
 			<header className="space-y-2">
 				<div className="flex items-center gap-3 flex-wrap">
-					<h2 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7]">Review submission</h2>
+					<h2 className="text-xl font-semibold text-[#104357] dark:text-cyan-lifted">Review submission</h2>
 					{event.status === "pending" ? (
 						<Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">Pending</Badge>
 					) : event.status === "approved" ? (

@@ -165,7 +165,7 @@ function NewsletterSection({ postId, postTitle }: NewsletterSectionProps) {
 
 	return (
 		<div className="mt-6 pt-6">
-			<h3 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7] mb-4">Newsletter</h3>
+			<h3 className="text-xl font-semibold text-[#104357] dark:text-cyan-lifted mb-4">Newsletter</h3>
 
 			<Tabs defaultValue="test" className="w-full">
 				<TabsList className="grid w-full grid-cols-2">
@@ -339,7 +339,7 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 									</SheetTrigger>
 									<SheetContent className="sm:max-w-[800px]">
 										<SheetHeader>
-											<SheetTitle className="text-2xl font-bold text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">
+											<SheetTitle className="text-2xl font-bold text-[#104357] dark:text-cyan-lifted flex gap-2 items-center">
 												{post.title}
 											</SheetTitle>
 											<SheetDescription>Published {formatRelativeDate(post.created_at)}</SheetDescription>

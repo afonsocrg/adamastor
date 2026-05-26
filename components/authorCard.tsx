@@ -25,7 +25,7 @@ export default function AuthorCard({ author, publishedAt }: { author: Author; pu
 								</Avatar>
 							</div>
 							<div className="flex flex-col">
-								<div className="font-semibold text-[#24acb5] text-sm tracking-wider">
+								<div className="font-semibold text-navy-tone text-sm tracking-wider">
 									{author.name.toUpperCase()}
 								</div>
 								<div>

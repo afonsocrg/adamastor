@@ -66,7 +66,7 @@ export default function CalendarTestClient({ initialEvents = [], user }: Calenda
 			return (
 				<div className="flex items-center justify-between mb-5 mx-5 mt-5">
 					{/* Current Date */}
-					<h2 className="text-lg font-medium text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">
+					<h2 className="text-lg font-medium text-[#104357] dark:text-cyan-lifted flex gap-2 items-center">
 						<CalendarIcon /> {label}
 					</h2>
 

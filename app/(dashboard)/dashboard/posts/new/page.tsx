@@ -118,7 +118,7 @@ export default function NewPostPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="title-input w-full resize-none overflow-hidden rounded-md border-0 bg-transparent p-0 text-3xl font-bold text-[#104357] placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-[#E3F2F7] dark:placeholder:text-neutral-600"
+              className="title-input w-full resize-none overflow-hidden rounded-md border-0 bg-transparent p-0 text-3xl font-bold text-[#104357] placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-cyan-lifted dark:placeholder:text-neutral-600"
               style={{
                 minHeight: "48px",
               }}

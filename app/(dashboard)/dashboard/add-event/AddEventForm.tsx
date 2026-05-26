@@ -349,7 +349,7 @@ export default function AddEventForm() {
 
 	return (
 		<main className={cn("container p-6 animate-fade-in")}>
-			<h2 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center mb-6">
+			<h2 className="text-xl font-semibold text-[#104357] dark:text-cyan-lifted flex gap-2 items-center mb-6">
 				Add Event to the Agenda
 			</h2>
 

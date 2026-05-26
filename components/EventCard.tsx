@@ -58,7 +58,7 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 	const isAdmin = profile?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true";
 
 	return (
-		// Pure rail layout — events hang off the parent column's navy-faded
+		// Pure rail layout — events hang off the parent column's navy-wash
 		// left border (see EventsPageClient). Cyan dots live on the day
 		// headers, not the individual event rows (matches Luma's pattern —
 		// the rail marks day transitions, not every entry).
@@ -70,13 +70,13 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 						target="_blank"
 						rel="noopener noreferrer"
 						onClick={onEventClick}
-						// Clean white at rest, navy-faded outline on hover.
+						// Clean white at rest, navy-wash outline on hover.
 						// Reserves visual change for the interaction signal;
 						// default reads as an editorial entry, not a boxed item.
-						className="flex flex-col rounded-lg border border-transparent p-4 transition-colors duration-150 ease hover:border-navy-faded dark:hover:border-[rgba(76,228,240,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
+						className="flex flex-col rounded-lg border border-transparent p-4 transition-colors duration-150 ease hover:border-navy-frame dark:hover:border-cyan-glow/[0.18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
 					>
 						<section className="w-full space-y-2">
-							<h3 className="text-xl font-bold leading-tight text-[#104357] [text-wrap:pretty] dark:text-[#E3F2F7] [font-family:var(--font-inter)] decoration-cyan decoration-2 underline-offset-4 group-hover:underline">
+							<h3 className="text-xl font-bold leading-tight text-[#104357] [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-inter)] decoration-navy-tint decoration-2 underline-offset-4 group-hover:underline">
 								{event.title}
 							</h3>
 							{/* Metadata strip — time leads (most scannable for "what's

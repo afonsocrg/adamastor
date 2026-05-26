@@ -509,3 +509,15 @@ pre {
 .animation-delay-1000 {
 	animation-delay: 1s;
 }
+
+/* Footer mark — click Easter egg.
+   At rest: static, filled. Hover hint is cursor:pointer (from the wrapping
+   <button>) and nothing else — discovery is part of the delight.
+   On click: AdamastorMark.tsx runs a WAAPI animation directly on the SVG
+   element (360° rotation with a mid-spin flash to brand orange, ~650ms).
+   Rapid clicks cancel the in-progress animation and replay.
+   transform-origin: center is required because SVG transforms default to
+   (0,0), not the element's visual center. */
+.adamastor-mark {
+	transform-origin: center;
+}

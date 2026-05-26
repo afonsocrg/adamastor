@@ -57,6 +57,36 @@ Visitor on /events/design ──→ CategoryNewsletterCta (email-only form)
                                       opt_out for the rest)
 ```
 
+### Full subscribe flow (chrome-driven, name + categories)
+
+```
+Navbar gold "Subscribe" pill ──→ /subscribe (SubscribePageClient)
+                                      │
+                                      ▼
+                              Form: name, email, digest, categories[]
+                                      │
+                                      ▼
+                              POST /api/subscribe
+                              { name, email, digest, categories, pageUrl, pageTitle }
+                                      │
+                          ┌───────────┼───────────────────────────────┐
+                          ▼           ▼                               ▼
+              upsertSubscription   syncResendPreferences         WelcomeEmail / CategoryWelcomeEmail
+              (Supabase row)       - segments + topics            (variant by what they opted into;
+                                                                   first-time only — `created` flag)
+                                      │
+                                      ▼
+                              Response carries `created` boolean
+                                      │
+                              Client branches success state:
+                                created=true  → "You're in"   header + CTA to /events
+                                created=false → "Welcome back" header + CTA to /events
+                              + saveIdentity({ name, email })
+                              + setSubscribed()  ← localStorage flag, hides navbar Subscribe
+```
+
+The page mirrors `/preferences` visually (Lora H1, outlined module, gold pill submit) — see the *Form-page template* in [design-system.md](./design-system.md). Sticky CTA bar appears when the user has selections + the in-form Subscribe is off-screen; a leave-page guard (`beforeunload` + in-app `<Link>` interceptor + shadcn AlertDialog) protects against accidental abandonment once the user has invested name + email + at least one opt-in.
+
 ### Managing preferences (no login)
 
 ```
@@ -98,6 +128,21 @@ Admin POST /api/sendNewsletter { category: "design", broadcast: true, confirmBro
                        resend.broadcasts.send(broadcastId)
 ```
 
+## Client-side localStorage hints
+
+Two browser-only flags layer on top of the Supabase source of truth. Both are UI hints, not authoritative state — the server (Supabase + Resend) decides who's subscribed; localStorage decides how the UI greets them. Worst-case staleness is harmless: a flag-says-subscribed user clicking Subscribe still lands on the `created=false` branch of `/api/subscribe` (the "Welcome back" message) without duplicate sends.
+
+| Key | Shape | Set by | Cleared by | Read by |
+|---|---|---|---|---|
+| `adamastor:identity:v1` | `{ name, email, savedAt }` | `/subscribe` success path, `/events/submit` success path, category widget (`saveEmail()` — email-only, preserves name) | Any "Not you?" affordance | Form pages (pre-fill name + email); sidebar widgets (personalize headings via `getFirstNameForGreeting`) |
+| `adamastor:subscribed:v1` | `"1"` if set | `/subscribe` success, category widget success | Any "Not you?", `/preferences` unsubscribe-all | Navbar Subscribe CTA (`navbar-subscribe-cta.tsx`) — hides the pill when set |
+
+**Identity uses an auth precedence rule.** When a form has an auth-locked email (`/events/submit` for logged-in users), the locked email always wins over localStorage. The localStorage *name* only pre-fills if the saved identity's email matches the locked email — otherwise the name pre-fill is skipped (avoids "Joao" appearing next to a locked `malik@hey.com`).
+
+**Navbar pill re-reads on every pathname change** via `usePathname` + a `useEffect` so a successful subscribe in tab 1 reflects on the next nav, without requiring a full reload. Cross-tab updates lag until next nav (could be fixed with a `storage` event listener — skipped today since it's a rare case).
+
+All helpers live in [`lib/user-identity.ts`](../lib/user-identity.ts) — versioned storage keys, SSR-safe (`typeof window !== "undefined"` guards), silent on quota/private-browsing failures.
+
 ## File map
 
 | Concern | Path |
@@ -112,7 +157,10 @@ Admin POST /api/sendNewsletter { category: "design", broadcast: true, confirmBro
 | Preferences endpoints (GET/PATCH, request-link) | [`app/api/preferences/`](../app/api/preferences/) |
 | Broadcast endpoint (digest + per-category) | [`app/api/sendNewsletter/route.ts`](../app/api/sendNewsletter/route.ts) |
 | Per-category inline CTA | [`components/category-newsletter-cta.tsx`](../components/category-newsletter-cta.tsx) |
+| Subscribe page (chrome-driven full signup) | [`app/(main)/subscribe/`](../app/(main)/subscribe/) |
 | Preferences page | [`app/(main)/preferences/`](../app/(main)/preferences/) |
+| Client-side identity + subscription hints (localStorage) | [`lib/user-identity.ts`](../lib/user-identity.ts) |
+| Navbar Subscribe CTA (hides on subscribed) | [`components/navbar-subscribe-cta.tsx`](../components/navbar-subscribe-cta.tsx) |
 | Email templates | [`components/email/newsletter-template.tsx`](../components/email/newsletter-template.tsx), [`components/email/preferences-link.tsx`](../components/email/preferences-link.tsx), [`components/email/category-welcome.tsx`](../components/email/category-welcome.tsx) |
 
 ## Env vars

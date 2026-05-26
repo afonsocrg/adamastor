@@ -72,7 +72,7 @@ export default function HomePostsFeed({ currentPage, posts, totalPages }: HomePo
 	return (
 		<div className="mx-auto max-w-[750px] animate-in space-y-2 md:px-4">
 			<header className="pb-4 pt-2 md:hidden">
-				<h1 className="text-2xl font-extrabold tracking-tight text-[#104357] dark:text-[#E3F2F7]">Articles</h1>
+				<h1 className="text-2xl font-extrabold tracking-tight text-[#104357] dark:text-cyan-lifted">Articles</h1>
 			</header>
 
 			<div className="flex flex-col">
@@ -90,14 +90,14 @@ export default function HomePostsFeed({ currentPage, posts, totalPages }: HomePo
 							>
 								<section className="space-y-2.5">
 									<div className="flex items-center justify-between gap-3">
-										<p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#24acb5]">{label}</p>
+										<p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-navy-tone">{label}</p>
 										{weekLabel && (
 											<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-muted-foreground/75">
 												{weekLabel}
 											</p>
 										)}
 									</div>
-									<h2 className="text-[1.22rem] font-bold leading-[1.22] text-[#104357] transition-colors duration-150 ease-out [text-wrap:pretty] group-hover:text-[#24acb5] dark:text-[#E3F2F7] [font-family:var(--font-inter)] sm:text-[1.55rem] sm:leading-[1.18]">
+									<h2 className="text-[1.22rem] font-bold leading-[1.22] text-[#104357] transition-colors duration-150 ease-out [text-wrap:pretty] group-hover:underline dark:text-cyan-lifted [font-family:var(--font-inter)] sm:text-[1.55rem] sm:leading-[1.18]">
 										{displayTitle}
 									</h2>
 									<p className="max-w-[32rem] text-[0.98rem] leading-[1.55] text-muted-foreground line-clamp-3 sm:max-w-[42rem] sm:line-clamp-2 sm:text-base sm:leading-[1.6]">
@@ -118,7 +118,7 @@ export default function HomePostsFeed({ currentPage, posts, totalPages }: HomePo
 						{currentPage > 1 ? (
 							<Link
 								href={getPageHref(currentPage - 1)}
-								className="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm font-medium text-[#104357] transition-colors hover:bg-accent dark:text-[#E3F2F7]"
+								className="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm font-medium text-[#104357] transition-colors hover:bg-accent dark:text-cyan-lifted"
 							>
 								Newer articles
 							</Link>
@@ -137,7 +137,7 @@ export default function HomePostsFeed({ currentPage, posts, totalPages }: HomePo
 						{currentPage < totalPages ? (
 							<Link
 								href={getPageHref(currentPage + 1)}
-								className="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm font-medium text-[#104357] transition-colors hover:bg-accent dark:text-[#E3F2F7]"
+								className="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm font-medium text-[#104357] transition-colors hover:bg-accent dark:text-cyan-lifted"
 							>
 								Older articles
 							</Link>

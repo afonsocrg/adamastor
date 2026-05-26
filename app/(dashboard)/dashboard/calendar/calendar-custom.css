@@ -152,7 +152,7 @@
 }
 
 .rbc-header.rbc-today .rbc-button-link {
-	@apply bg-[#4EC9D8] text-white;
+	@apply bg-[#04C9D8] text-white;
 	@apply relative z-50;
 }
 
@@ -299,7 +299,7 @@
    ============================================ */
 /* Current time indicator base styles */
 .rbc-current-time-indicator {
-	@apply bg-[#04C8D8];
+	@apply bg-[#04C9D8];
 	height: 2px;
 	position: absolute !important;
 	left: 0 !important;

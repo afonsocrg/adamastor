@@ -16,9 +16,16 @@ import {
 	tzDateStringToDateTimeStringWithNoTimezone,
 } from "@/lib/datetime";
 import { inferEventCategorySlugs, type EventCategorySlug } from "@/lib/events/categories";
+import {
+	clearSavedIdentity,
+	clearSubscribed,
+	getSavedIdentity,
+	saveIdentity,
+	type SavedIdentity,
+} from "@/lib/user-identity";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRightIcon, CheckCircle2, Loader2 } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -84,6 +91,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 	const [submissionState, setSubmissionState] = useState<
 		{ kind: "idle" } | { kind: "success"; title: string } | { kind: "duplicate"; message: string }
 	>({ kind: "idle" });
+	const [prefilledFrom, setPrefilledFrom] = useState<SavedIdentity | null>(null);
 	// The scrape's cascade of setValue calls touches a lot of fields. Marking
 	// it as a transition lets React keep the UI responsive (e.g. the user
 	// typing into the name field) instead of jank-scrolling while everything
@@ -105,6 +113,47 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 			website: "",
 		},
 	});
+
+	// One-shot hydration from localStorage for returning visitors. Never
+	// overrides a profile-locked email (auth wins). When email IS locked,
+	// only pre-fill the name if the saved identity matches the locked
+	// email — otherwise we'd put one person's name next to another
+	// person's email, with no "Not you?" affordance since the hint hides
+	// when emailIsLocked.
+	useEffect(() => {
+		const saved = getSavedIdentity();
+		if (!saved) return;
+		if (emailIsLocked && saved.email !== initialSubmitterEmail) return;
+		if (!form.getValues("submitterName")) {
+			form.setValue("submitterName", saved.name, { shouldDirty: false });
+		}
+		if (!emailIsLocked && !form.getValues("submitterEmail")) {
+			form.setValue("submitterEmail", saved.email, { shouldDirty: false });
+		}
+		setPrefilledFrom(saved);
+		// `form`, `emailIsLocked`, and `initialSubmitterEmail` are stable for
+		// the component's lifetime; re-running the hydration would clobber
+		// edited fields.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const watchedName = form.watch("submitterName");
+	const watchedEmail = form.watch("submitterEmail");
+	const isPrefilledNow =
+		!!prefilledFrom &&
+		!emailIsLocked &&
+		watchedName === prefilledFrom.name &&
+		watchedEmail === prefilledFrom.email;
+
+	function handleNotYou() {
+		clearSavedIdentity();
+		clearSubscribed();
+		form.setValue("submitterName", "", { shouldDirty: false });
+		if (!emailIsLocked) {
+			form.setValue("submitterEmail", "", { shouldDirty: false });
+		}
+		setPrefilledFrom(null);
+	}
 
 	const handleScrape = async (overrideUrl?: string) => {
 		const candidate = (overrideUrl ?? form.getValues("url")).trim();
@@ -224,6 +273,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 
 			setSubmissionState({ kind: "success", title: values.title });
 			toast.success("Thanks — we've got your submission!");
+			saveIdentity({ name: values.submitterName, email: values.submitterEmail });
 			form.reset({
 				title: "",
 				description: "",
@@ -247,10 +297,10 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 
 	if (submissionState.kind === "success") {
 		return (
-			<div className="rounded-lg border border-navy-faded dark:border-[rgba(76,228,240,0.18)] p-8 flex flex-col items-start gap-4">
-				<CheckCircle2 className="h-10 w-10 text-green-main" aria-hidden="true" />
+			<div className="rounded-lg border border-navy-frame dark:border-cyan-glow/[0.18] p-8 flex flex-col items-start gap-4">
+				<CheckCircle2 className="h-10 w-10 text-green-hue" aria-hidden="true" />
 				<div className="space-y-2">
-					<h2 className="text-2xl font-bold text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]">
+					<h2 className="text-2xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 						Thanks — we got "{submissionState.title}"
 					</h2>
 					<p className="text-base leading-relaxed text-muted-foreground">
@@ -261,7 +311,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 					type="button"
 					variant="outline"
 					onClick={() => setSubmissionState({ kind: "idle" })}
-					className="rounded-lg border-navy text-navy hover:bg-navy-faded hover:text-navy dark:border-[#E3F2F7] dark:text-[#E3F2F7]"
+					className="rounded-lg border-navy text-navy hover:bg-navy-wash hover:text-navy dark:border-cyan-lifted dark:text-cyan-lifted"
 				>
 					Submit another event
 				</Button>
@@ -270,7 +320,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 	}
 
 	return (
-		<div className="rounded-lg border border-navy-faded dark:border-[rgba(76,228,240,0.18)] p-6">
+		<div className="rounded-lg border border-navy-frame dark:border-cyan-glow/[0.18] p-6">
 			<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 						<FormField
@@ -320,7 +370,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 											variant="outline"
 											onClick={() => handleScrape()}
 											disabled={isScraping || isSubmitting || field.value.trim().length === 0}
-											className="rounded-lg border-navy text-navy hover:bg-navy-faded hover:text-navy dark:border-[#E3F2F7] dark:text-[#E3F2F7]"
+											className="rounded-lg border-navy text-navy hover:bg-navy-wash hover:text-navy dark:border-cyan-lifted dark:text-cyan-lifted"
 										>
 											{isScraping ? (
 												<>
@@ -451,10 +501,22 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 						<Separator />
 
 						<div className="space-y-1">
-							<h3 className="text-sm font-semibold text-navy dark:text-[#E3F2F7]">Your details</h3>
+							<h3 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Your details</h3>
 							<p className="text-sm text-muted-foreground">
 								So we can reach out if we need any clarifications.
 							</p>
+							{isPrefilledNow && (
+								<p className="text-xs text-muted-foreground">
+									Pre-filled from your last visit.{" "}
+									<button
+										type="button"
+										onClick={handleNotYou}
+										className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted dark:hover:text-cyan"
+									>
+										Not you?
+									</button>
+								</p>
+							)}
 						</div>
 
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -520,7 +582,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 						) : null}
 
 						{submissionState.kind === "duplicate" ? (
-							<div className="rounded-md border border-orange-pastel bg-orange-faded p-4 text-sm leading-6 text-orange-dark dark:border-[rgba(189,83,24,0.4)] dark:bg-[rgba(189,83,24,0.1)] dark:text-orange-pastel">
+							<div className="rounded-md border border-orange-tint bg-orange-wash p-4 text-sm leading-6 text-orange-shade dark:border-[rgba(189,83,24,0.4)] dark:bg-[rgba(189,83,24,0.1)] dark:text-orange-tint">
 								{submissionState.message}
 							</div>
 						) : null}
@@ -529,7 +591,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 							<Button
 								type="submit"
 								disabled={isSubmitting || isScraping}
-								className="rounded-full bg-gold-main text-white font-semibold hover:bg-gold-dark"
+								className="rounded-full bg-gold-hue text-white font-semibold hover:bg-gold-shade"
 							>
 								{isSubmitting ? (
 									<>

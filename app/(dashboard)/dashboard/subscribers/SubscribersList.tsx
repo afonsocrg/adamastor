@@ -159,7 +159,7 @@ export function SubscribersList() {
 			    ───────────────────────────────────────────────────────────── */}
 			<section>
 				<p
-					className="text-6xl font-bold tabular-nums leading-none text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]"
+					className="text-6xl font-bold tabular-nums leading-none text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]"
 					aria-label={`${subscribedCount} subscribers`}
 				>
 					{subscribedCount}
@@ -182,7 +182,7 @@ export function SubscribersList() {
 			    ───────────────────────────────────────────────────────────── */}
 			<section className="space-y-4">
 				<div className="space-y-1">
-					<h3 className="text-base font-semibold text-navy dark:text-[#E3F2F7]">By category</h3>
+					<h3 className="text-base font-semibold text-navy dark:text-cyan-lifted">By category</h3>
 					<div className="h-px w-12 bg-cyan" aria-hidden="true" />
 				</div>
 				<dl className="space-y-2.5">
@@ -193,7 +193,7 @@ export function SubscribersList() {
 							<div key={category.slug} className="flex items-center gap-4">
 								<dt className="w-48 shrink-0 truncate text-base text-foreground">{category.name}</dt>
 								<div
-									className="h-2 flex-1 overflow-hidden rounded-full bg-navy-faded dark:bg-[rgba(76,228,240,0.08)]"
+									className="h-2 flex-1 overflow-hidden rounded-full bg-navy-wash dark:bg-cyan-glow/[0.08]"
 									role="presentation"
 								>
 									<div
@@ -217,7 +217,7 @@ export function SubscribersList() {
 			    ───────────────────────────────────────────────────────────── */}
 			<section className="space-y-4">
 				<div className="space-y-1">
-					<h3 className="text-base font-semibold text-navy dark:text-[#E3F2F7]">Recent activity</h3>
+					<h3 className="text-base font-semibold text-navy dark:text-cyan-lifted">Recent activity</h3>
 					<p className="text-sm text-muted-foreground">Newest subscribers first.</p>
 				</div>
 

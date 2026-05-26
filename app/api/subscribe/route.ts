@@ -183,6 +183,7 @@ export async function POST(request: NextRequest) {
 			contact: contactData,
 			categories: subscription.categories,
 			digest_subscribed: subscription.digest_subscribed,
+			created,
 		});
 	} catch (error) {
 		console.error("Subscription error:", error);

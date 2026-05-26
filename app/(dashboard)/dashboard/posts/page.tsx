@@ -23,7 +23,7 @@ export default async function ProfilePage({ searchParams }: PostsPageProps) {
 	return (
 		<div className="w-full mx-auto p-6 animate-fade-in">
 			<div className="flex justify-between items-center mb-6">
-				<h2 className="text-xl font-semibold text-[#104357] dark:text-[#E3F2F7] flex gap-2 items-center">Articles</h2>
+				<h2 className="text-xl font-semibold text-[#104357] dark:text-cyan-lifted flex gap-2 items-center">Articles</h2>
 				<Button
 					className="inline-flex items-center px-4 py-2 text-white transition-all duration-200 rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90"
 					asChild

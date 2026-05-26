@@ -13,10 +13,19 @@ import {
 } from "@/components/tailwind/ui/alert-dialog";
 import { Button } from "@/components/tailwind/ui/button";
 import { Input } from "@/components/tailwind/ui/input";
+import { Separator } from "@/components/tailwind/ui/separator";
 import { EVENT_CATEGORIES, type EventCategorySlug } from "@/lib/events/categories";
+import { clearSubscribed } from "@/lib/user-identity";
+import { ArrowRightIcon, Linkedin } from "lucide-react";
+import Image from "next/image";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+// Permissive client-side gate to avoid disabling the submit on every keystroke
+// during a typo. The server (and zod schema on /api/preferences/request-link)
+// is the authoritative validator.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface InitialPreferences {
 	email: string;
@@ -120,6 +129,7 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 				previous_digest_subscribed: initial.digestSubscribed,
 			});
 
+			clearSubscribed();
 			toast.success("Unsubscribed from everything. You can opt back in any time.");
 		} catch {
 			toast.error("Couldn't unsubscribe", { description: "Please try again later." });
@@ -129,104 +139,158 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 	}
 
 	return (
-		<div className="space-y-8">
-			<header className="space-y-2">
-				<h1 className="text-2xl font-extrabold tracking-tight text-[#104357] dark:text-[#E3F2F7]">
-					{initial.firstName ? `Hi ${initial.firstName} — your preferences` : "Your newsletter preferences"}
+		<>
+			<header className="space-y-3 pb-2 pt-2">
+				<h1 className="text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+					{initial.firstName ? `Hi ${initial.firstName} — manage your subscriptions` : "Manage your subscriptions"}
 				</h1>
-				<p className="text-sm text-muted-foreground">
+				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
 					Managing what we send to <span className="font-medium text-foreground">{initial.email}</span>.
 				</p>
 			</header>
 
-			<section className="space-y-4">
-				<div className="space-y-1">
-					<h2 className="text-base font-semibold text-[#104357] dark:text-[#E3F2F7]">Weekly digest</h2>
-				</div>
-				<label className="flex items-start gap-3 rounded-md border bg-card p-4 cursor-pointer hover:bg-accent/30 transition-colors">
-					<input
-						type="checkbox"
-						className="mt-1 h-4 w-4 rounded border-input"
-						checked={digest}
-						onChange={(e) => setDigest(e.target.checked)}
-					/>
-					<span className="flex-1 space-y-1">
-						<span className="block text-sm font-semibold leading-tight">Adamastor Weekly</span>
-						<span className="block text-xs uppercase tracking-wide text-muted-foreground">By Carlos Resende</span>
-						<span className="block text-sm text-muted-foreground pt-1">
-							An editorial take on Portugal's startup scene — fundraises, founder interviews, and the moves worth
-							knowing about. Every week, with the upcoming events on top.
-						</span>
-					</span>
-				</label>
-			</section>
+			<aside className="rounded-lg bg-navy-veil/40 p-5 dark:bg-cyan-glow/[0.04]">
+				<p className="text-sm leading-relaxed text-muted-foreground">
+					Weekly emails — we send only what you pick below. One click any time to unsubscribe.
+				</p>
+			</aside>
 
-			<section className="space-y-4">
-				<div className="space-y-1">
-					<h2 className="text-base font-semibold text-[#104357] dark:text-[#E3F2F7]">Event categories</h2>
-					<p className="text-sm text-muted-foreground">
-						Pick the topics you want in your inbox. We'll only email you about events tagged with these.
-					</p>
-				</div>
-				<div className="space-y-2">
-					{EVENT_CATEGORIES.map((category) => (
-						<label
-							key={category.slug}
-							className="flex items-start gap-3 rounded-md border bg-card p-4 cursor-pointer hover:bg-accent/30 transition-colors"
-						>
-							<input
-								type="checkbox"
-								className="mt-1 h-4 w-4 rounded border-input"
-								checked={categories.has(category.slug)}
-								onChange={() => toggleCategory(category.slug)}
-							/>
-							<span className="flex-1 space-y-1">
-								<span className="block text-sm font-medium leading-tight">{category.name}</span>
-								<span className="block text-sm text-muted-foreground">{category.description}</span>
+			<div className="space-y-6 rounded-lg border border-navy-frame p-6 dark:border-cyan-glow/[0.18]">
+				<section className="space-y-4">
+					<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Weekly Digest</h2>
+					<div className="flex items-start gap-3">
+						<Image
+							src="/carlos.jpeg"
+							alt="Carlos Resende"
+							width={40}
+							height={40}
+							className="h-10 w-10 shrink-0 rounded-full object-cover"
+						/>
+						<p className="text-xs leading-relaxed text-muted-foreground">
+							By Carlos Resende — Co-founder of Founder Institute Portugal, Expert Evaluator at the European
+							Commission, and Angel Investor ·{" "}
+							<a
+								href="https://www.linkedin.com/in/carlosresende47/"
+								target="_blank"
+								rel="noopener"
+								className="inline-flex items-center gap-1 font-medium text-navy hover:underline dark:text-cyan-lifted"
+							>
+								<Linkedin className="h-3.5 w-3.5" aria-hidden="true" />
+								LinkedIn
+							</a>
+						</p>
+					</div>
+					<label className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-cyan-glow/[0.18]">
+						<input
+							type="checkbox"
+							className="mt-1 h-4 w-4 rounded border-navy-frame accent-[#104357]"
+							checked={digest}
+							onChange={(e) => setDigest(e.target.checked)}
+						/>
+						<span className="flex-1 space-y-1">
+							<span className="block text-sm font-semibold leading-tight text-navy dark:text-cyan-lifted">
+								Adamastor Weekly
 							</span>
-						</label>
-					))}
-				</div>
-			</section>
+							<span className="block text-sm text-muted-foreground">
+								An editorial take on Portugal's startup scene — fundraises and founder interviews, every week, with a
+								curation of events.
+							</span>
+						</span>
+					</label>
+				</section>
 
-			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<Button onClick={handleSave} disabled={saving}>
-					{saving ? "Saving…" : "Save preferences"}
-				</Button>
-				<AlertDialog>
-					<AlertDialogTrigger asChild>
-						<button
-							type="button"
-							disabled={saving}
-							className="text-sm text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
-						>
-							Unsubscribe from everything
-						</button>
-					</AlertDialogTrigger>
-					<AlertDialogContent>
-						<AlertDialogHeader>
-							<AlertDialogTitle>Unsubscribe from everything?</AlertDialogTitle>
-							<AlertDialogDescription>
-								You'll stop receiving the weekly digest and any per-category event newsletters. You can opt back in any
-								time from this page.
-							</AlertDialogDescription>
-						</AlertDialogHeader>
-						<AlertDialogFooter>
-							<AlertDialogCancel>Cancel</AlertDialogCancel>
-							<AlertDialogAction onClick={handleUnsubscribeAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-								Yes, unsubscribe me
-							</AlertDialogAction>
-						</AlertDialogFooter>
-					</AlertDialogContent>
-				</AlertDialog>
+				<Separator />
+
+				<section className="space-y-4">
+					<div className="space-y-1">
+						<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Topics to Follow</h2>
+						<p className="text-sm text-muted-foreground">
+							Each week we round up events happening across Portugal in the topics you pick. Choose one or many.
+						</p>
+					</div>
+					<p className="text-xs leading-relaxed text-muted-foreground">
+						Curated with the LisboaUX, LisboaJS, and Lisbon AI Week communities.
+					</p>
+					<div className="space-y-2">
+						{EVENT_CATEGORIES.map((category) => (
+							<label
+								key={category.slug}
+								className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-cyan-glow/[0.18]"
+							>
+								<input
+									type="checkbox"
+									className="mt-1 h-4 w-4 rounded border-navy-frame accent-[#104357]"
+									checked={categories.has(category.slug)}
+									onChange={() => toggleCategory(category.slug)}
+								/>
+								<span className="flex-1 space-y-1">
+									<span className="block text-sm font-medium leading-tight text-navy dark:text-cyan-lifted">
+										{category.name}
+									</span>
+									<span className="block text-sm text-muted-foreground">{category.description}</span>
+								</span>
+							</label>
+						))}
+					</div>
+				</section>
+
+				<Separator />
+
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<Button
+						type="button"
+						onClick={handleSave}
+						disabled={saving}
+						className="rounded-full bg-gold-hue font-semibold text-white hover:bg-gold-shade"
+					>
+						{saving ? (
+							"Saving…"
+						) : (
+							<>
+								Save preferences
+								<ArrowRightIcon className="ml-2 h-4 w-4" aria-hidden="true" />
+							</>
+						)}
+					</Button>
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<button
+								type="button"
+								disabled={saving}
+								className="text-sm text-navy-tone underline-offset-4 transition-colors hover:text-navy hover:underline disabled:opacity-50 dark:text-navy-wash dark:hover:text-cyan-lifted"
+							>
+								Unsubscribe from everything
+							</button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Unsubscribe from everything?</AlertDialogTitle>
+								<AlertDialogDescription>
+									You'll stop receiving the weekly digest and any per-category event newsletters. You can opt back in any
+									time from this page.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={handleUnsubscribeAll}
+									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								>
+									Yes, unsubscribe me
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }
 
 export function RequestLinkForm() {
 	const [email, setEmail] = useState("");
 	const [submitting, setSubmitting] = useState(false);
+	const [leaving, setLeaving] = useState(false);
 	const [done, setDone] = useState(false);
 
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -250,59 +314,85 @@ export function RequestLinkForm() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email: trimmed }),
 			});
-			setDone(true);
 		} catch {
 			// Endpoint always returns 200 to avoid enumeration. Even a network
 			// error gets the success message — the friendly response can be
 			// re-triggered by trying again. No information leaked either way.
-			setDone(true);
 		} finally {
 			setSubmitting(false);
 		}
+
+		// Paired exit/enter transition: fade the form out for 150ms (exits run
+		// ~20% faster than entrances per the animation playbook), then mount
+		// the success header with its own fade-in. Prevents the abrupt swap
+		// where one tree disappears and another snaps into place.
+		setLeaving(true);
+		await new Promise((resolve) => setTimeout(resolve, 150));
+		setDone(true);
 	}
 
 	if (done) {
 		return (
-			<div className="space-y-4">
-				<h1 className="text-2xl font-extrabold tracking-tight text-[#104357] dark:text-[#E3F2F7]">
+			<header className="space-y-3 pb-2 pt-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300 motion-safe:ease-out">
+				<h1 className="text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 					Check your inbox
 				</h1>
-				<p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
 					If we have <span className="font-medium text-foreground">{email}</span> on file, a link to manage your
 					preferences is on its way. The link works without a password.
 				</p>
-			</div>
+			</header>
 		);
 	}
 
 	return (
-		<div className="space-y-6">
-			<header className="space-y-2">
-				<h1 className="text-2xl font-extrabold tracking-tight text-[#104357] dark:text-[#E3F2F7]">
-					Manage your preferences
+		<div
+			className={`space-y-8 transition-all duration-150 ease-out motion-reduce:transition-none ${
+				leaving ? "pointer-events-none -translate-y-1 opacity-0" : "opacity-100"
+			}`}
+			aria-hidden={leaving}
+		>
+			<header className="space-y-3 pb-2 pt-2">
+				<h1 className="text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+					Manage your subscriptions
 				</h1>
-				<p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
 					Enter the email address you subscribed with. We'll send you a link to manage which Adamastor newsletters you
 					receive — no login needed.
 				</p>
 			</header>
-			<form onSubmit={handleSubmit} className="flex w-full max-w-md gap-2">
-				<Input
-					type="email"
-					required
-					autoComplete="email"
-					inputMode="email"
-					spellCheck={false}
-					placeholder="you@example.com"
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-					disabled={submitting}
-					aria-label="Your email address"
-				/>
-				<Button type="submit" disabled={submitting || !email.trim()}>
-					{submitting ? "Sending…" : "Send link"}
-				</Button>
-			</form>
+
+			<div className="rounded-lg border border-navy-frame p-6 dark:border-cyan-glow/[0.18]">
+				<form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
+					<Input
+						type="email"
+						required
+						autoComplete="email"
+						inputMode="email"
+						spellCheck={false}
+						placeholder="ana@yourstartup.pt"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						disabled={submitting}
+						aria-label="Your email address"
+						className="flex-1"
+					/>
+					<Button
+						type="submit"
+						disabled={submitting || !EMAIL_PATTERN.test(email.trim())}
+						className="rounded-full bg-gold-hue font-semibold text-white hover:bg-gold-shade"
+					>
+						{submitting ? (
+							"Sending…"
+						) : (
+							<>
+								Send link
+								<ArrowRightIcon className="ml-2 h-4 w-4" aria-hidden="true" />
+							</>
+						)}
+					</Button>
+				</form>
+			</div>
 		</div>
 	);
 }

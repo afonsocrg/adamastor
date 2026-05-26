@@ -1,18 +1,8 @@
 export const EVENT_CATEGORIES = [
 	{
-		slug: "ai",
-		name: "AI",
-		description: "Artificial intelligence, machine learning, agents, LLMs, automation, and data science.",
-	},
-	{
-		slug: "software-engineering",
-		name: "Software Engineering",
-		description: "Developer events, programming, web engineering, cloud, security, DevOps, QA, and tooling.",
-	},
-	{
-		slug: "design",
-		name: "Design",
-		description: "UX, UI, product design, design research, Figma, prototyping, and creative technology.",
+		slug: "startups-fundraising",
+		name: "Startups & Fundraising",
+		description: "Startup building, founders, pitching, accelerators, investment, demo days, and fundraising.",
 	},
 	{
 		slug: "product",
@@ -20,9 +10,19 @@ export const EVENT_CATEGORIES = [
 		description: "Product management, product strategy, discovery, product operations, and product-led growth.",
 	},
 	{
-		slug: "startups-fundraising",
-		name: "Startups & Fundraising",
-		description: "Startup building, founders, pitching, accelerators, investment, demo days, and fundraising.",
+		slug: "design",
+		name: "Design",
+		description: "UX, UI, product design, design research, Figma, prototyping, and creative technology.",
+	},
+	{
+		slug: "software-engineering",
+		name: "Software Engineering",
+		description: "Developer events, programming, web engineering, cloud, security, DevOps, QA, and tooling.",
+	},
+	{
+		slug: "ai",
+		name: "AI",
+		description: "Artificial intelligence, machine learning, agents, LLMs, automation, and data science.",
 	},
 ] as const;
 

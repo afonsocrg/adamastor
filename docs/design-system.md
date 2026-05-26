@@ -12,6 +12,31 @@ Editorial / publication-grade. Adamastor is a digital publication, not a SaaS da
 - Modular containers that breathe with their content (not forced uniformity)
 - Headings carry the page; numbers are pull-quotes
 
+### AI-tic red flags (avoid)
+
+Patterns that smuggle "AI writing" into editorial copy. Identified and stripped during the About page rewrite. Run prose through this list before shipping:
+
+- **Aphoristic semicolon contrasts**: *"The publication is the front; the communities are where conversations actually happen"* / *"The Weekly is our voice; Opinion brings the room"*. Parallel-grammar punchlines reading like ChatGPT closing a paragraph. Just stop after the substantive sentence — no need to land a moral.
+- **Hedge-emphasis adverbs**: *"actually"*, *"truly"*, *"really"*. AI uses them to add weight without committing to specificity. Cut them; if the sentence needs weight, rewrite the noun or verb instead.
+- **"Not only X, but Y" constructions**: Same AI tendency to land sections with a tidy contrast. Drop the "not only" tail and keep the first clause if it carries the meaning.
+- **Em-dashes piled up in body copy**: A single em-dash for a strong parenthetical is fine. Three in one paragraph is AI cadence — restructure with periods, colons, or commas. Title-tag separators (`Page — Site`) are a publication convention, not the same pattern.
+- **Four-noun parallel lists** with abstract nouns (*memory, visibility, critique, and connection*): defensible in a manifesto sentence, but flag when you spot more than one in the same page.
+- **Closer aphorisms that summarise the section**: any sentence that lands "what this all means" at the end of a paragraph. Editorial register lets paragraphs end on the last fact.
+- **"At the intersection of X" / "weaving threads"** type metaphor stacks: forced cleverness. Use plain action verbs. *"Adamastor began at the intersection of three threads"* → *"Carlos was writing… Afonso was organising… Malik wanted to build…"* (the actual concrete actions each person was doing).
+- **Forced metaphors around abstract concepts** (*"the publication is the front"*, *"into one editorial home"*): the metaphor is doing work that direct verbs would do better.
+
+When in doubt: read the sentence aloud. If it lands with a "ta-da" cadence that no human would actually say, rewrite.
+
+### Copy conventions
+
+- **Section heads and titles take Title Case** ("Weekly Digest", "Topics to Follow"), body copy stays sentence case. Section heads name a *thing* — title-casing them signals "this is the name of something" rather than "this is an instruction."
+- **Avoid SaaS-y formulations.** "Your inbox, your call" was killed mid-session for this reason — too cute, too product-y. Default to declarative editorial register.
+- **"Choose one or many"** beats "Choose one or several" — fewer syllables, more direct, slightly warmer.
+- **"any" beats "a/an" in templates that span vowel + consonant + plural nouns.** "Don't miss any X event" works for "AI", "design", and "startup or fundraising" without article gymnastics; `a`/`an` needs special-casing per category. Reshape plurals to singular where they collide ("startups" → "startup or fundraising" so the noun pairs cleanly with "any … event").
+- **Greet by name when we know it.** Lora H1 personalizes — e.g. "Submit your event, Malik" / "Subscribe to Adamastor, Malik" / "Hi Malik — manage your subscriptions". Snapshot the name on mount so the H1 doesn't react to live edits in the form below it (live-updating reads as noisy).
+- **"Every X meetup, conference, and workshop happening in Portugal, sent each week"** is the canonical category-newsletter description rhythm — it delivers on the heading's "Don't miss any X event" promise. Heading sets the FOMO, description delivers the scope + cadence.
+- **Personal placeholders.** Email placeholders read `ana@yourstartup.pt` rather than `you@example.com` — a Portuguese first name + ecosystem TLD signals the audience and brand without forcing the UI into Portuguese-language copy.
+
 References that shape the voice:
 - [The Guardian Design System](https://design.theguardian.com/foundations) — color tokens, typography pairings, modular cards, highlight color used **for emphasis only**.
 - Vercel Web Interface Guidelines (`~/.claude/skills/web-design-guidelines`) — accessibility, forms, typography micro-rules.
@@ -42,85 +67,180 @@ Reference fonts via Tailwind arbitrary value:
 
 **Why Lora and not CalSans or Crimson Text?** CalSans (modern startup display font) and Crimson Text (classical book serif) were both dropped because neither matched Adamastor's "contemporary digital publication" voice. CalSans read too "SaaS product"; Crimson read too "Victorian literary magazine." Lora Bold is designed for screen reading, sits between them in feel, and pairs cleanly with Inter for body.
 
-## Color tokens
+## Color
 
-Each token has a single purpose. Don't reach for a hex outside this scale.
+The Adamastor color system is grounded in three principles, drawn from the gradient and stimulation-toolkit articles that shaped the brand:
 
-### Navy — architectural
+1. **Tints over shades.** The brand uses lightened colors (`pure color + white`) for interactive accents, not darkened ones. Shades exist only for typography (`navy.shade`, `navy.deep`) and structural emphasis — never for chips, fills, hovers, or selected states.
+2. **Same character, varied lightness.** Within a family, all variants share OKLCH chroma so the eye reads them as one system. Variation comes from lightness, not from pigment jumps. ("Character" here = how saturated/intense a color feels — what painters mean when they say a palette holds together.)
+3. **Close hues, clean transitions.** Hue arcs in gradients and adjacent UI stay within ~45° to avoid the muddy mid-points wider arcs produce. Hues sitting close on the wheel blend beautifully; complementary pairs only get used for deliberate high-stim moments.
 
-Used for: headings, structural text, framing, dividers, links, dots, all page-level borders. Adamastor's primary brand color.
+### Why OKLCH
 
-| Token | Hex | Tailwind | Use |
+The brand tokens are defined in OKLCH-perceptual terms even though they ship as hex. OKLCH separates Lightness, Chroma (colorfulness), and Hue — perceptually uniformly. A "chroma 0.08" tint at any hue feels equally saturated, unlike HSL where 100%-saturation yellow and 100%-saturation blue look wildly different in pigment.
+
+This matters because it's the *only* way to build a token system where "tint" means the same thing across navy / cyan / orange / gold / green. See `~/.claude/skills/color-expert` for the deeper perceptual-color reference.
+
+### The painter's vocabulary
+
+Each color family uses the same variant names with consistent OKLCH character. Read these as the brand's color "register":
+
+| Variant | Painter term | Target OKLCH | Role |
 |---|---|---|---|
-| `navy-darker` | `#08293A` | `bg-navy-darker` | Deepest navy. Reserved — high-emphasis text on light bg. |
-| `navy` | `#104357` | `bg-navy` | Primary navy. Headings, links, structural elements, brand strip. |
-| `navy-pastel` | `#4D7689` | `bg-navy-pastel` | Muted navy. Secondary text (inactive tabs, calendar weekday headers, table headers). |
-| `navy-faded` | `#E8F0F4` | `bg-navy-faded` | Soft navy wash. All page-level borders, hover backgrounds, empty-state fills. |
+| `deep` | Extra-dark shade | L≈0.25, C≈0.05 | Rare structural emphasis. |
+| `shade` | Dark shade | L≈0.40, C≈0.06 | Typography anchor — body text, headlines, brand strip. |
+| `tone` | Mid-tone, grey-added | L≈0.55, C≈0.04 | Secondary text, labels, dim hover. |
+| `hue` | Pure hue | L≈0.65-0.75, C≈0.15-0.20 | High-stim accent. Used rarely (per stimulation tier). |
+| `tint` | Lightened (pure + white) | L≈0.88, C≈0.07 | **The default interactive-accent register.** Soft UI fills, selected states, hover backgrounds. |
+| `wash` | Very light tint | L≈0.94, C≈0.03 | Subtle backgrounds, hover surfaces (where the family's tint should READ as visible). |
 
-### Cyan — emphasis
+`DEFAULT` aliases keep `bg-navy` / `bg-cyan` working without a suffix — `navy.DEFAULT` points at `navy.shade` (the most-common typography use), `cyan.DEFAULT` points at `cyan.hue`. Orange / gold / green have no `DEFAULT` — always suffix them explicitly.
 
-Used for: **active state and emphasis only**. Active filter chip, selected calendar day, body-emphasis underlines. **Never decoration.** Treat cyan exactly like the Guardian uses yellow.
+**Navy is an exception** to the system-wide vocabulary: it adds **`frame`** (near-neutral, for borders) and **`veil`** (intermediate, for text-containing soft backgrounds) on top of `wash`. This gives navy a three-tier atmospheric system because the family has many more atmospheric roles than any other (76+ surfaces). See the Navy family table below for the rationale.
 
-| Token | Hex | Tailwind | Use |
+### Stimulation tiers — codified
+
+Per the three-tool stimulation framework (intensity × hue distance × value contrast), Adamastor operates at three tiers depending on surface. The brand baseline is **mid** — Bloomberg / NYT Magazine register, not editorial whisper.
+
+| Tier | Surface | Chroma (intensity) | Hue distance | Value contrast | Examples |
+|---|---|---|---|---|---|
+| **Baseline** (mid-stim) | Body, atmosphere, default UI | ≤ 0.08 (tints, low-intensity hue) | ≤ 60° within family | Moderate (L spread 0.4-0.95 across surface) | Body text on white, sidebar modules, default chips. |
+| **Easter eggs** (mid-high) | Animations, delight moments | 0.09-0.11 (vivid tints) | 60-90° within cool family | Moderate-to-strong | Footer seal animation, hover transitions. One notch above baseline. |
+| **Hero** (high) | Covers, big CTAs, "wow" beats | ≥ 0.15 (full hues) | Complementary pairs allowed (cyan × orange) | Strong, including value opposition | Gold CTA pill, hero covers, rare brand-moment punches. The 60-30-10 "10%" reserve. |
+
+**Forbidden combination** (vibrating, per Heller): intense colors + contrasting hues + similar value = uncomfortable optical buzz. If a combination starts to vibrate, break it by either lowering intensity, narrowing hue distance, or adding value contrast.
+
+### Brand families
+
+#### Navy — architectural + the light-mode highlight color
+
+Adamastor's primary color. Typography, structural framing, brand strip. **And** — as `navy.tint` — every light-mode interactive highlight (selected states, active chips, underline decorations). This last role was previously cyan's; the migration happened mid-redesign as the cyan family became too visually heavy.
+
+| Token | Hex | OKLCH (approx) | Role |
 |---|---|---|---|
-| `cyan-darker` | `#028E97` | `bg-cyan-darker` | Active-state text on cyan-faded fills. Selected calendar day text. |
-| `cyan` | `#04C9D8` | `bg-cyan` | Active-state border. Editorial inline-link underline decoration. |
-| `cyan-pastel` | `#9DE8EF` | `bg-cyan-pastel` | Soft cyan. Rarely used; secondary highlights. |
-| `cyan-faded` | `#DFF6F8` | `bg-cyan-faded` | Active-state fill (chips, selected calendar cell). |
+| `navy-deep` | `#08293A` | L=0.27 C=0.05 h=236 | Rare structural emphasis. |
+| `navy` *(DEFAULT = shade)* | `#104357` | L=0.36 C=0.06 h=229 | Typography anchor. Headlines, body text, brand strip, links. |
+| `navy-tone` | `#4D7689` | L=0.54 C=0.05 h=229 | Secondary text — inactive tabs, weekday headers, dim hover. |
+| `navy-tint` | `#A7E1FC` | L=0.88 C=0.07 h=228 | **The default light-mode highlight.** Selected calendar day, active chip fill, underline decoration. |
+| **Atmospheric / wash zone — three pigment tiers:** | | | |
+| `navy-frame` | `#E8F0F4` | L=0.95 C=0.01 h=229 | **Near-neutral. THE workhorse for borders, hairlines, structural framing.** "Navy frames everything" — see color rule #5. |
+| `navy-veil` | `#E1F2F9` | L=0.95 C=0.02 h=228 | Intermediate. For soft text-containing backgrounds — trust asides ("Reviewed by"), empty-state fills, banners. Subtle enough not to compete with text, visible enough to register as a contained surface. |
+| `navy-wash` | `#D7F0FB` | L=0.94 C=0.03 h=228 | Visibly navy-tinted. For hover backgrounds and fills where navy presence should READ. **Don't use behind body text** — competes with readability. |
 
-> **Open: `#24acb5` legacy hex.** Article kicker labels (e.g. "WEEKLY DIGEST" on `/`) and the active city scope tab on `/events` currently use the hardcoded hex `#24acb5` — a mid-tone cyan that sits between `cyan-darker` and `cyan` but does not match either. It predates the token consolidation. Three close-but-distinct cyans now exist on the brand surface (this hex + `cyan-darker` + `cyan`); pending decision is whether to fold `#24acb5` into the scale, replace it with `cyan-darker`, or move the kicker role to `orange-dark` per rule 3 below. See *Known limitations / open questions*.
+**Why three atmospheric tiers in navy specifically.** The navy family has more atmospheric roles than the other families (76+ surfaces use one of these). A single token tries to serve borders, soft text backgrounds, AND visible hovers — and ends up wrong for at least one (the original `#D7F0FB` workhorse made borders too present and reduced readability behind text-containing soft fills). The three-tier split lets each surface pick the right pigment level for its job: invisible for frames, subtle for content backgrounds, visible for hover affordance. Other families don't need this split — their atmospheric roles are rarer and a single pigmented `*-wash` serves them well.
 
-### Gold — primary action
+#### Cyan — RESTRICTED (dark-mode anchor + rare brand moments)
 
-Used for: **primary action button fill** — the high-signal "do this thing" moments (form submits, conversion CTAs). One per page, max. Warm, editorial, distinct from orange's accent role.
+> ⚠️ **Cyan is restricted in light mode.** Use `navy.tint` for default interactive highlights instead. Cyan is reserved for:
+> - **Dark mode** anchoring (`cyan-lifted`, `cyan-glow`, `cyan-dim` handle the dark theme)
+> - **Rare brand-moment hues** — hero covers, the occasional big CTA punch (per the high-stim tier)
+> - The footer seal Easter-egg animation where intentional
+>
+> **Future direction**: we may deprecate cyan entirely. Don't reach for it as a default; if you want a highlight, `navy.tint`.
 
-| Token | Hex | Tailwind | Use |
+| Token | Hex | OKLCH (approx) | Role |
 |---|---|---|---|
-| `gold-dark` | `#B8893A` | `bg-gold-dark` | Hover/pressed state of primary action buttons. |
-| `gold-main` | `#D4A657` | `bg-gold-main` | Primary action button background. Form submits. |
-| `gold-pastel` | `#EDD2A0` | `bg-gold-pastel` | Soft gold. Rare — atmospheric warmth on a "you did it" moment. |
-| `gold-faded` | `#FAF3E2` | `bg-gold-faded` | Pale wash. Section backgrounds for confirmation/success surfaces. |
+| `cyan-shade` | `#028E97` | L=0.59 C=0.10 h=203 | Dark cyan — active-state text on cyan fills (legacy). |
+| `cyan` *(DEFAULT = hue)* | `#04C9D8` | L=0.76 C=0.13 h=204 | Vivid brand cyan — rare brand-moment use only. |
+| `cyan-tint` | `#9DE8EF` | L=0.88 C=0.075 h=203 | ⚠️ Avoid in light-mode interactive accents. |
+| `cyan-wash` | `#D5F2F4` | L=0.94 C=0.03 h=203 | ⚠️ Avoid in light-mode backgrounds (use `navy-wash`). |
+| **Dark-mode anchors** | | | *(named for role, not painter's vocabulary)* |
+| `cyan-glow` | `#4CE4F0` | L=0.86 C=0.10 h=195 | Bright cyan borders + hover on dark surfaces. Use with opacity: `cyan-glow/[0.12]`. |
+| `cyan-lifted` | `#E3F2F7` | L=0.94 C=0.015 h=215 | Off-white body text in dark mode. |
+| `cyan-dim` | `#9ED2E1` | L=0.80 C=0.05 h=220 | Secondary text in dark mode. |
 
-### Orange — editorial accent
+#### Orange — editorial accent + arrow tips
 
-Used for: **inline accent** — arrow-tip icons on Subscribe/Continue links, opinion-piece kickers, "from the editor" notes. **Not a button fill** (that's gold's role). Not a generic UI accent.
+Inline accent only. Arrow-tip color on Subscribe/Continue links, opinion-piece kickers, byline accents. **Not a button fill** (that's gold's job).
 
-| Token | Hex | Tailwind | Use |
+| Token | Hex | OKLCH (approx) | Role |
 |---|---|---|---|
-| `orange-dark` | `#BD5318` | `bg-orange-dark` | Deep orange. Opinion kicker, byline accent. |
-| `orange-main` | `#E05E00` | `bg-orange-main` | Primary orange. Inline accent (arrow-tip icon on Subscribe). |
-| `orange-bright` | `#FF7F0F` | `bg-orange-bright` | Bright orange. High-emphasis warmth. |
-| `orange-pastel` | `#F9B376` | `bg-orange-pastel` | Soft orange. Subtle warmth, hover. |
-| `orange-faded` | `#FEF9F5` | `bg-orange-faded` | Cream wash. Section background for opinion content. |
+| `orange-shade` | `#BD5318` | L=0.57 C=0.15 h=45 | Deep orange — opinion kicker, byline accent. |
+| `orange-hue` | `#E05E00` | L=0.64 C=0.18 h=45 | Inline accent — arrow-tip on Subscribe/Continue. |
+| `orange-bright` | `#FF7F0F` | L=0.73 C=0.19 h=52 | Boosted hue — rare high-emphasis warmth. |
+| `orange-tint` | `#FECBAF` | L=0.88 C=0.07 h=50 | Soft peach — atmospheric warmth. |
+| `orange-wash` | `#FDE6DA` | L=0.94 C=0.03 h=50 | Cream wash — opinion-content section background. |
 
-### Green — positive momentum
+#### Gold — primary action
 
-Used for: growth deltas (`+5 this week`), success states, approval signals, "event live" badges. **Not** for generic "online/ok" — too dilute. Reserved for *good news*.
+The brand's primary CTA color. Form submits, conversion buttons. **One gold pill per page, max.**
 
-| Token | Hex | Tailwind | Use |
+| Token | Hex | OKLCH (approx) | Role |
 |---|---|---|---|
-| `green-dark` | `#236925` | `bg-green-dark` | Deep green. Growth headings, success kicker. |
-| `green-main` | `#3DB540` | `bg-green-main` | Primary green. Growth deltas, success badges, approvals. |
+| `gold-shade` | `#B8893A` | L=0.66 C=0.11 h=78 | Hover / pressed state of gold primary buttons. |
+| `gold-hue` | `#D4A657` | L=0.75 C=0.11 h=79 | Primary CTA fill. Form submits. |
+| `gold-tint` | `#F0D49F` | L=0.88 C=0.075 h=83 | Soft gold — rare "you did it" moment. |
+| `gold-wash` | `#F5EAD5` | L=0.94 C=0.03 h=83 | Confirmation / success section background. |
 
-### Neutrals
+#### Green — positive momentum
 
-Use Tailwind's built-in `gray-*` and the existing shadcn theme tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`). Don't invent custom neutrals.
+Growth deltas (`+5 this week`), success states, approval signals. Reserved for **good news** — not generic "ok" or "online" (too dilute).
 
-## Color usage rules
+| Token | Hex | OKLCH (approx) | Role |
+|---|---|---|---|
+| `green-shade` | `#236925` | L=0.46 C=0.12 h=144 | Deep green — growth headings, success kicker. |
+| `green-hue` | `#3DB540` | L=0.68 C=0.19 h=143 | Primary green — growth deltas, success badges, approvals. |
+| `green-tint` | `#BBE5B8` | L=0.88 C=0.075 h=143 | Soft green — rare. |
+| `green-wash` | `#E0F1DF` | L=0.94 C=0.03 h=143 | Pale green — rare. |
 
-1. **One cyan moment per fold.** A page should have one cyan signal that demands the eye — typically the active filter chip or the selected calendar day. Multiple persistent cyan accents compete and the highlight value dies. *Hover states don't count* — hover emphasis is transient; the rule is about always-on visual signal. **Open exception:** kicker labels on `/` ("WEEKLY DIGEST" on every article) currently render in a cyan-ish hex (`#24acb5`) — one cyan-ish moment per card, multiple per fold. Pending decision: revise the rule to allow a separate "kicker" cyan role, soften it to "one cyan *highlight* moment per fold," or move kickers to `orange-dark` per rule 3.
-2. **Gold is the action color.** Form-submit buttons and the rare high-signal conversion CTA use `bg-gold-main`. One per page, max. Hover to `bg-gold-dark`.
-3. **Orange is an inline accent, never a button fill.** Use `text-orange-main` for the arrow-tip on a Subscribe link, an opinion kicker, or a byline accent. Don't use `bg-orange-main` as a button background — that's gold's job.
-4. **Navy frames everything.** All page-level borders (navbar, footer, modules, rails, calendar card) use `border-navy-faded`. Links and structural lines use `text-navy` / `bg-navy`. One consistent border tone across the page.
-5. **Don't mix orange and green** on the same screen unless the content explicitly warrants both signals (e.g., a content type indicator + a growth delta).
-6. **Pastels and faded shades are atmosphere**, never primary signal. Use them as washes, hovers, soft backgrounds.
-7. **Test in dark mode.** Each color must have a working dark-mode counterpart, even if a page primarily renders light. Today this is handled per-usage with `dark:` variants; if pain accumulates, migrate to HSL CSS variables wired into the `.dark` block in [`globals.css`](../styles/globals.css).
+#### Neutrals
+
+Use Tailwind's built-in `gray-*` scale and the shadcn theme tokens (`bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`). Don't invent custom neutrals.
+
+### Color usage rules
+
+1. **TINTS for interactive accents.** Selected states, active chips, hover backgrounds — always `*-tint` or `*-wash`. Never `*-shade` or `*-hue` for interactive fills.
+2. **`navy-tint` is the light-mode highlight color.** Selected calendar days, active filter chips, underline decorations, "this is the current item" fills. Cyan does NOT do this anymore.
+3. **Gold is THE action color.** Primary CTAs use `bg-gold-hue` with `hover:bg-gold-shade`. One gold pill per page, max.
+4. **Orange is an inline accent, never a button fill.** Arrow-tip icons (`text-orange-hue`), opinion kickers (`text-orange-shade`). Don't use `bg-orange-hue` as a button.
+5. **Navy frames everything.** All page-level borders use `border-navy-frame`. Single border tone per page.
+6. **One hue moment per fold (high-stim reserve).** A surface in the mid-stim baseline can have ONE high-stim moment — usually the gold pill OR a brand-cyan "wow" beat, not both. Don't pile high-stim elements.
+7. **Don't mix orange + green** on the same screen unless content explicitly warrants both signals (content type + growth delta, for example).
+8. **Test in dark mode.** Each color needs a working dark-mode counterpart via the `cyan-lifted / glow / dim` system or per-usage `dark:` variants.
+
+### Migration: old token names → painter's vocabulary
+
+For anyone reading older code or older versions of this doc:
+
+| Old name | New name | Notes |
+|---|---|---|
+| `navy-darker` | `navy-deep` | Painter's vocab |
+| `navy` (DEFAULT) | `navy` (DEFAULT — alias to `navy.shade`) | No code change |
+| `navy-muted` | `navy-tone` | Mid-tone for secondary text |
+| `navy-pastel` (the OLD `#4D7689` mid-tone) | `navy-tone` | Same color, renamed |
+| `navy-pastel` (the NEW `#A7E1FC` blue tint) | `navy-tint` | The light-mode highlight |
+| `navy-faded` | `navy-wash` | |
+| `cyan-darker` | `cyan-shade` | |
+| `cyan` (DEFAULT) | `cyan` (DEFAULT — alias to `cyan.hue`) | No code change |
+| `cyan-pastel` | `cyan-tint` | ⚠️ avoid in light mode |
+| `cyan-faded` | `cyan-wash` | ⚠️ avoid in light mode |
+| `cyan-lifted`, `cyan-glow`, `cyan-dim` | unchanged | Dark-mode-specific roles |
+| `orange-dark` | `orange-shade` | |
+| `orange-main` | `orange-hue` | |
+| `orange-bright` | unchanged | Descriptive special role |
+| `orange-pastel` | `orange-tint` | |
+| `orange-faded` | `orange-wash` | |
+| `gold-dark` | `gold-shade` | |
+| `gold-main` | `gold-hue` | |
+| `gold-pastel` | `gold-tint` | |
+| `gold-faded` | `gold-wash` | |
+| `green-dark` | `green-shade` | |
+| `green-main` | `green-hue` | |
+| `green-pastel`, `green-faded` | unchanged (just added) | |
+
+Additional code-level migrations done in the same pass:
+- Hardcoded `dark:text-[#E3F2F7]` → `dark:text-cyan-lifted`
+- Hardcoded `dark:border-[rgba(76,228,240, α)]` etc. → `dark:border-cyan-glow/[α]`
+- Hardcoded `dark:text-[rgba(158,210,225, α)]` → `dark:text-cyan-dim/[α]`
+- Hardcoded `text-[#24acb5]` (legacy teal) → `text-navy-tone` or `text-navy`
+- `decoration-cyan` and `hover:text-cyan-shade` (formerly `cyan-darker`) → `decoration-navy-tint` and `hover:decoration-navy`
+- All light-mode `bg-cyan-wash text-cyan-shade` (active states) → `bg-navy-tint text-navy`
 
 ## Spacing & layout
 
 - Vertical rhythm: **32px (2rem)** between major sections, **16px (1rem)** within.
 - Public surfaces cap at `max-w-screen-xl` (1280px); text-heavy pages (single articles, forms) cap further at `max-w-screen-lg` (1024px) or narrower. Admin uses available width up to `max-w-screen-2xl`.
-- **Section dividers**: `navy-faded` hairline. Never multiple border tones on the same page.
+- **Section dividers**: `navy-frame` hairline. Never multiple border tones on the same page.
 - **Modular cards** (Guardian-inspired): cards expand and contract to their content. Don't force uniform heights unless presenting genuinely comparable data (stat grids, comparison tables).
 - **Content edge on desktop = 32px.** On `/events`, the page content wrapper has `md:p-4` on top of `<main>`'s `p-4`, doubling the inset to 32px at `md:` and up. The navbar masthead (`md:px-8`) and the site-level section nav (`px-8` inside its `hidden md:block` wrapper) match this 32px edge so the tagline, site nav, scope tabs, and page heading all share one vertical rail down the page. Mobile stays at 16px because the doubling kicks in at `md:` only.
 
@@ -141,6 +261,7 @@ For pages with a main column + sidebar (e.g. `/events`), use the **8-column edit
 - **Hover & focus**: 150ms color/background transitions on interactive surfaces.
 - **Always** honor `prefers-reduced-motion` with `motion-reduce:transition-none` (or a no-motion variant).
 - Animate `transform` and `opacity` only — never `transition: all`.
+- **Form-to-success swap.** When a form submission replaces the form with a success state, coordinate the two as a paired exit/enter (not an instant swap). Form fades out 150ms `ease-out` — opacity → 0 + slight `-translate-y-1` + `pointer-events-none` mid-flight. After the timeout, the success header mounts with `motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300 motion-safe:ease-out`. Total perceived swap ~450ms with no visual gap. Underlying principles (enter/exit → `ease-out`, under 300ms per leg, exit ~20% faster than entry, animate transform + opacity only) come from the `web-animation-design` skill.
 
 ## Component conventions
 
@@ -148,32 +269,32 @@ For pages with a main column + sidebar (e.g. `/events`), use the **8-column edit
 
 - **Primary action** — high-signal "do this thing now" (form submits, conversion CTAs). One per page. Guardian-style pill with an arrow icon on the right.
   ```tsx
-  className="rounded-full bg-gold-main text-white font-semibold hover:bg-gold-dark"
+  className="rounded-full bg-gold-hue text-white font-semibold hover:bg-gold-shade"
   // with: <ArrowRightIcon className="ml-2 h-4 w-4" aria-hidden="true" />
   ```
   Pill shape (`rounded-full`) distinguishes primary from secondary actions (`rounded-lg` lozenge) — the visual hierarchy reinforces the role hierarchy.
 
 - **Inline subscribe action** — editorial "join this list" / "continue" CTAs (sidebar Subscribe blocks, prose-embedded actions). No fill; warmth comes from the arrow-tip icon.
   ```tsx
-  className="inline-flex items-center gap-2 text-sm font-semibold text-navy hover:text-cyan-darker"
-  // with: <ArrowRightIcon className="h-4 w-4 text-orange-main" />
+  className="inline-flex items-center gap-2 text-sm font-semibold text-navy hover:underline"
+  // with: <ArrowRightIcon className="h-4 w-4 text-orange-hue" />
   ```
 
-- **Inline action with hover-background** — high-leverage inline CTA that triggers a *consequential* interaction (opening a contact channel like WhatsApp, launching a one-click subscribe, kicking off a multi-step flow). Same type and color as the inline subscribe action, but the hover affordance shifts to a `navy-faded` background highlight so the CTA reads as "clickable thing" rather than "follow a thread." Use sparingly — when the inline-subscribe hover-color-change feels too quiet for the weight of the action.
+- **Inline action with hover-background** — high-leverage inline CTA that triggers a *consequential* interaction (opening a contact channel like WhatsApp, launching a one-click subscribe, kicking off a multi-step flow). Same type and color as the inline subscribe action, but the hover affordance shifts to a `navy-wash` background highlight so the CTA reads as "clickable thing" rather than "follow a thread." Use sparingly — when the inline-subscribe hover-color-change feels too quiet for the weight of the action.
   ```tsx
-  className="-mx-2 -my-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-faded"
-  // with: <ArrowRightIcon className="h-4 w-4 text-orange-main" /> and an optional leading icon
+  className="-mx-2 -my-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-wash"
+  // with: <ArrowRightIcon className="h-4 w-4 text-orange-hue" /> and an optional leading icon
   ```
-  The `-mx-2 -my-1 px-2 py-1` pair gives the hover background room to extend without shifting the text's resting position — the link sits exactly where the inline-subscribe sibling would, until you hover and the navy-faded highlight blooms outward.
+  The `-mx-2 -my-1 px-2 py-1` pair gives the hover background room to extend without shifting the text's resting position — the link sits exactly where the inline-subscribe sibling would, until you hover and the navy-wash highlight blooms outward.
 
 - **Secondary action** — "submit another", "go back", outlined neutral actions.
   ```tsx
-  className="rounded-lg border border-navy text-navy hover:bg-navy-faded"
+  className="rounded-lg border border-navy text-navy hover:bg-navy-wash"
   ```
 
-- **Tertiary / inline link** — editorial CTAs embedded in prose ("Submit it", coda links).
+- **Tertiary / inline link** — editorial CTAs embedded in prose ("Submit it", coda links). The underline uses `decoration-navy-tint` (soft blue) at rest, deepens to `decoration-navy` on hover. Text color stays navy throughout — the underline carries the affordance.
   ```tsx
-  className="font-medium text-navy underline underline-offset-4 decoration-cyan decoration-2 hover:text-cyan-darker"
+  className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy"
   ```
 
 - **Destructive**: shadcn destructive variant. White text on destructive fill.
@@ -184,11 +305,11 @@ For column-level lens controls (category filters). Wrap-friendly, snug touch tar
 
 - **Inactive**:
   ```tsx
-  className="inline-flex items-center rounded-full border border-navy-faded px-4 py-2 text-sm leading-none text-navy-pastel hover:text-navy hover:border-navy-pastel"
+  className="inline-flex items-center rounded-full border border-navy-frame px-4 py-2 text-sm leading-none text-navy-tone hover:text-navy hover:border-navy-tone"
   ```
-- **Active** (the cyan moment):
+- **Active** (the light-mode highlight moment — `navy.tint`, not cyan):
   ```tsx
-  className="inline-flex items-center rounded-full border border-cyan bg-cyan-faded px-4 py-2 text-sm leading-none text-cyan-darker font-semibold"
+  className="inline-flex items-center rounded-full border border-navy bg-navy-tint px-4 py-2 text-sm leading-none text-navy font-semibold"
   ```
 
 **Toggle behavior.** Chips on `/events` act as toggles, not radio buttons: clicking an inactive chip activates it; clicking the active chip clears the filter. There is **no "All" chip** — the empty (no active chip) state IS the unfiltered view. Use `aria-pressed` to communicate toggle state on the `<Link>`.
@@ -197,26 +318,24 @@ For column-level lens controls (category filters). Wrap-friendly, snug touch tar
 
 For page-level edition selectors (city tabs). Quieter than pill chips — these are persistent context, not active filters.
 
-- Container: `flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-navy-faded`
-- **Inactive**: `text-sm text-navy-pastel border-b-2 border-transparent hover:text-navy`
-- **Active**: `text-sm font-semibold text-[#24acb5] border-b-2 border-[#24acb5]` — cyan-ish underline. This carries the page-level "one cyan moment" because the site-level section nav above it now owns the navy underline (see *Site-level section nav* below).
-
-> **Open:** the active hex `#24acb5` is the legacy kicker color, not a brand token. See the open question on `#24acb5` in the *Cyan* section.
+- Container: `flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-navy-frame`
+- **Inactive**: `text-sm text-navy-tone border-b-2 border-transparent hover:text-navy`
+- **Active**: `text-sm font-semibold text-navy border-b-2 border-navy` — navy underline. Used to use a teal hex (`#24acb5`) here; that legacy color has been retired in favor of the navy-only architectural rule.
 
 ### Site-level section nav
 
 The strap directly below the masthead. Switches between the top-level surfaces of the publication (Articles · Events). Architectural — read as a permanent rail, not a frequently-touched filter. Hidden on mobile (`hidden md:block`); `MobileTabBar` handles small viewports.
 
-- Container: `max-w-screen-xl mx-auto flex flex-wrap items-center gap-x-8 gap-y-1 px-8 border-b border-navy-faded` (32px horizontal inset at desktop to match `/events` content edge — see *Masthead* below)
-- **Inactive**: `text-sm font-semibold uppercase tracking-[0.18em] text-navy-pastel hover:text-navy border-b-2 border-transparent`
-- **Active**: `text-sm font-semibold uppercase tracking-[0.18em] text-navy border-b-2 border-navy` — navy underline (architectural). The role distinction with the page-level scope tabs is carried by typography (caps + tracking vs mixed case) and color (navy active vs cyan-ish active).
+- Container: `max-w-screen-xl mx-auto flex flex-wrap items-center gap-x-8 gap-y-1 px-8 border-b border-navy-frame` (32px horizontal inset at desktop to match `/events` content edge — see *Masthead* below)
+- **Inactive**: `text-sm font-semibold uppercase tracking-[0.18em] text-navy-tone hover:text-navy border-b-2 border-transparent`
+- **Active**: `text-sm font-semibold uppercase tracking-[0.18em] text-navy border-b-2 border-navy` — navy underline (architectural). The role distinction with the page-level scope tabs is now carried by typography (caps + tracking vs mixed case) and weight (semibold uppercase vs sentence-case) — both use navy active state since the cyan/teal kicker color was retired.
 
 ### Sidebar modules
 
 Outlined editorial cards in a sidebar column (calendar block, subscribe block).
 
 ```tsx
-className="rounded-lg border border-navy-faded p-5"
+className="rounded-lg border border-navy-frame p-5"
 ```
 - Heading: `text-lg font-bold text-navy [font-family:var(--font-lora-bold)]`
 - Body: `text-sm leading-relaxed text-muted-foreground`
@@ -228,39 +347,54 @@ Two distinct treatments, depending on cause.
 
 - **Content-gap** (the route is genuinely empty — no events for this city/category yet). Editorial moment, organiser-acquisition opportunity.
   ```tsx
-  className="rounded-lg border border-navy-faded bg-navy-faded/40 px-6 py-10 text-center"
+  className="rounded-lg border border-navy-frame bg-navy-veil/40 px-6 py-10 text-center"
   ```
   - Lora Bold heading: `"No upcoming [X] events"`
   - Body with inline action: `"Organising one? [Submit it] — it'll show up here."`
 
 - **Filter-result** (transient — user filtered to nothing; just needs to clear the filter). Dashed border signals "this is a filter result, not the page's actual state."
   ```tsx
-  className="rounded-md border border-dashed border-navy-faded px-6 py-10 text-center text-base leading-relaxed text-muted-foreground"
+  className="rounded-md border border-dashed border-navy-frame px-6 py-10 text-center text-base leading-relaxed text-muted-foreground"
   ```
 
 ### Editorial inline link
 
 For prose-embedded CTAs (the "Submit it →" coda, body emphasis links).
 ```tsx
-className="font-medium text-navy underline underline-offset-4 decoration-cyan decoration-2 hover:text-cyan-darker"
+className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy"
 ```
-The cyan-decoration underline is the body-emphasis signal — it works inline without breaking reading flow.
+The `navy-tint` decoration carries the affordance signal; hover deepens to `navy` for emphasis. Text stays navy throughout — reading flow uninterrupted.
+
+### Muted reference link
+
+For quiet inline URLs that are references, not CTAs — author bios, contributor org links inside dense paragraphs (e.g. *"named voices in the ecosystem: André Marquet (Productized)…"*), captions, partner-name lists. Editorial-print convention: dotted underline reads as "this is a reference" rather than "click me."
+
+```tsx
+className="text-navy-tone underline decoration-dotted decoration-2 underline-offset-4 transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted"
+```
+
+The `navy-tone` resting colour recedes from `text-foreground` body copy so the link doesn't dominate the prose. Decoration colour tracks text colour (no explicit decoration colour needed) — hover deepens to navy and the dotted underline darkens with it. No `font-medium` weight bump so the link visually integrates with surrounding small text.
+
+**When to reach for muted vs editorial inline link:**
+- Single body CTA, the page-level "do this next" action → **editorial inline link** (solid, weighted)
+- Multiple inline references stacked in one paragraph, or any link in small-text contexts (bios, captions, footnotes) → **muted reference link** (dotted, quieter)
+- Six dotted links in one paragraph still works visually; six solid `editorialLink` would compete with body text.
 
 ### Badges
 
 Meaning matters — pick the variant that communicates, don't default to "secondary."
 
 - **Outlined gray** (`variant="outline"`): neutral categorization, no implied weight.
-- **Filled cyan** (`bg-cyan-faded text-cyan-darker`): this is the *highlighted* item.
-- **Filled green** (`bg-green-main text-white`): approved / live / positive signal.
-- **Filled orange** (`bg-orange-pastel text-orange-dark`): editorial / opinion flag.
+- **Filled navy-tint** (`bg-navy-tint text-navy`): this is the *highlighted* item. (Formerly used cyan; migrated to navy.tint per the cyan restriction.)
+- **Filled green** (`bg-green-hue text-white`): approved / live / positive signal.
+- **Filled orange** (`bg-orange-tint text-orange-shade`): editorial / opinion flag.
 
 ### Tables
 
 - Header: Inter `font-medium`, `text-xs uppercase tracking-wide text-muted-foreground`
 - Body: Inter
 - Numerical columns: `tabular-nums`
-- Hover row: `bg-navy-faded` (soft wash)
+- Hover row: `bg-navy-wash` (soft wash)
 - Long text columns: `truncate max-w-[Npx]` + `title={value}` for accessibility
 
 ### Stat displays
@@ -268,7 +402,7 @@ Meaning matters — pick the variant that communicates, don't default to "second
 - **Hero numbers** (page headlines): Lora Bold, `font-bold`, `text-5xl+`, `tabular-nums`, `text-navy`.
 - **Secondary numbers** (section totals): Inter `text-2xl font-semibold`, `tabular-nums`.
 - **Labels under numbers**: Inter, `text-xs uppercase tracking-wide text-muted-foreground`.
-- **Growth deltas**: `text-green-main` (positive) or `text-orange-main` (decline) with arrow icon.
+- **Growth deltas**: `text-green-hue` (positive) or `text-orange-hue` (decline) with arrow icon.
 
 ### Events subscribe / share coda
 
@@ -294,15 +428,89 @@ A "section" is a meaningful grouping (Stats, By category, Recent activity). Each
 - May have a one-line subhead in `text-sm text-muted-foreground`
 - Sits inside `space-y-8` (or larger) with previous/next section
 
+### Author strap
+
+A horizontal byline for editorial content with a known author (e.g. the "Adamastor Weekly" card on `/preferences` and `/subscribe`). Lifts the author *out* of the card so the card stays clean while still surfacing credit + credentials + a way to reach them.
+
+- Container: `flex items-start gap-3`
+- Avatar: `h-10 w-10 shrink-0 rounded-full object-cover` (~40px portrait)
+- Byline: `text-xs leading-relaxed text-muted-foreground`, format `"By {Name} — {Credentials} · {SocialLink}"`
+- Social link: Lucide icon + label, `inline-flex items-center gap-1`, navy color, **no underline**, `hover:underline`. The icon paired with the label (vs. an icon-only chip) keeps the link readable in body text register.
+
+Sits between the section H2 ("Weekly Digest") and the card it credits.
+
+### Community / credit strap
+
+Section-level credit for content curated with sibling communities. Lives directly below the section heading + dek, above the card list.
+
+- Pattern: `text-xs leading-relaxed text-muted-foreground` paragraph
+- Copy: `"Curated with the {Community A}, {Community B}, and {Community C} communities."`
+- Sits inside `space-y-4` with the H2/dek above and the card list below
+
+Used on `/preferences` and `/subscribe` under "Topics to Follow" to credit LisboaUX, LisboaJS, and Lisbon AI Week. Parallel to the *author strap* — both are editorial credits, just at section vs item granularity.
+
+### Sticky CTA bar
+
+Bottom-of-viewport fixed bar that surfaces a primary form action when (a) the user has made a selection AND (b) the in-form primary action has scrolled off-screen.
+
+- Container: `fixed inset-x-0 bottom-0 z-40 border-t border-navy-frame bg-background/95 shadow-[0_-1px_4px_-2px_rgba(8,41,58,0.05)] backdrop-blur-sm`
+- Inner: `mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 md:px-8`
+- Left: tight selection summary (e.g. "Adamastor Weekly + 1 topic"), `text-xs font-medium text-navy`
+- Right: primary action — same gold pill as the in-form submit, with the `form="<form-id>"` attribute so the button submits the offscreen form
+- Mount animation: `motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-300 motion-safe:ease-out`
+- Gating: visibility tracked via `IntersectionObserver` on the in-form submit row. Bar hides when submit re-enters the viewport. Also gated on `!leaving && !done` so it dismounts during the form fade-out and never lingers over the success state.
+
+Subtle shadow only — never enough to compete with page content. Used on `/subscribe`.
+
+### Editorial AlertDialog
+
+The shadcn `AlertDialog` defaults visually emphasize the action button. For dialogs that should encourage the user to *stay* (leave-page guards, discard-changes prompts), flip the hierarchy.
+
+- Title: Lora Bold, navy, `text-2xl font-bold leading-tight [font-family:var(--font-lora-bold)]`
+- Description: surface concrete state ("You're one click away from Adamastor Weekly + 1 topic.") so the user sees what they'd lose, not just an abstract warning
+- Content border: override to `border-navy-frame` to match the page-level border tone
+- **Cancel button** (the wanted action — "Stay and subscribe"): gold pill, `rounded-full bg-gold-hue font-semibold text-white hover:bg-gold-shade`, includes the arrow icon (mirrors the in-form submit)
+- **Action button** (the unwanted action — "Leave anyway"): quiet text link, `bg-transparent text-sm text-muted-foreground hover:bg-transparent hover:text-navy hover:underline` — never destructive red (red signals an error or harm; this is just the less-preferred path, not a destructive one)
+
+Used on `/subscribe` as the in-app navigation guard, paired with a `beforeunload` listener for tab close + URL-bar nav (browsers show their generic prompt for those — we can only style what we render).
+
+### Personalized greeting + pre-filled identity hint
+
+Two paired patterns for surfaces that "remember" the visitor via `lib/user-identity.ts` localStorage (`adamastor:identity:v1`).
+
+**Greeting in H1.** When a first name is known (from a previously-submitted form), the page H1 personalizes:
+
+- `"Submit your event, Malik"` (on `/events/submit`)
+- `"Subscribe to Adamastor, Malik"` (on `/subscribe`)
+- `"Hi Malik — manage your subscriptions"` (on `/preferences`, token-loaded)
+
+Snapshot the first name on mount so the H1 doesn't react to live edits in the form below it. Always falls back to the un-personalized H1 when no identity is saved.
+
+**Pre-filled identity hint.** When form fields hydrate from saved identity, surface a small hint above them — pre-fill should never be silent (avoids stale-email risk + handles shared-device case honestly):
+
+```tsx
+<p className="text-xs text-muted-foreground">
+  Pre-filled from your last visit.{" "}
+  <button type="button" onClick={handleNotYou}
+    className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy">
+    Not you?
+  </button>
+</p>
+```
+
+Gated on `isPrefilledNow` (saved identity matches current inputs) — disappears the moment the user edits a field. "Not you?" calls both `clearSavedIdentity()` and `clearSubscribed()` (different person = both flags reset) and empties the inputs.
+
+**Auth precedence.** When the page has a profile-locked email (authenticated user), the locked email always wins over localStorage. Pre-fill the name from localStorage *only* when the saved identity's email matches the locked email — otherwise we'd put one person's name next to another person's email with no escape hatch.
+
 ## Page-level patterns
 
 ### Brand strip
 
 Every page in the main layout starts with a 5px navy bar:
 ```tsx
-<div className="bg-navy dark:bg-[#E3F2F7] w-full h-[5px]" />
+<div className="bg-navy dark:bg-cyan-lifted w-full h-[5px]" />
 ```
-This is the brand mark at the page level — architectural, restrained. (It was cyan early on; switched to navy to stop competing with in-content cyan emphasis.)
+This is the brand mark at the page level — architectural, restrained.
 
 ### Masthead
 
@@ -310,7 +518,7 @@ Three-column row immediately below the brand strip. Editorial / print-newspaper 
 
 - **Left column**: editorial strapline (the publication's voice). Lora Bold italic, `text-sm`, `text-navy`, `max-w-48`, `[text-wrap:balance]` for clean two-line wrap. Cap-aligned with the centered wordmark via a small `translate-y` nudge.
 - **Center column**: ADAMASTOR wordmark (`/adamastorLogotype.svg`, `w-40`) wrapped in a `Link href="/"`. The SVG fill is `#104357` (brand navy) — match this when commissioning new wordmark variants.
-- **Right column**: gold Subscribe pill + Account dropdown. Gold pill is the page-level primary action moment (`bg-gold-main rounded-full`); the Account `HoverCard` only renders for logged-in users.
+- **Right column**: gold Subscribe pill + Account dropdown. Gold pill is the page-level primary action moment (`bg-gold-hue rounded-full`); the Account `HoverCard` only renders for logged-in users.
 - **Horizontal inset**: `px-4` on mobile, `md:px-8` on desktop (32px content edge — see *Spacing & layout* note on the doubled-padding convention).
 - The Site-level section nav strap renders directly below this row.
 
@@ -323,7 +531,7 @@ Three-column row immediately below the brand strip. Editorial / print-newspaper 
 
 ### Page borders
 
-Single border tone: `border-navy-faded`. Used by:
+Single border tone: `border-navy-frame`. Used by:
 - Navbar bottom border
 - Footer top border
 - Sidebar module outlines
@@ -339,7 +547,7 @@ Resist introducing other border tones (no orange borders, no green borders, no d
 Three-row mid-weight editorial composition:
 
 1. **Editorial ask** — top row on white. The page's secondary conversion ask, currently "Submit your event," rendered in the *Inline action with hover-background* button pattern.
-2. **Three-column grid** — middle row, hairline-separated above and below. Composition: brand colophon (Adamastor sea-creature mark, ~48px) | "Our projects" (sibling community links with UTMs — `?utm_source=adamastor&utm_medium=footer&utm_campaign=cross_link`) | "Follow us" (social channels with Lucide icons inline).
+2. **Three-column grid** — middle row, hairline-separated above and below. Composition: brand colophon (Adamastor sea-creature mark, ~48px) | "Our projects" (sibling community links with UTMs — `?utm_source=adamastor&utm_medium=footer&utm_campaign=cross_link`) | "Follow us" (social channels with Lucide icons inline). The Adamastor seal is an inlined SVG component (`<AdamastorMark>`) with a click-triggered Easter egg animation — see *Brand marks* below.
 3. **Tagline strap** — Lora Bold italic centered editorial signature ("Only You Know Who You Can Be"). The publication's closing brand moment, distinct from the masthead tagline which describes *what we do*; this one says *what we believe*.
 4. **Copyright row** — small utility row at the bottom: `© Adamastor` left, `About us` link right.
 
@@ -354,43 +562,214 @@ Four image assets in [`public/`](../public):
 - `adamastorMark.svg` — light-mode sea-creature symbol mark, fill `#104357`. The Adamastor of Camões' *Os Lusíadas* — the giant who guards the Cape, here repositioned as a gatekeeper for Portuguese startup discovery.
 - `adamastorMarkDark.svg` — dark-mode sea-creature symbol mark, white fill for navy surfaces.
 
-The **wordmark** anchors the masthead, centered, `w-40`. The **symbol mark** is the footer colophon (~48px height, left of the three-column grid). The mark has future homes — `/about` hero, email templates, favicon — open. Don't recolor or restyle the marks per-page; use as-is. When the SVG fill needs adjustment (e.g. masthead navy mismatch was fixed this session by editing the file in place), update both the light and dark variant together.
+The **wordmark** anchors the masthead, centered, `w-40`. The **symbol mark** appears in the footer (~48px height, left of the three-column grid) as an inlined SVG component — `components/AdamastorMark.tsx` — driven by `currentColor` so it tracks light/dark mode via Tailwind text-utility classes. On click, the seal runs a sea-themed rainbow gradient animation (Easter egg) — see the component for the SMIL implementation. Don't recolor or restyle the marks per-page; use the component as-is.
+
+### Editorial portrait duotone
+
+For founder/contributor portraits in editorial mastheads (currently `/about`'s "Who Runs Adamastor" cards). Maps photo luminance to a two-stop navy gradient so all portraits read as one monotone editorial set, no matter the source photo's colour balance.
+
+Inline at the top of the page that uses it (so the filter ships with that page only):
+
+```tsx
+<svg aria-hidden="true" focusable="false" className="absolute h-0 w-0" style={{ position: "absolute", width: 0, height: 0 }}>
+  <defs>
+    <filter id="duotone-navy-portrait" colorInterpolationFilters="sRGB">
+      <feColorMatrix
+        type="matrix"
+        values="0.2126 0.7152 0.0722 0 0
+                0.2126 0.7152 0.0722 0 0
+                0.2126 0.7152 0.0722 0 0
+                0      0      0      1 0"
+      />
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.008 0.910" />
+        <feFuncG type="table" tableValues="0.063 0.941" />
+        <feFuncB type="table" tableValues="0.102 0.957" />
+      </feComponentTransfer>
+    </filter>
+  </defs>
+</svg>
+```
+
+Two-step pipeline:
+1. **`feColorMatrix`** desaturates to grayscale using Rec. 709 luminance weights (perceptually accurate B&W, not the channel-average grayscale the `grayscale` CSS filter uses).
+2. **`feComponentTransfer`** remaps the grayscale range per channel to a navy gradient: darks → `#02101A` (near-black extension of the navy family beyond `navy.deep`, crushes shadows), lights → `navy.frame` (`#E8F0F4`, the brand atmospheric near-white). Result: editorial punchy duotone in the brand palette.
+
+Apply to `<Image>` via inline style: `style={{ filter: "url(#duotone-navy-portrait)" }}`. Works on already-B&W source photos because step 1 desaturates first.
+
+**Why SVG over CSS `filter: grayscale(1)`**: CSS grayscale only desaturates; you can't remap the resulting tonal range to specific brand colours. Mix-blend-mode overlays approximate the look but muddy midtones. Per-channel `feComponentTransfer` is the only correct path to a real duotone.
 
 ### Navigation hierarchy
 
 - **Site-level section nav** (chrome-level): "which surface of the publication am I in?" — Articles vs Events. Renders in the masthead strap. Style: site-level section nav pattern. Navy active underline + caps tracking.
-- **Scope tabs** (page-level): "which edition am I in?" — city, language, region. Render outside the main grid. Style: scope-tab pattern. Cyan-ish active underline.
+- **Scope tabs** (page-level): "which edition am I in?" — city, language, region. Render outside the main grid. Style: scope-tab pattern. Navy active underline.
 - **Lens chips** (column-level): "what am I filtering by?" — category, type, status. Render inside the main column. Style: pill-chip pattern (toggle behavior).
 - **Inline link** (prose-level): "follow this thread" — embedded CTAs in body copy. Style: editorial inline link.
 
 Don't conflate them — treating a scope tab the same as a lens chip makes the page feel control-panel-y instead of editorial. Each level has a distinct typographic and color signature so the eye can read the hierarchy at a glance.
 
+### Editorial about page template
+
+The canonical composition for the publication's masthead-and-manifesto page (currently `/about`). Editorial register first, no SaaS team grid.
+
+```
+─── 5px navy strip ─────────────────────────────
+─── masthead + section strap ───────────────────
+│  mx-auto max-w-screen-lg space-y-16 md:p-4    │
+│  ┌──────────────────────────────────────────┐ │
+│  │ Hero — manifesto                         │ │
+│  │   <h1>Lora · text-4xl/5xl · balance</h1> │ │
+│  │   <p>strapline · Lora italic · balance</p>│ │
+│  │   3 prose paragraphs (cape myth, what    │ │
+│  │   we follow, why we exist)               │ │
+│  ├──────────────────────────────────────────┤ │
+│  │ Editorial — What We Publish              │ │
+│  │   2-col grid, Lora H3 + body + CTA       │ │
+│  │   (the editorial highlight — sits        │ │
+│  │   directly after manifesto)              │ │
+│  ├──────────────────────────────────────────┤ │
+│  │ Our Beats — What We Cover                │ │
+│  │   2-col dl, Lora-sized dt + prose dd     │ │
+│  ├──────────────────────────────────────────┤ │
+│  │ The Masthead — Who Runs X                │ │
+│  │   origin paragraph + 3-col founder grid  │ │
+│  │   (duotone photo + name+icons + bio)     │ │
+│  ├──────────────────────────────────────────┤ │
+│  │ Wider Network — Curated with Community   │ │
+│  │   single paragraph with mutedLink partners│ │
+│  ├──────────────────────────────────────────┤ │
+│  │ Get in Touch                             │ │
+│  │   2-col card grid (rounded-lg            │ │
+│  │   border-navy-frame p-5)                 │ │
+│  └──────────────────────────────────────────┘ │
+```
+
+**Layout primitives:**
+- Page wrapper: `mx-auto max-w-screen-lg space-y-16 md:p-4` (narrower than `/events` because this is text-heavy; reads more comfortably at publication line lengths)
+- Section dividers: `border-t border-navy-frame pt-12` (every section after the hero)
+- Section spacing: `space-y-6` (default), `space-y-8` for sections containing modular cards that need more breathing room
+- Section heading group: kicker label (`text-xs uppercase tracking-[0.18em] text-navy-tone`) + Lora H2 (`text-2xl md:text-3xl font-bold text-navy [font-family:var(--font-lora-bold)] [text-wrap:balance]`)
+- Paragraph max-widths: `65ch` for hero body, `60-65ch` for section paragraphs (keep reading-line lengths editorial)
+
+**Masthead card pattern:**
+- Photo: square `rounded-md` with `border border-navy-frame` ring, `object-cover`, runs through the `duotone-navy-portrait` SVG filter
+- Name row: `flex flex-wrap items-baseline justify-between` — Lora Bold name on the left, social-icon row on the right (`text-navy-tone hover:text-navy`, icons `h-4 w-4` from `lucide-react: Linkedin, Twitter, Globe`)
+- Bio: prose paragraph (`text-base leading-relaxed text-muted-foreground`) incorporating external roles narratively, not a role list. Per the *AI-tic red flags* section: no closer aphorism on the bio
+- Origin paragraph above the founder grid carries the "how we came to be" beat with attributed contributions
+
+**Editorial output cards (What We Publish):**
+- Each as an `<article>` with Lora H3 (`text-xl font-bold text-navy [font-family:var(--font-lora-bold)] [text-wrap:balance]`)
+- Body paragraph (`text-base leading-relaxed text-foreground`) max-w-[55ch]
+- Optional inline CTA underneath
+
+**Don't bring in:**
+- SaaS-y team-page elements (job titles in big chips, "We're hiring!" CTAs, social-link buttons as full pills)
+- Role lists with bullet points — incorporate external roles into prose bios
+- Marketing buzzword closers ("X is more than Y, it's Z") — see *AI-tic red flags*
+
+### Form-page template
+
+The canonical composition for standalone form pages — currently `/events/submit`, `/subscribe`, and `/preferences`. Encodes the relationship between H1, optional trust aside, outlined form module, and the primary submit row.
+
+```
+─── 5px navy strip ─────────────────────────────
+─── masthead + section strap ───────────────────
+│  mx-auto max-w-2xl space-y-8 md:p-4           │
+│  ┌──────────────────────────────────────────┐ │
+│  │ <header>                                 │ │
+│  │   <h1>Lora Bold · text-3xl · navy</h1>   │ │
+│  │   <p>dek · text-base muted</p>           │ │
+│  │ </header>                                │ │
+│  ├──────────────────────────────────────────┤ │
+│  │ <aside> (optional trust strip)           │ │
+│  │   bg-navy-veil/40 p-5                    │ │
+│  ├──────────────────────────────────────────┤ │
+│  │ <form>                                   │ │
+│  │   space-y-6 rounded-lg                   │ │
+│  │   border-navy-frame p-6                   │ │
+│  │   [sections, <Separator/>, etc.]         │ │
+│  │   ┌──────────────────────────────────┐   │ │
+│  │   │ submit row · justify-end         │   │ │
+│  │   │   gold pill + ArrowRightIcon     │   │ │
+│  │   └──────────────────────────────────┘   │ │
+│  │ </form>                                  │ │
+│  └──────────────────────────────────────────┘ │
+```
+
+**Layout primitives:**
+- Page wrapper: `mx-auto max-w-2xl space-y-8 md:p-4` (32px content edge on desktop per the doubled-padding convention)
+- Header: `space-y-3 pb-2 pt-2` containing Lora H1 (`text-3xl font-bold tracking-tight leading-tight text-navy [font-family:var(--font-lora-bold)]`) + dek (`text-base leading-relaxed text-muted-foreground max-w-[60ch]`)
+- Optional trust aside (`/events/submit` uses one with founder faces; `/preferences` skips it): `flex items-start gap-4 rounded-lg bg-navy-veil/40 p-5` — soft wash distinguishes it from the outlined form module
+- Form module: `space-y-6 rounded-lg border border-navy-frame p-6` — outlined card containing the *whole* form. Sections inside are separated by `<Separator />`, not nested cards.
+- Section heads inside the form: `text-sm font-semibold text-navy`
+- Submit row: `flex justify-end` with the gold pill (`rounded-full bg-gold-hue font-semibold text-white hover:bg-gold-shade`) + `ArrowRightIcon className="ml-2 h-4 w-4"`
+
+**Why this composition.** The H1 + dek lead. The aside (when present) carries trust/context (e.g. "Reviewed by Afonso, Carlos & Malik" on `/events/submit`). The outlined module contains the whole form so it reads as one editorial card, not a stack of sub-cards. The gold pill submit is the page's one conversion moment.
+
+**Variants:**
+- **Submit-only** (`/subscribe`, `/events/submit`): single form module, single gold pill, success state replaces the form via the *form-to-success swap* motion pattern.
+- **Manage-existing** (`/preferences`): adds a quiet inline destructive secondary action ("Unsubscribe from everything") next to the gold pill — destructive treatment lives in the confirmation dialog, not the trigger.
+- **Sticky-CTA-augmented** (`/subscribe`): adds the *Sticky CTA bar* when the in-form Subscribe is off-screen and the user has selections.
+
+**Identity-aware behavior.** Form-page templates that collect name + email integrate with `lib/user-identity.ts` for the *personalized greeting + pre-filled identity hint* pattern. Auth-locked email (from an authenticated profile) always wins over localStorage; pre-fill the name from localStorage *only* when the saved identity matches the locked email.
+
 ## Implementation
 
 ### Where tokens live
 
-- **Tailwind tokens** in [`tailwind.config.ts`](../tailwind.config.ts) — extends the default color theme with the brand keys (`navy-*`, `cyan-*`, `gold-*`, `orange-*`, `green-*`). Use as utility classes.
+- **Tailwind tokens** in [`tailwind.config.ts`](../tailwind.config.ts) — extends the default color theme with the brand keys (`navy-*`, `cyan-*`, `gold-*`, `orange-*`, `green-*`) using painter's-vocabulary variants. Use as utility classes.
 - **Fonts** in [`styles/fonts.ts`](../styles/fonts.ts), wired via CSS variables. Use as `[font-family:var(--font-lora-bold)]` etc.
 - **Shadcn theme tokens** (background, foreground, muted, etc.) in [`styles/globals.css`](../styles/globals.css). Use as `bg-background`, `text-muted-foreground`.
 
 ### Adding a new color
 
-1. Add the token + hex to the table above with a clear "use" column.
-2. Wire it in `tailwind.config.ts` under a named family (don't collide with numeric scale keys).
-3. Note its dark-mode behavior in the table if non-trivial.
+1. Confirm it's actually needed — the existing palette is wide. Most "new color" requests should resolve into a `tint` or `wash` of an existing family.
+2. If you do need a new variant, define it in OKLCH first to ensure the character matches the system (target L=0.88 C=0.07 for tints, L=0.94 C=0.03 for washes), then convert to hex.
+3. Add the token + hex to the family table above with a clear "use" column.
+4. Wire it in `tailwind.config.ts` under the appropriate family.
+5. Note its dark-mode behavior in the table if non-trivial.
 
 ### Adding a new component convention
 
 1. Add a short section to "Component conventions" above with the visual rule.
 2. Implement once in shared components if it's truly reusable; otherwise document the inline pattern so future uses match.
 
+### Outbound link UTM tracking
+
+All outbound cross-links to partner orgs and the founders' sibling projects use a consistent UTM scheme so destinations can attribute Adamastor traffic correctly in their analytics:
+
+```
+?utm_source=adamastor.blog&utm_medium=<page>&utm_campaign=cross_link
+```
+
+- **`utm_source=adamastor.blog`** — the canonical source identifier. Matches the actual domain (third-party analytics tools typically aggregate by domain string, so destinations see Adamastor's traffic correctly attributed even when many referrers are mixed in their reports).
+- **`utm_medium=<page>`** — names the page the link came from (`footer`, `about`, etc.).
+- **`utm_campaign=cross_link`** — the campaign value used across all editorial cross-link contexts. Distinguishes our partnership/credit cross-links from any future paid or campaign-specific traffic.
+
+**Apply UTMs to:**
+- Partner / community org links in the Wider Network section, Opinion-contributor org callouts, footer "Our projects" column.
+- Founder personal sites and projects surfaced in masthead bios (e.g. `moonwith.com`, `hackaboa.com`).
+
+**Skip UTMs on:**
+- Personal social profiles (LinkedIn, X, GitHub) — these are identity pages, not analytics destinations, and UTM params clutter personal-profile URLs in a way users may find off-putting.
+- Internal links (`/subscribe`, `/events/submit`, etc.) — own-domain.
+- `mailto:` links.
+
+Site-wide instance count as a reference: ~16 outbound UTM-tagged links across the about page and footer at time of writing. If that grows past ~30, consider centralising the UTM builder into a small helper (`buildCrossLinkUrl(href, medium)`) rather than inlining the query string everywhere.
+
 ## Known limitations / open questions
 
-- **Three competing cyans.** The codebase currently uses `#24acb5` (legacy hex, on `/` kicker labels and the active city scope tab), `cyan-darker` (`#028E97`, the brand token), and `cyan` (`#04C9D8`, also a brand token). These are close enough to read as "all cyan" at a glance but visibly different side by side. Decisions to make: (a) fold `#24acb5` into the scale as a new token, (b) replace all `#24acb5` callsites with `cyan-darker`, or (c) move the kicker role to `orange-dark` and keep cyan strictly for emphasis.
-- **Kicker color role.** The current Orange tokens table says `orange-dark` is for "opinion kicker, byline accent" — but in practice the home feed kickers ("WEEKLY DIGEST" per article) are rendered in `#24acb5` (cyan-ish), not orange. Either the doc is aspirational and the implementation needs to follow, or the kicker really should be cyan-ish and the role assignment in the Orange table should be revised. Tied to the cyans question above.
-- **"One cyan moment per fold" needs softening.** The current rule (color usage rule 1) doesn't accommodate the cyan-ish kicker labels (multiple per page on `/`). Either revise the rule to permit a separate kicker-cyan role, narrow it to "one cyan *highlight* moment per fold" (where highlight ≠ kicker), or change the kicker color so the rule stays clean.
-- **Logo SVG color.** The light-mode wordmark (`adamastorLogotype.svg`) was using `#0f0d2a` (a dark navy with a violet undertone) and was swapped to `#104357` (brand navy) this session. The dark-mode variant (`adamastorLogotypeDark.svg`) uses `#e3f3f7` which matches the dark brand strip — not touched. Verify on dark-mode review.
-- **Dark mode coverage** for the brand tokens is handled per-usage today. If usage grows, migrate to HSL CSS variables defined in `.dark` blocks.
-- **No `tailwind-merge` rules** for the brand tokens yet. Class conflicts (e.g., `bg-navy` overridden by `bg-cyan`) resolve to last-wins as normal.
-- **No semantic alias layer** (e.g., `bg-success` → `bg-green-main`). Worth adding if components want to be theme-agnostic; not needed today.
+- **Cyan deprecation.** Cyan is currently restricted to dark-mode anchoring and rare brand-moment hues. Open question: should we deprecate it entirely (move dark-mode anchors to navy-family tones via a different naming scheme), or keep cyan as a specifically-cool brand counterpoint that's reserved for hero / "wow" beats only?
+- **Stray colors in 3rd-party tool CSS.** `styles/prosemirror.css` (TipTap selected-node outline = `#5abbf7`), `styles/globals.css` HighlightJS keyword color (`#70cff8`), and the mobile-tab-bar dark active state (`#4ce4f0`, which is `cyan-glow`'s hex but in raw CSS) — all outside the Tailwind token system. Pending decision: introduce CSS variables in `globals.css` `:root` / `.dark` blocks so these can reference brand tokens.
+- **`event-category-selector.tsx` chip.** Still uses hardcoded brand-cyan hex values in its className (`bg-[#DFF6F8]`, `border-[#04C9D8]/30`). Should migrate to use brand tokens with Tailwind opacity syntax.
+- **`#24acb5` retired** (was the legacy teal kicker color). All usages migrated to `text-navy-tone` / `text-navy` / `border-navy`. Watch for re-introduction.
+- **Dark mode coverage** is currently handled per-usage with `dark:` variants. If usage grows further, migrate to HSL CSS variables defined in `.dark` blocks for cleaner theme switching.
+- **No semantic alias layer** (e.g., `bg-success` → `bg-green-hue`). Worth adding if components want to be theme-agnostic; not needed today.
 - **Shadcn `<Card>`** still appears in some legacy surfaces — prefer the sidebar-module outlined pattern for new work and migrate Card usage opportunistically.
+- **`navy-deep`, `green-tint`, `green-wash`** have zero current consumers. Defined for system consistency; OK to use when needed.
+- **Sub-CTA link pattern inconsistency** (flagged on `/about`'s Editorial section + Get-in-Touch cards). Three patterns currently used for "go to this form" CTAs:
+  - *Inline action with hover-background* (`-mx-2 -my-1 px-2 py-1 rounded-md hover:bg-navy-wash` + arrow): the footer "Submit your event" link and the About-page Events card. Heaviest affordance.
+  - *Editorial inline link* (solid `decoration-2 navy-tint` underline + arrow): the About-page "Subscribe to the Weekly" link and the Editorial card's email.
+  - *Muted reference link* (dotted, navy-tone): everywhere else.
+
+  Open question: should "Subscribe to the Weekly" use the same hover-background pattern as "Submit your event" (consistent register for sub-CTAs that route to forms), or keep the underline-led editorial inline link? Currently leaning toward inline-action-with-hover-background for both, since they're parallel actions structurally. Resolve before any new sub-CTA lands so we don't pile up a third precedent.

@@ -71,7 +71,7 @@ function EventCalendarMobileStrip({
 
 	return (
 		<div className="lg:hidden p-3 space-y-3">
-			<div className="text-base font-bold text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]">
+			<div className="text-base font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 				{headingLabel}
 			</div>
 			<div
@@ -102,14 +102,14 @@ function EventCalendarMobileStrip({
 							className={cn(
 								"snap-start flex-shrink-0 flex flex-col items-center justify-start min-w-[52px] h-[68px] rounded-lg border transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 pt-2",
 								isSelected &&
-									"border-cyan bg-cyan-faded text-cyan-darker dark:border-[rgba(4,201,216,0.4)] dark:bg-[rgba(4,201,216,0.12)] dark:text-[#4ce4f0]",
+									"border-navy bg-navy-tint text-navy font-bold dark:border-cyan/[0.4] dark:bg-cyan/[0.12] dark:text-cyan-glow",
 								!isSelected &&
 									isToday &&
-									"border-navy text-navy font-bold dark:border-[#E3F2F7] dark:text-[#E3F2F7]",
+									"border-navy text-navy font-bold dark:border-cyan-lifted dark:text-cyan-lifted",
 								!isSelected &&
 									!isToday &&
 									hasEvent &&
-									"border-navy-faded text-navy hover:bg-navy-faded dark:border-[rgba(76,228,240,0.18)] dark:text-[#E3F2F7] dark:hover:bg-[rgba(76,228,240,0.08)]",
+									"border-navy-frame text-navy hover:bg-navy-wash dark:border-cyan-glow/[0.18] dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.08]",
 								!isSelected &&
 									!isToday &&
 									!hasEvent &&
@@ -126,8 +126,8 @@ function EventCalendarMobileStrip({
 									"mt-1.5 h-1.5 w-1.5 rounded-full",
 									hasEvent
 										? isSelected
-											? "bg-cyan-darker dark:bg-cyan"
-											: "bg-navy dark:bg-[#E3F2F7]"
+											? "bg-navy dark:bg-cyan"
+											: "bg-navy dark:bg-cyan-lifted"
 										: "bg-transparent",
 								)}
 							/>
@@ -184,16 +184,16 @@ function EventCalendar({
 				className={cn(
 					"relative flex h-9 w-9 flex-col items-center justify-center rounded-md transition-colors duration-150 ease",
 					// Today: subtle bold-navy emphasis, no bg fill — keeps the
-					// cyan-faded fill exclusive to the SELECTED state so the
+					// cyan-wash fill exclusive to the SELECTED state so the
 					// signal-vs-context distinction stays readable.
-					isToday && !isSelected && "font-bold text-navy dark:text-[#E3F2F7]",
-					// Selected: cyan-faded bg + cyan-darker text. The one cyan
+					isToday && !isSelected && "font-bold text-navy dark:text-cyan-lifted",
+					// Selected: cyan-wash bg + cyan-shade text. The one cyan
 					// moment in the calendar — matches the active category chip
 					// pattern in the events column.
-					isSelected && "bg-cyan-faded text-cyan-darker font-bold dark:bg-[rgba(4,201,216,0.12)] dark:text-[#4ce4f0]",
-					// Event day (not today/selected): navy text, navy-faded hover
+					isSelected && "bg-navy-tint text-navy font-bold dark:bg-cyan/[0.12] dark:text-cyan-glow",
+					// Event day (not today/selected): navy text, navy-wash hover
 					// — mirrors the rest of the page's interaction model.
-					hasEvent && !isToday && !isSelected && "font-medium text-navy dark:text-[#E3F2F7] hover:bg-navy-faded dark:hover:bg-[rgba(76,228,240,0.08)]",
+					hasEvent && !isToday && !isSelected && "font-medium text-navy dark:text-cyan-lifted hover:bg-navy-wash dark:hover:bg-cyan-glow/[0.08]",
 					// Non-event day: muted, non-interactive.
 					!hasEvent && !isToday && !isSelected && "text-muted-foreground opacity-60",
 					hasEvent && "cursor-pointer",
@@ -210,8 +210,8 @@ function EventCalendar({
 				{hasEvent && (
 					<div
 						className={cn(
-							"absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-navy dark:bg-[#E3F2F7]",
-							isSelected && "bg-cyan-darker dark:bg-cyan",
+							"absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-navy dark:bg-cyan-lifted",
+							isSelected && "bg-navy dark:bg-cyan",
 						)}
 					/>
 				)}
@@ -240,7 +240,7 @@ function EventCalendar({
 				months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
 				month: "space-y-4",
 				caption: "flex justify-center pt-1 relative items-center mb-6",
-				caption_label: "font-bold text-base absolute left-2 text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]",
+				caption_label: "font-bold text-base absolute left-2 text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]",
 				nav: "space-x-1 flex items-center",
 				nav_button: cn(
 					buttonVariants({ variant: "outline" }),
@@ -250,7 +250,7 @@ function EventCalendar({
 				nav_button_next: "absolute right-1",
 				table: "w-full border-collapse space-y-1",
 				head_row: "flex",
-				head_cell: "text-navy-pastel dark:text-[rgba(158,210,225,0.7)] rounded-md w-9 font-semibold text-[0.8rem]",
+				head_cell: "text-navy-tone dark:text-cyan-dim/[0.7] rounded-md w-9 font-semibold text-[0.8rem]",
 				row: "flex w-full mt-2",
 				cell: "h-9 w-9 text-center text-sm p-0 relative rounded-md transition-colors duration-150 ease",
 				day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",

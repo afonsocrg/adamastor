@@ -56,7 +56,7 @@ export function EventCategorySelector({ value, onChange, onManualChange }: Event
 							variant="outline"
 							size="sm"
 							onClick={() => removeCategory(category.slug)}
-							className="h-8 rounded-full border-[#04C9D8]/30 bg-[#DFF6F8] pr-2 text-[#104357] hover:bg-[#c9eef1] dark:border-[#04C9D8]/30 dark:bg-[#04C9D8]/10 dark:text-[#E3F2F7] dark:hover:bg-[#04C9D8]/20"
+							className="h-8 rounded-full border-[#04C9D8]/30 bg-[#DFF6F8] pr-2 text-[#104357] hover:bg-[#c9eef1] dark:border-[#04C9D8]/30 dark:bg-[#04C9D8]/10 dark:text-cyan-lifted dark:hover:bg-[#04C9D8]/20"
 						>
 							{category.name}
 							<X className="ml-1.5 h-3.5 w-3.5" />
