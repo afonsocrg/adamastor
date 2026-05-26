@@ -1,147 +1,184 @@
-# Hand-off — 2026-05-26 (end of day)
+# Hand-off — 2026-05-26 (late evening)
 
-Three commits landed today, all on `main`, not pushed (~54 commits unpushed total).
+Two commits today on `main`, not pushed (~56 commits unpushed). Both centre on `/dashboard/calendar`: a brand-aligned redesign across all four views, then a perf pass with an unfinished skeleton/cross-fade refactor.
 
 ---
 
 ## ✅ What landed today
 
-### `aead11a` — fix: sanitize scraped event descriptions
+### `c3631e1` — feat: dashboard calendar redesign — brand palette + scannable Month view
 
-The earliest session work. New `lib/events/clean-description.ts` strips `#### `-style heading markers and de-shouts SHOUTY MARKETING COPY in descriptions auto-filled from Luma/Eventbrite/Meetup scrapes. Wired into all three extractors in `app/api/scrape/route.ts`. User-typed descriptions from `/events/submit` are NOT passed through — only the auto-fill path.
+Aligns the admin calendar with the design-system migration. Touches `app/(dashboard)/dashboard/calendar/{page,CalendarTestClient,calendar-custom.css}.tsx`, adds `app/(dashboard)/dashboard/calendar/AgendaList.tsx`, extends `lib/events/categories.ts` with a color mapping.
 
-Light tests via `node:test` (no new framework dep) — `npm test` runs `tsx --test lib/**/*.test.ts`. 14 cases at the time of landing.
+**Across all views:**
 
-### `80e918c` — feat: optional end_time on events
+- Category-tinted event chips via `eventPropGetter` + `cat-{slug}` CSS classes. Mapping in `EVENT_CATEGORY_COLORS` (lib/events/categories.ts): `software-engineering → navy`, `ai → cyan`, `design → orange`, `product → gold`, `startups-fundraising → green`. Each category gets a `chip` (full pill), a `dot` (small filled circle for Month view's inline rendering), and a `label`.
+- Past days + events fade. `dayPropGetter` returns `className: "rbc-day--past"` + inline `style={{ backgroundColor: "rgba(232, 240, 244, 0.6)" }}` for past cells; `eventPropGetter` adds `rbc-event--past` + inline `opacity: 0.42` for past events. Inline styles ship in the SSR HTML so the wash + fade are present on first paint, not waiting on the custom CSS to apply.
+- Sibling fade on hover in time-grid views. Two mechanisms (belt-and-suspenders): a CSS `.rbc-day-slot:has(.rbc-event:hover) .rbc-event:not(:hover) { opacity: 0.2 !important; transform: scale(0.97); }` rule, plus a JS-driven `mouseover` / `mouseout` listener that toggles `rbc-event--dimmed` on siblings. Either works alone; together they cover Chromium's flaky `:has` re-evaluation on `:hover`.
+- Orange-hue 'now' time-line in Day/Week (was cyan). Gradient version for Week fades across past/future columns.
+- Removed all SSR entry animations (`fadeInUp` on `.rbc-{month,time,agenda}-view`, staggered `.rbc-row` reveals). Per design-system.md: "no default entry animation on SSR'd pages — replaying a fade+slide on hydration creates perceived jank."
 
-Full vertical so the dashboard calendar's existing react-big-calendar duration-block code path has data to render. Migration `20260526120000_add_end_time_to_events.sql` adds `events.end_time timestamptz` (nullable) + check constraint `end_time > start_time`. Applied via Supabase dashboard SQL editor; file kept for audit.
+**New custom AgendaList component** replaces rbc's tabular Agenda view with a day-grouped editorial list: Lora day headings ("Tuesday, May 26"), indented event rows showing time range + title + category pill + city. Title links to event.url in a new tab; an Edit icon on hover routes to `/events/[id]/edit`. Past events drop to `opacity-40`.
 
-End-to-end pipeline:
+**Per-view chrome:**
 
-- **Scrape** (`app/api/scrape/route.ts`): Event interface gains `endTime?`; pulled from JSON-LD `endDate` and `event:end_time` meta in all three extractors (default / Luma / Eventbrite).
-- **Forms** (`/events/submit`, `/dashboard/add-event`, `/events/[slug]/edit`, reviewer screen): optional End-time `DateTimePickerField`, pre-fills from `scraped.endTime`. Zod refine: if provided, must be after `start_time`.
-- **APIs** (`/api/events` POST + `[id]` PUT, `/api/events/submissions` POST + `[id]` PATCH): accept `end_time` in body, write to DB.
-- **Public read** (`lib/events/fetch-public.ts`): `PublicEvent.end_time?`.
-- **Calendar** (`/dashboard/calendar/page.tsx`): fallback is `start + 2h` when `end_time` is NULL, so duration blocks render and overlaps are visible. Constant is local to the page so easy to tune later if the data suggests a different default.
-- **JSON-LD** (`lib/events/seo.ts`): `endDate` added to Schema.org Event when present.
-- **ICS** (`lib/events/calendar.ts`): DTEND uses real `end_time` when set, otherwise the same 2h default.
+- **Week**: stacked `MON / 25` header (Inter caps + tracking above Lora Bold numeral). Today's numeral wears the navy-tint pill. Required `min-height: 3.5rem` on `.rbc-row.rbc-time-header-cell` (rbc's intrinsic sizing resolves to ~42px regardless of child content) AND `overflow: visible` on `.rbc-header` (rbc's default `overflow: hidden` clipped the stacked content). Today's column body is transparent — pill alone signals today.
+- **Month**: weekday headers right-aligned to match in-cell date numerals; no top/bottom dividers around the header row. Today's cell has NO wash (white); today's date numeral wears the navy-tint pill. Past in-range and past off-range cells look identical (both get navy-frame at 60% via `rbc-day--past`; off-range bg dropped). Events render as inline rows: `● 11am Title…` with category dot + time + truncated title. Hover on a non-past event reveals a popover (140ms fade + scale to 1.05) that expands to the full title up to 320px.
+- **Day** inherits the time-grid CSS from Week.
 
-**Why end_time is nullable rather than required:** organisers genuinely don't always know when an event ends. Forcing them to guess would either block submissions or teach them to lie. The page-layer fallback gives admins a visible "no end specified" via NULL rather than a fake authoritative value in the DB. (Recap question we worked through during the session.)
+**Outer wrapper**: `<div className="rounded-lg border border-navy-frame bg-white p-5 …">`. The inner `.rbc-calendar` border + rounded-xl were dropped — the wrapper provides the only border tone.
 
-### `0d91733` — ref: tighten event description cleaner + extract title cleaner
+**Click behaviour**: clicking an event opens `event.url` in a new tab (matches Agenda). The persistent `.rbc-selected` ring was removed — no useful workflow for "stay selected."
 
-Second-pass refinement after running a SQL preview over real DB data. The first pass missed a lot.
+### `684c907` — perf(calendar): windowed query, moment locale strip, skeleton cross-fade (wip)
 
-Description cleaner (`lib/events/clean-description.ts`) now runs in this order:
+Three perf passes, the third unfinished.
 
-1. Heading markers `^#{1,6} ` (heading-style, requires whitespace — so `#1`, `Panel #16` pass through unchanged)
-2. Blockquote markers `^> `
-3. Bold `**x**`, `__x__` (content allows nested markers so `**A *B* C**` matches cleanly)
-4. Italic `*x*`, `_x_` (bullet markers `* item` and `snake_case` survive via boundary lookarounds)
-5. Markdown links `[text](url)` → `text` (URLs aren't clickable from line-clamped cards anyway)
-6. Backslash escapes `\|`, `\,`, `\.` (from Markdown-table source rows)
-7. De-shout (see below)
-8. Collapse 3+ blank lines → 2
+**1. Windowed events query.** `page.tsx` now fetches only events in `[now − 60d, now + 180d]`. Past matters less than future for organisers (they care about what's coming), so the asymmetry is intentional. Drops SSR payload from ~840 rows to ~100–200. Navigating outside the window currently shows empty cells; on-demand re-fetch on prev/next at the window edges is a follow-up.
 
-**De-shout threshold:** ≥3 long-caps in a run (matches Malik's "more than 2 words use all caps" rule). Tried lowering to ≥2; preview showed it demoted ~12 acronym pairs (`AWS UG Lisbon`, `AI ACT`, `CNCF KCD`, `WP REST API`, `NFC SUMMIT`, `DSPT x NOS`) vs catching ~7 legitimate 2-word shouts (`HUGE DEAL`, `YOUTH ENTREPRENEURSHIP`, `SOCIAL INNOVATION`). Reverted; acronym preservation wins.
+**2. moment.js locale strip.** `webpack.IgnorePlugin` in `next.config.js` ignores `^./locale$` inside the moment module — drops ~50–80KB of non-English locale data from the production bundle. **Caveat**: Turbopack (dev) ignores `webpack` config, so dev runs still ship the full moment. The IgnorePlugin only applies to production builds. Until we migrate off moment entirely (next-likely-target), this is a prod-only win.
 
-**Classifier fixes from visible preview regressions:**
+**3. Skeleton cross-fade — WIP, open issue documented below.** New `MonthSkeleton.tsx` server-renders a look-alike grid: toolbar shell (calendar icon + Lora "May 2026" + nav button shapes + view-select shape), MON/TUE/WED day headers, 7×6 grid with date numerals + today pill + past wash + event-count "ghost" bars sized to actual events-per-day. New `CalendarWithSkeleton.tsx` is a three-phase state machine:
+- `"skeleton"` — SSR + first paint, only the skeleton rendered.
+- `"crossfade"` — chunk preloaded (via `import("./CalendarTestClient")` in useEffect), real calendar mounts `absolute inset-0` on top of skeleton, both visible during 300ms opacity transition.
+- `"done"` — 300ms timer fires, skeleton unmounts, real calendar's wrapper drops `absolute inset-0` and returns to static flow (so Agenda's variable height isn't capped).
 
-- Unicode-aware uppercase: `\p{Lu}` / `[[:upper:]]` so `ESTÁ`, `NEGÓCIO` count
-- Letter-only extraction so `DON'T` classifies as long-caps (was falling to "other" because of the apostrophe)
-- Single-letter caps (`A`, `I`) count as short-caps — they extend runs without anchoring one. Fixes partial transforms like `Mentoring As A VILLAGE`.
-- Newline-containing whitespace breaks runs so `1PM\n\nLACS` on adjacent paragraphs isn't merged
+**Open issue**: there's still a perceptible "second white moment" after the cross-fade completes — Malik described it as "the page transitions to all white after a first mount and then loads the calendar again." Suspected causes: React Strict Mode double-mount in dev (which would visually disappear in production), or the `absolute → static` wrapper-class change re-triggering rbc's mount measurements. Refactor plan agreed on but not implemented: **CSS Grid stacking** — render both skeleton and real calendar in the same grid cell (`col-start-1 row-start-1`), they overlap naturally without `position: absolute`, real calendar's wrapper class never changes across phases.
 
-**Title cleaner extracted to `lib/events/clean-title.ts`:** same de-shout rule via shared `deshout` export, plus title-specific scrubs:
+**Vercel-best-practices cleanup applied in the same pass:**
 
-- Online-indicator junk: `[Online]`, `(Virtual)`, `🌐 / 💻 / 🖥️`
-- Meetup date-tail: `", Mon, Jan 1, 2026, 6:00 PM   | Meetup"` → `""`
-- Platform branding suffixes: ` · Luma`, ` | Meetup`, ` | Eventbrite`
-
-**DB cleanup of existing rows** was run via the matching SQL function in the Supabase dashboard SQL editor — same logic ported to PL/pgSQL with a tokenizer that mirrors the JS walker. Both `description` and `title` columns swept.
-
-Test suite: 37 cases (clean-description) + 13 (clean-title) via `node:test`.
+- `page.tsx`: `Promise.all` for parallel `getUserProfile(supabase)` + events query; explicit column list in `select()` (no `*`). Added `serverNow: Date` prop passed to `CalendarWithSkeleton` so SSR + hydration agree on "today" (avoids a midnight-crossing mismatch). `select('id, title, ...')` initially included `name` (carried over from the old `event.title || event.name` fallback) and hit `column events.name does not exist` — removed.
+- `CalendarTestClient.tsx`: hoisted `calendarComponents` to module scope (was `useMemo([] -> {…})`); functional `setState` in `handleSelectSlot` (drops `events` from deps); **fixed a real interval-leak bug** in the week midnight effect — `clearInterval` was returned from inside the `setTimeout` callback, which is meaningless (the timer callback's return is ignored), so on unmount after midnight the interval kept firing forever. Lifted `dailyInterval` out so the useEffect's cleanup actually clears it. Hoisted duplicate `new Date()` calls in the Upcoming Events block into a single `now`. Trimmed `CalendarEvent` interface (dropped unused `location`, `description`).
+- `AgendaList.tsx`: hoisted `Date.now()` out of the per-event map loop.
 
 ---
 
-## 🟡 Carried over (still open from previous handoffs)
+## 🟡 Carried over (still open)
 
-From `2026-05-26 (earlier)` and prior:
+From `2026-05-26 (earlier)` and prior, plus the new entries from today:
 
 1. **SSL 526 on `www.adamastor.blog`** — P0 from two days ago. Cloudflare → Vercel SSL mode is "Full (strict)" but Vercel doesn't have a cert for `www`. Add `www.adamastor.blog` as a domain in Vercel project → Domains, 301 → apex.
-2. **Lighthouse a11y issues** — `aria-pressed` chips fix landed yesterday. Still open:
+2. **Lighthouse a11y issues**:
    - Subscribe button contrast: white on `bg-gold-hue` (#D4A657) = 2.23:1. Fix: navy text on gold. Same pattern on the Submit button across `/events/submit`, `/subscribe`, `/preferences`.
-   - Calendar day numbers: `#ababab` on white = 2.29:1. Bump to `text-muted-foreground` or `#6b7280`.
-3. **Validate JSON-LD** via Rich Results Test against `/`, `/about`, `/posts/<latest>`, `/events`, `/events/lisboa/design`. (New `endDate` field is now in the Event JSON-LD, worth re-checking.)
+   - ~~Calendar day numbers: `#ababab` on white = 2.29:1.~~ ✅ Resolved as part of the calendar redesign — off-range date numbers now use `text-navy-tone/70`, current-month numbers use `text-navy` (full strength).
+3. **Validate JSON-LD** via Rich Results Test against `/`, `/about`, `/posts/<latest>`, `/events`, `/events/lisboa/design`.
 4. **Submit sitemap** to Google Search Console + Bing Webmaster Tools.
 5. **Manual AI visibility baseline** — screenshot ChatGPT / Perplexity / Claude results, re-check in 4–6 weeks.
-6. **Update `social_links` rows** in DB for Carlos, Afonso, Malik (feeds BlogPosting author schema).
+6. **Update `social_links` rows** in DB for Carlos, Afonso, Malik.
+
+**New from today:**
+
+7. **Calendar cross-fade second flash** (open issue from `684c907`). Refactor to CSS Grid stacking on resume — render skeleton + real in same grid cell, drop `absolute inset-0` and the post-fade class change. Combined with `find-skills` discovery (now symlinked from `/Users/malik/.agents/skills/find-skills` to `~/.claude/skills/find-skills` — see Tools section), the next session should query find-skills for "smooth client-component mount transitions / hydration flash in Next.js App Router" before implementing.
+8. **Agenda revisit** flagged mid-session: Malik wanted to revisit some of the day-grouped layout decisions "with more time and mental space." Specifics not captured; ask before re-opening.
+9. **Calendar window edge handling** — prev/next currently shows empty cells past the ±window. On-demand re-fetch trigger when user navigates to a month outside the loaded window.
 
 ---
 
 ## 📋 Malik's planned work — release roadmap (from Notion)
 
-Two of these landed today (struck through). Remainder is the runway for upcoming sessions.
+Updated from yesterday's roadmap. Today's two big chunks landed:
 
-- ~~Remove `####` from event descriptions.~~ ✅ `aead11a` + `0d91733`
-- ~~Remove ALL CAPS from event descriptions.~~ ✅ `aead11a` + `0d91733`
-- ~~Look into adding an **end time** to the events.~~ ✅ `80e918c`
+- ~~Remove `####` from event descriptions.~~ ✅ (earlier `aead11a` + `0d91733`)
+- ~~Remove ALL CAPS from event descriptions.~~ ✅ (earlier `aead11a` + `0d91733`)
+- ~~Look into adding an **end time** to the events.~~ ✅ (earlier `80e918c`)
+- ~~Make calendar UI fit the box.~~ ✅ Resolved as part of the redesign — outer wrapper sets the calendar dimensions; toolbar + grid fit within. Inner `.rbc-calendar` border removed so the navy-frame outer wrapper is the only frame.
 - **Create and deploy cron job and workers for sending the newsletters.** — next likely candidate. The subscriber + categories model is shipped; the missing piece is the send loop.
 - **Check and tweak email templates.** Welcome / preferences-link / per-category-newsletter. Brand palette (navy + cyan + gold) + seal as header ornament. Test sends to `delivered@resend.dev`.
 - **Design the "unsubscribe from everything" state or page.** The button exists on `/preferences`; the destination/confirmation state doesn't.
-- **Make calendar UI fit the box.** Separate concern from the end_time wiring — the `/dashboard/calendar` page currently uses a fixed `height: 800px`. Likely a layout / responsive fix.
+- **Public-facing calendar variant.** Today's redesign is admin-only. Malik flagged that the calendar will be adapted for public use so event organisers + community builders can see when events overlap and pick better dates. **Open performance plan** (discussed but not implemented) prioritises:
+  - moment.js → date-fns migration (~290KB → ~10-20KB on every public page)
+  - ISR + on-demand revalidation (public has no cookie auth → CDN-cacheable)
+  - Cloudflare Workers KV for events-feed caching at edge globally (Malik has paid CF account, MCP now connected — see Tools)
+  - Hover-prefetch on prev/next/select buttons (only meaningful once query is windowed AND prev/next re-fetch)
+  - Possibly: replace rbc with a lighter custom calendar (~5–10KB) for the public read-only variant
 - **Redesign Articles screen to be consistent with Events.** `/` editorial pass — biggest open design task. The kicker-color tension lives here (open #2 from yesterday's handoff: doc says `orange-dark`, code uses `#24acb5`).
 - **Redesign Articles route.** Per-post or per-author surfaces; spec needed before starting.
-- **Improve auto-tag situation.** `inferEventCategorySlugs` in `lib/events/categories.ts` works but is keyword-heuristic. Possibly LLM-assist on submission?
+- **Improve auto-tag situation.** `inferEventCategorySlugs` in `lib/events/categories.ts` works but is keyword-heuristic. Many Portuguese-titled events fall through to `cat-none` (visible in the calendar as the neutral navy-veil block). Possibly LLM-assist on submission.
 - **Update PostHog tracking** so we can answer "what's happening in our product." Decide on a small set of events before instrumenting.
-- **Dynamic OG images per events route** (was in yesterday's P2 backlog at ~1–2hr).
+- **Dynamic OG images per events route**.
 
 ---
 
 ## 🧠 Context the next session should know
 
-### Cleaners are now stable
+### Calendar architecture
 
-`lib/events/clean-description.ts` and `lib/events/clean-title.ts` are the canonical places to evolve scraped-content sanitization. Both have `node:test` coverage; run `npm test` before touching them. The exported `deshout` is shared between them — change it once, both surfaces inherit.
+- `app/(dashboard)/dashboard/calendar/page.tsx` (server component) — fetches windowed events + user in parallel; passes `initialEvents`, `user`, `serverNow` to `CalendarWithSkeleton`.
+- `app/(dashboard)/dashboard/calendar/CalendarWithSkeleton.tsx` (client component, hosts the dynamic import) — three-phase state machine; WIP cross-fade.
+- `app/(dashboard)/dashboard/calendar/MonthSkeleton.tsx` (renders inside CalendarWithSkeleton) — static look-alike for first paint.
+- `app/(dashboard)/dashboard/calendar/CalendarTestClient.tsx` (client component, dynamic-loaded) — the real react-big-calendar wrapper. Renders the AgendaList for the Agenda view; renders rbc Calendar for the grid views.
+- `app/(dashboard)/dashboard/calendar/AgendaList.tsx` — custom day-grouped editorial list.
+- `app/(dashboard)/dashboard/calendar/calendar-custom.css` — single CSS file, organized into 10 numbered sections with a TOC at top.
 
-**If you change the de-shout threshold:** re-run the SQL preview against the DB before re-applying the cleanup. The preview/apply SQL is in the assistant's earlier turn (the temp-function block); paste it into the Supabase SQL editor as one self-contained query (paste the function definitions + the SELECT or UPDATE in the same submission — `pg_temp` is session-scoped and Supabase opens a fresh connection per editor query).
+`react-big-calendar` is bundled into the route. The Calendar component is dynamic-imported via `CalendarWithSkeleton` so it can render `ssr: false` (cleaner skeleton swap path) — though see the open cross-fade issue.
 
-### Cleaners run only on scrape output, not on user input
+### Category color mapping is reused beyond the calendar
 
-`cleanEventDescription` and `cleanEventTitle` are only invoked in `app/api/scrape/route.ts`. User-typed submissions via `/events/submit` flow through Zod validation but the cleaner doesn't touch them — user intent is preserved. If you ever want defensive cleanup on submit too, that's a deliberate decision worth surfacing.
+`EVENT_CATEGORY_COLORS` in `lib/events/categories.ts` exposes `chip` (full pill class), `dot` (small filled circle for Month view inline rendering), and `label` (short display name). When the public-facing calendar lands, reuse this mapping for any category visualisation.
 
-### `end_time` is nullable on purpose
+### `dayPropGetter` and `eventPropGetter` carry inline styles, not just classnames
 
-The dashboard calendar (`/dashboard/calendar`) uses a `start + 2h` fallback in the page layer when `end_time` is NULL. Don't backfill NULL rows with the fallback value in the DB — the NULL is meaningful ("organiser didn't specify"). The 2h constant is at `FALLBACK_DURATION_MS` in `app/(dashboard)/dashboard/calendar/page.tsx` and again in `lib/events/calendar.ts` (`DEFAULT_DURATION_HOURS`). Keep them aligned if you tune one.
+This was load-bearing for first-paint correctness: classes alone meant past wash + opacity were missing in initial paint (CSS file injection is async in some dev modes). Inline styles ship in SSR HTML. Don't drop them when refactoring.
 
-### The dashboard calendar is admin-only
+### The week-midnight `useEffect` had a real interval leak
 
-`/dashboard/calendar` is behind admin auth. If the public is ever going to see a time-grid calendar of upcoming events, that's a new surface, not a re-route — the dashboard variant has admin-only event editing wired through `onSelectEvent` / `onSelectSlot` and would need a separate read-only path.
+Fixed in `684c907` but worth re-stating: when setting up an interval inside a setTimeout callback, the interval handle MUST be lifted to the outer scope (using `let dailyInterval` declared before the setTimeout) so the useEffect's return-cleanup can clear it. Returning a function from the setTimeout's callback does nothing — that return value is ignored.
+
+### Cross-fade open issue — refactor plan ready
+
+The position-`absolute` overlay during crossfade phase causes a visible flicker when transitioning to phase "done" (skeleton unmounts, real wrapper class changes from `absolute inset-0 …` to `…`). Refactor to CSS Grid stacking:
+
+```tsx
+<div className="grid">
+  {phase !== "done" && (
+    <div className={`col-start-1 row-start-1 transition-opacity duration-300 ${phase === "crossfade" ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <MonthSkeleton {...} />
+    </div>
+  )}
+  {phase !== "skeleton" && (
+    <div className="col-start-1 row-start-1 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+      <CalendarTestClient {...} />
+    </div>
+  )}
+</div>
+```
+
+Both children at same grid cell → they overlap naturally → real calendar's wrapper class doesn't change between crossfade and done.
+
+### Tools added today
+
+- **Cloudflare MCP** is now available (Workers, KV, D1, R2, Hyperdrive). For the public-facing calendar performance plan, Workers KV is the killer pattern: cron-update an `events:index.json` on event approval/edit, serve at <50ms from edge globally.
+- **Vercel MCP** is also connected (deployments, runtime logs, search docs).
+- **PostHog MCP** is connected (extensive — feature flags, dashboards, surveys, LLM eval, error tracking).
+- **Supabase MCP** is connected. Note: `mcp__supabase__apply_migration` still doesn't find this project; migrations still go through the dashboard SQL editor (see `[[reference_supabase_workflow]]` in memory).
+- **`find-skills` skill** is now symlinked from `/Users/malik/.agents/skills/find-skills` to `~/.claude/skills/find-skills`. Use it when there's a need for functionality that might exist as an installable skill — e.g. the smooth-mount problem.
 
 ### Tools and quirks (unchanged from prior handoffs)
 
 - **Turbopack + App Router shared layout caching**: still occasionally serves stale HTML after rapid edits to shared layouts. `preview_stop` + `preview_start` fixes it.
-- **Supabase migrations**: applied via the dashboard SQL editor, not via `mcp__supabase__apply_migration` (which won't find this project — see `[[reference_supabase_workflow]]` in memory).
-- **`pg_temp` is session-scoped**: when running ad-hoc helper functions in the Supabase SQL editor, paste the `CREATE FUNCTION` definitions and the `SELECT`/`UPDATE` together in one editor query. Separate queries = separate sessions = lost helpers.
+- **Turbopack ignores webpack config in dev**. The `webpack.IgnorePlugin` in next.config.js only applies to production builds — dev keeps the full moment.
 - **DOM-verify, don't screenshot** UI work (per `[[feedback_no_screenshots]]`).
 - **Don't auto-update `docs/design-system.md`** when code/doc conflict (per `[[feedback_design_system_changes]]`) — surface the conflict and ask.
 - **Resend QA**: `delivered@resend.dev` (not `@example.com`).
+- **`.next` cache can corrupt** on aggressive HMR / file moves. Symptom: `ENOENT … app-build-manifest.json`. Fix: `rm -rf .next` and restart.
 
 ---
 
 ## 🔁 Push reminder
 
-**54 commits unpushed** (52 at start of day + today's 3: `aead11a`, `80e918c`, `0d91733`). Before pushing:
+**56 commits unpushed** (54 at start of day + today's 2: `c3631e1`, `684c907`). The calendar redesign is admin-only and not yet user-facing in a meaningful way — push pressure is low.
 
-- `npm run build` locally — the design-token migration + event_categories work + today's cleaner/end_time changes touch many surfaces; a clean prod build catches missing Tailwind classes Turbopack-dev silently allowed.
-- `npm test` — the `node:test` suite now exists and covers both cleaners.
+Before pushing:
+
+- `npm run build` locally — the calendar work touches enough CSS + components that a clean prod build catches issues Turbopack-dev silently allows.
+- `npm test` — `node:test` suite for cleaners still passes; no new tests added today.
 - `npx tsc --noEmit` — already runs as `npm run typecheck`.
-- The Vercel preview gives a more honest Lighthouse number than local dev.
+- Vercel preview Lighthouse for the calendar page once pushed.
 
 ---
 
 ## Suggested opening for the next session
 
-> Read `HANDOFF.md` first. The events ingestion path is now clean (sanitiser + end_time pipeline). Three likely next targets in priority order: **(1)** newsletter cron job + workers (closes the subscriber → send loop), **(2)** Articles screen redesign on `/` (biggest remaining design task, kicker-color question lives here), or **(3)** calendar UI "fit the box" responsive pass. Per the per-page editorial review pattern: observe → ask → propose options → apply, never apply unilaterally.
+> Read `HANDOFF.md` first. Calendar is in a good state visually but has one open issue: the cross-fade between skeleton and real calendar still has a second visible white moment. The refactor plan is documented above (CSS Grid stacking). Before implementing, invoke the `find-skills` skill (now symlinked into `~/.claude/skills/`) with a query about "smooth client-component mount transitions / hydration flash in Next.js App Router" — there may be a more idiomatic pattern available. Per the per-page editorial-review pattern: observe → ask → propose options → apply, never apply unilaterally.
 
 Sleep well.
