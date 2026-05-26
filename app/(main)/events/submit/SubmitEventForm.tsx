@@ -320,7 +320,7 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 	}
 
 	return (
-		<div className="rounded-lg border border-navy-frame dark:border-cyan-glow/[0.18] p-6">
+		<div className="md:rounded-lg md:border md:border-navy-frame md:dark:border-cyan-glow/[0.18] md:p-6">
 			<Form {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 						<FormField
@@ -390,8 +390,6 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 								</FormItem>
 							)}
 						/>
-
-						<Separator />
 
 						{isScraping ? <ScrapeSkeleton /> : (
 							<>
@@ -497,8 +495,6 @@ export default function SubmitEventForm({ initialSubmitterEmail, emailIsLocked, 
 								/>
 							</>
 						)}
-
-						<Separator />
 
 						<div className="space-y-1">
 							<h3 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Your details</h3>

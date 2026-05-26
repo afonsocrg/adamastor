@@ -76,7 +76,7 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 						className="flex flex-col rounded-lg border border-transparent p-4 transition-colors duration-150 ease hover:border-navy-frame dark:hover:border-cyan-glow/[0.18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
 					>
 						<section className="w-full space-y-2">
-							<h3 className="text-xl font-bold leading-tight text-[#104357] [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-inter)] decoration-navy-tint decoration-2 underline-offset-4 group-hover:underline">
+							<h3 className="text-lg md:text-xl font-bold leading-tight text-[#104357] [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-inter)] decoration-navy-tint decoration-2 underline-offset-4 group-hover:underline">
 								{event.title}
 							</h3>
 							{/* Metadata strip — time leads (most scannable for "what's
@@ -87,7 +87,7 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 								<span aria-hidden="true"> · </span>
 								<span>{formatCity(event.city)}</span>
 							</p>
-							<p className="line-clamp-2 max-w-[50ch] text-base leading-relaxed text-muted-foreground">
+							<p className="line-clamp-2 max-w-[50ch] text-sm md:text-base leading-5 md:leading-relaxed text-muted-foreground">
 								{event.description}
 							</p>
 						</section>

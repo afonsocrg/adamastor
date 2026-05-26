@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function SubscribePage() {
 	return (
-		<div className="mx-auto max-w-2xl space-y-8 md:p-4">
+		<div className="mx-auto max-w-2xl space-y-6 md:space-y-8 md:p-4">
 			<Suspense fallback={null}>
 				<SubscribePageClient />
 			</Suspense>

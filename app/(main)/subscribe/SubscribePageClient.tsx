@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/tailwind/ui/button";
 import { Input } from "@/components/tailwind/ui/input";
 import { Label } from "@/components/tailwind/ui/label";
-import { Separator } from "@/components/tailwind/ui/separator";
 import { EVENT_CATEGORIES, type EventCategorySlug, isEventCategorySlug } from "@/lib/events/categories";
 import {
 	clearSavedIdentity,
@@ -271,20 +270,20 @@ export default function SubscribePageClient() {
 	if (done) {
 		return (
 			<header className="space-y-4 pb-2 pt-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300 motion-safe:ease-out">
-				<h1 className="text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
-					{wasNewSubscription ? "You're in" : "Welcome back"}
+				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+					{wasNewSubscription ? "You’re in" : "Welcome back"}
 				</h1>
-				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
+				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
 					{wasNewSubscription ? (
 						<>
 							A welcome email is on its way to{" "}
-							<span className="font-medium text-foreground">{submittedEmail}</span>. While you wait, see what's coming
+							<span className="font-medium text-foreground">{submittedEmail}</span>. While you wait, see what’s coming
 							up.
 						</>
 					) : (
 						<>
-							You're already on our list at{" "}
-							<span className="font-medium text-foreground">{submittedEmail}</span>. Catch up on what's coming up.
+							You’re already on our list at{" "}
+							<span className="font-medium text-foreground">{submittedEmail}</span>. Catch up on what’s coming up.
 						</>
 					)}
 				</p>
@@ -310,10 +309,10 @@ export default function SubscribePageClient() {
 			aria-hidden={leaving}
 		>
 			<header className="space-y-3 pb-2 pt-2">
-				<h1 className="text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 					{greetingFirstName ? `Subscribe to Adamastor, ${greetingFirstName}` : "Subscribe to Adamastor"}
 				</h1>
-				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
+				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
 					The weekly digest by Carlos Resende, plus curated event picks across Portugal — choose what shows up in your
 					inbox below.
 				</p>
@@ -322,7 +321,7 @@ export default function SubscribePageClient() {
 			<form
 				id="subscribe-form"
 				onSubmit={handleSubmit}
-				className="space-y-6 rounded-lg border border-navy-frame p-6 dark:border-cyan-glow/[0.18]"
+				className="space-y-6 md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-cyan-glow/[0.18]"
 			>
 				{isPrefilledNow && (
 					<p className="text-xs text-muted-foreground">
@@ -367,8 +366,6 @@ export default function SubscribePageClient() {
 					</div>
 				</div>
 
-				<Separator />
-
 				<section className="space-y-4">
 					<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Weekly Digest</h2>
 					<div className="flex items-start gap-3">
@@ -405,14 +402,12 @@ export default function SubscribePageClient() {
 								Adamastor Weekly
 							</span>
 							<span className="block text-sm text-muted-foreground">
-								An editorial take on Portugal's startup scene — fundraises and founder interviews, every week, with a
+								An editorial take on Portugal’s startup scene — fundraises and founder interviews, every week, with a
 								curation of events.
 							</span>
 						</span>
 					</label>
 				</section>
-
-				<Separator />
 
 				<section className="space-y-4">
 					<div className="space-y-1">
@@ -448,8 +443,6 @@ export default function SubscribePageClient() {
 					</div>
 				</section>
 
-				<Separator />
-
 				<div
 					ref={submitRowRef}
 					className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end"
@@ -483,10 +476,10 @@ export default function SubscribePageClient() {
 					<AlertDialogTitle className="text-2xl font-bold leading-tight text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 						Save your picks first?
 					</AlertDialogTitle>
-					<AlertDialogDescription className="text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
-						You're one click away from{" "}
+					<AlertDialogDescription className="text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
+						You’re one click away from{" "}
 						<span className="font-medium text-foreground">{selectionSummary || "subscribing"}</span>. Leave now and we
-						won't have you on the list.
+						won’t have you on the list.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter className="gap-2">

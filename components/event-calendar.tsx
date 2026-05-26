@@ -74,8 +74,15 @@ function EventCalendarMobileStrip({
 			<div className="text-base font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 				{headingLabel}
 			</div>
+			{/* Affordance: the scrollbar is hidden, so without a visual cue
+			    users don't realize the strip scrolls horizontally. A 32px
+			    fade-to-background overlay on the right edge signals "more
+			    content offscreen" without committing to a JS-based scroll-
+			    position detection. Always-on (even at end-of-scroll) is the
+			    pragmatic trade-off — matches the iOS / Material pattern. */}
+			<div className="relative -mx-3">
 			<div
-				className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 -mx-3 px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1 px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 				role="listbox"
 				aria-label="Browse events by date"
 			>
@@ -134,6 +141,11 @@ function EventCalendarMobileStrip({
 						</button>
 					);
 				})}
+			</div>
+				<div
+					aria-hidden="true"
+					className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent"
+				/>
 			</div>
 		</div>
 	);

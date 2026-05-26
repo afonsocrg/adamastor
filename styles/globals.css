@@ -260,10 +260,10 @@ pre {
 		z-index: 50;
 		gap: 10px;
 		padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
-		background: rgba(255, 255, 255, 0.78);
+		background: rgba(255, 255, 255, 0.92);
 		backdrop-filter: blur(20px) saturate(180%);
 		-webkit-backdrop-filter: blur(20px) saturate(180%);
-		border-top: 1px solid rgba(0, 0, 0, 0.06);
+		border-top: 1px solid #E8F0F4;
 		transform: translateY(0);
 		transition: transform 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
 		will-change: transform;
@@ -293,7 +293,7 @@ pre {
 		gap: 0;
 		padding: 12px 6px;
 		border-radius: 18px;
-		color: rgba(0, 0, 0, 0.35);
+		color: #4D7689; /* navy.tone — inactive */
 		text-decoration: none;
 		transition: flex-grow 0.28s cubic-bezier(0.25, 1, 0.5, 1), gap 0.28s cubic-bezier(0.25, 1, 0.5, 1), color 0.18s ease;
 	}
@@ -317,8 +317,8 @@ pre {
 		position: absolute;
 		inset: 0;
 		border-radius: 18px;
-		border: 1px solid rgba(4, 201, 216, 0.18);
-		background: rgba(4, 201, 216, 0.08);
+		border: 1px solid rgba(16, 67, 87, 0.14); /* navy.shade @ 14% — quiet hairline */
+		background: rgba(167, 225, 252, 0.55); /* navy.tint @ 55% — restrained fill */
 		opacity: 0;
 		transform: scale(0.96);
 		transition: opacity 0.18s ease-out, transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
@@ -333,7 +333,7 @@ pre {
 	.mobile-tab-bar__tab--active {
 		flex-grow: 1.35;
 		gap: 8px;
-		color: #04c9d8;
+		color: #104357; /* navy.shade — active */
 	}
 
 	.dark .mobile-tab-bar__tab--active {

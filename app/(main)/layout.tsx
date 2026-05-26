@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 // per-instance className duplication to enforce the editorial publication
 // register the rest of the footer establishes.
 const FOOTER_HEADING = "text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone";
-const FOOTER_LINK = "text-navy transition-colors hover:underline dark:text-cyan-lifted";
+const FOOTER_LINK = "inline-block py-1.5 text-navy transition-colors hover:underline dark:text-cyan-lifted";
 const FOOTER_LINK_WITH_ICON = `${FOOTER_LINK} inline-flex items-center gap-2`;
 const FOOTER_NAV = "space-y-3 min-w-0";
 const FOOTER_LIST = "space-y-2 text-sm";
@@ -56,7 +56,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 						<div>
 							{/* Inlined SVG (not <Image>) so the paths are stylable for the
 							    one-shot "ink draw-on" animation on first intersection.
-							    Color is driven by currentColor → light/dark via text-*. */}
+							    Color is driven by currentColor → light/dark via text-*.
+							    NOT wrapped in a Link — the seal is the rainbow easter egg
+							    (click triggers a SMIL animation in AdamastorMark); a Link
+							    wrapper would navigate instead of firing the animation. */}
 							<AdamastorMark className="h-12 w-auto text-navy dark:text-white" />
 						</div>
 
@@ -69,7 +72,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 						    "in Lisboa") as keyword-rich link text, even though some
 						    destination page titles stay terse. */}
 						<nav aria-label="Browse Events" className={FOOTER_NAV}>
-							<p className={FOOTER_HEADING}>Browse Events</p>
+							<Link href="/events" className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-cyan-lifted`}>
+								Browse Events
+							</Link>
 							<ul className={FOOTER_LIST}>
 								{/* Order: Lisboa-anchored first (highest-intent for our audience),
 								    then country-scope brand-aligned beats, ending with the niche
@@ -180,7 +185,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 						    no longer carries that weight. Labels wrapped in <span> so
 						    icon/text spacing is stable across formatter passes. */}
 						<nav aria-label="Follow Us" className={FOOTER_NAV}>
-							<p className={FOOTER_HEADING}>Follow Us</p>
+							<Link href="/subscribe" className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-cyan-lifted`}>
+								Follow Us
+							</Link>
 							<ul className={FOOTER_LIST}>
 								<li>
 									<Link href="/feed.xml" className={FOOTER_LINK_WITH_ICON}>
@@ -217,9 +224,12 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
 				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
 					<div className="max-w-screen-xl mx-auto px-4 py-6 md:px-8">
-						<p className="text-center text-base italic text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
+						<Link
+							href="/about"
+							className="block text-center text-base italic text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] transition-colors hover:underline underline-offset-4 decoration-navy-tint decoration-2 dark:decoration-cyan-glow/[0.4]"
+						>
 							Only You Know Who You Can Be
-						</p>
+						</Link>
 					</div>
 				</div>
 
@@ -228,7 +238,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 						<p className="text-xs text-muted-foreground">© 2026 Adamastor</p>
 						<Link
 							href="/about"
-							className="text-xs text-muted-foreground transition-colors hover:text-navy hover:underline dark:hover:text-cyan-lifted"
+							className="inline-block py-1.5 text-xs text-muted-foreground transition-colors hover:text-navy hover:underline dark:hover:text-cyan-lifted"
 						>
 							About us
 						</Link>

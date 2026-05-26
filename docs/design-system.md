@@ -255,6 +255,235 @@ For pages with a main column + sidebar (e.g. `/events`), use the **8-column edit
 - **Column-level lens controls** (category chips, in-list filters) render *inside* the main column
 - The page H1+dek should render *inside* the main column, so the sidebar top aligns with the H1 baseline — pulls sidebar above the fold and frames the page as one composition
 
+## Mobile patterns
+
+The editorial register translates differently on small screens. Two principles guide the
+adaptation: **lead with the content, not the chrome** — sidebars, calendars, and
+subscribe asides become *codas below* the page's primary surface, never above; and
+**drop the card register on mobile** — form modules, sidebar outlines, and rail
+indentations that frame content on desktop are visual noise at 375px. The page
+should *be* the content on mobile; on desktop the chrome carries hierarchy.
+
+### Type compaction
+
+| Role | Mobile | Desktop (`md:`+) |
+|---|---|---|
+| Page H1 (Lora Bold) | `text-2xl` (24px) | `text-3xl` (30px) |
+| Body / dek | `text-sm leading-snug` (14px / 19.25px) | `text-base leading-relaxed` (16px / 26px) |
+| Card title (h3) | `text-lg` (18px) | `text-xl` (20px) |
+| Card description | `text-sm leading-5` (14px / 20px) | `text-base leading-relaxed` (16px / 26px) |
+| Card metadata | `text-sm leading-5` (14px / 20px) | `text-sm leading-5` (14px / 20px) |
+
+Establish the responsive pair via paired utilities: `text-2xl md:text-3xl`,
+`text-sm md:text-base`, `leading-snug md:leading-relaxed`. The mobile size leads
+because Tailwind is mobile-first — base utilities apply unconditionally; `md:*`
+utilities override from 768px up via a min-width media query, winning by source-order
+cascade (Tailwind emits `md:*` rules after the bare utilities so they take precedence
+once the breakpoint fires).
+
+### Vertical rhythm
+
+| Slot | Mobile | Desktop |
+|---|---|---|
+| Outer page wrapper `space-y-*` | `space-y-6` (24px) | `space-y-8` to `space-y-10` (32–40px) |
+| Events column siblings | `space-y-6` (24px) | `space-y-8` (32px) |
+| Between day buckets | `space-y-6` (24px) | `space-y-10` (40px) |
+| Day heading → first card | `space-y-0` | `space-y-4` (16px) |
+| Filter rows → list | `space-y-6` (24px) | `space-y-8` (32px) |
+| City nav → H1 | 16px | 40px |
+
+The day heading's own `py-3` (12px top + bottom) already provides breathing
+room, so `space-y-0` between heading and the first card on mobile lets the heading's
+padding carry the gap rather than stacking margins on top of it. Same logic for the
+form module's removed `<Separator />`s — h3 section heads with their default
+typographic weight do the work the divider used to do.
+
+### Card chrome on mobile
+
+Form modules and outlined editorial cards use `md:rounded-lg md:border md:border-navy-frame md:p-6`
+— the rounded-border-padded card register is **scoped to `md:` only**. Mobile renders
+the children unframed and edge-to-edge against the page padding, so the form *is*
+the page rather than a card within a page.
+
+```tsx
+{/* Mobile: borderless, edge-to-edge. Desktop: outlined card. */}
+<div className="md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-cyan-glow/[0.18]">
+  <form>…</form>
+</div>
+```
+
+Same pattern reaches into the events list rail: `pl-4 md:pl-8` (16px on mobile, 32px on
+desktop), with the day-marker dot's left offset scaled to match
+(`left-[-1rem] md:left-[-2rem]`) so it stays anchored to the rail at both
+breakpoints.
+
+### Column order flip
+
+When a desktop layout uses a two-column grid with a sidebar, **the sidebar moves below
+the main column on mobile** — never above. Flip via `order-*` utilities on the grid
+children:
+
+```tsx
+<div className="grid grid-cols-1 lg:grid-cols-8 gap-8">
+  <div className="order-1 lg:col-span-5">…events column…</div>
+  <div className="order-2 lg:col-span-3">…sidebar (calendar + subscribe coda)…</div>
+</div>
+```
+
+Mobile gets: events first → sidebar coda. Desktop gets: events left, sidebar right —
+`order-*` resets to source order at `lg:` since `lg:col-span-*` alone implies natural
+flow position when `grid-cols-8` activates. Without the flip, a 400px-tall sidebar above
+the events list pushes the H1 to y≈641 on a 812px viewport — a user landing on a page
+about events sees a calendar widget first. With the flip, H1 lands at y≈148, first event
+at y≈422 (both above the fold).
+
+### Reviewer aside / trust strip
+
+The "Reviewed by Afonso, Carlos & Malik" trust strip on `/events/submit` stacks
+vertically on mobile, horizontally at `sm:+`:
+
+```tsx
+<aside className="flex flex-col sm:flex-row items-start gap-4 rounded-lg bg-navy-veil/40 p-5">
+  <AvatarTrio />
+  <div>…heading + body…</div>
+</aside>
+```
+
+At 375px width the row layout leaves ~243px for the text column after avatars + gaps;
+the vertical stack gives it the full ~303px, which lets the copy wrap on natural
+editorial breaks instead of chopping to 4–5-word lines.
+
+### Horizontal-scroll filter rows
+
+City tabs, category chips, and the mobile calendar strip all share one mobile pattern:
+single-row scroll with hidden scrollbar, breakout to screen edges, no-shrink chips.
+Reverts to `flex-wrap` (or the original layout) at `sm:+`:
+
+```tsx
+<nav
+  ref={cityNavRef}
+  aria-label="City"
+  className="flex items-center gap-x-6 gap-y-1 overflow-x-auto -mx-4 px-4
+             [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+             sm:flex-wrap sm:overflow-x-visible sm:-mx-0 sm:px-0
+             border-b border-navy-frame"
+>
+  {chips.map((chip) => (
+    <Link aria-current={isActive ? "page" : undefined}
+          className={cn(baseChipClass, "shrink-0 whitespace-nowrap")}>
+      …
+    </Link>
+  ))}
+</nav>
+```
+
+Key bits:
+- `overflow-x-auto -mx-4 px-4` — the negative margin + matching padding lets the row
+  break out to the screen edge (not the page-padding edge), so the scroll-clip reads as
+  *"continues offscreen"* instead of *"clipped mid-chip by an arbitrary inset."*
+- `[scrollbar-width:none] [&::-webkit-scrollbar]:hidden` — hide the scrollbar; the
+  fade overlay (below) carries the affordance.
+- `shrink-0 whitespace-nowrap` on each chip — flex items default to `shrink: 1`, which
+  would squish chips in a forced-overflow context; `whitespace-nowrap` keeps multi-word
+  labels on one line.
+- `sm:flex-wrap sm:overflow-x-visible sm:-mx-0 sm:px-0` — revert above 640px where
+  content fits comfortably.
+
+### Scroll-cue gradient overlay
+
+When the scrollbar is hidden, users have no signal that the row scrolls. Wrap the
+scroll container in a `relative` parent and overlay a 32px gradient on the right
+edge that fades from `from-background` to transparent — always on, mirrors the
+iOS / Material affordance:
+
+```tsx
+<div className="relative -mx-3">
+  <div className="flex … overflow-x-auto px-3" role="listbox">
+    {items}
+  </div>
+  <div
+    aria-hidden="true"
+    className="pointer-events-none absolute inset-y-0 right-0 w-8
+               bg-gradient-to-l from-background to-transparent"
+  />
+</div>
+```
+
+This is "always on" rather than scroll-position-aware: JS detection of `scrollLeft`
+adds complexity for marginal UX benefit — the fade reads as natural editorial trail-off
+whether or not the user has scrolled. The trade-off is mild dishonesty at end-of-scroll
+(the fade still hints at more content); we accept that for the simpler implementation.
+
+### Active-chip auto-center
+
+Horizontal scroll rows mount with `scrollLeft: 0` — so the active chip lands off-screen
+on deep-link landings (`/events/coimbra` puts "Coimbra" as the 6th of 7 city tabs;
+`/events/ai` puts "AI" as the rightmost category chip). On mount and on route change,
+scroll the active chip into view within its container — *not* the page:
+
+```tsx
+const cityNavRef = useRef<HTMLElement>(null);
+const categoryNavRef = useRef<HTMLElement>(null);
+
+useEffect(() => {
+  const centerActiveChip = (nav: HTMLElement | null) => {
+    if (!nav) return;
+    const active = nav.querySelector<HTMLAnchorElement>('a[aria-current="page"]');
+    if (!active) return;
+    const target = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2;
+    nav.scrollLeft = Math.max(0, target);
+  };
+  centerActiveChip(cityNavRef.current);
+  centerActiveChip(categoryNavRef.current);
+}, [activeHref]);
+```
+
+Manual `scrollLeft` instead of `Element.scrollIntoView({ inline: 'center' })` — the
+latter bubbles up the ancestor chain and would shift the whole page horizontally.
+Selector relies on `aria-current="page"`, not `aria-pressed` — see *Pill chips* for
+why `aria-pressed` is invalid on a link.
+
+### Touch targets
+
+Tailwind defaults aim for cursors, not thumbs. Three places where mobile tap zones
+matter:
+
+- **Footer text links**: add `inline-block py-1.5` to grow a `text-sm` link from ~17px
+  to ~32px tall. See *Footer › Clickability conventions*.
+- **Coda buttons** ("Message Malik on WhatsApp", "Get the picks"): the
+  `-mx-2 -my-1 px-2 py-1` *Inline-action-with-hover-background* pattern gives a ~28px
+  zone; bump to `py-2` for primary mobile CTAs where the action is consequential.
+- **MobileTabBar**: uses 46px-tall touch zones (Apple HIG 44pt minimum) — see
+  `styles/globals.css` `.mobile-tab-bar__tab`.
+
+We aim for HIG 44pt on standalone CTAs (submit pills, MobileTabBar tabs) and accept
+~28–36pt for inline editorial links where the surrounding text serves as a navigation
+context cue.
+
+### MobileTabBar palette — a worked example of the cyan rule
+
+The mobile bottom tab bar is a worked example of the *cyan is dark-mode-only* rule
+(see *Color usage rules*). Two-tier styling, light vs dark:
+
+| Slot | Light mode | Dark mode |
+|---|---|---|
+| Bar background | `rgba(255, 255, 255, 0.92)` + `backdrop-blur(20px)` | `hsla(201, 72%, 8%, 0.92)` + `backdrop-blur(20px)` |
+| Inactive tab text/icon | `#4D7689` (navy.tone) | `rgba(158, 210, 225, 0.82)` (≈ cyan.dim) |
+| Active tab text/icon | `#104357` (navy.shade) | `#4CE4F0` (cyan.glow) |
+| Active pill background | `rgba(167, 225, 252, 0.55)` (navy.tint @ 55%) | `rgba(4, 201, 216, 0.18)` (cyan @ 18%) |
+| Active pill border | `rgba(16, 67, 87, 0.14)` (navy.shade @ 14%) | `rgba(76, 228, 240, 0.4)` (cyan.glow @ 40%) |
+
+The light-mode bar originally used `#04C9D8` (cyan.hue) for the active state — a direct
+violation of the "in light mode, use navy.tint for default highlights" rule documented
+under the Cyan family. Stylistic legacy, corrected. **When you find a hand-tuned hex
+starting with `#04…` or `#DFF6…` inside a light-mode style, treat it as legacy** —
+migrate to the canonical *Pill chips › Active* pattern (`border-navy bg-navy-tint
+text-navy`, optionally `font-semibold`).
+
+The bar background was bumped from `rgba(255, 255, 255, 0.78)` to `rgba(…, 0.92)` —
+the original frosted-glass look read too transparent over busy lists. 0.92 keeps a hint
+of translucency via the backdrop-blur but anchors the bar visually.
+
 ## Motion
 
 - **No default entry animation on SSR'd pages.** Server-rendered content is already painted; replaying a fade+slide on hydration creates perceived jank ("the page jumps in after it was already there"). Reserve entry motion for content that genuinely appears after empty state: modals, popovers, route transitions that show `loading.tsx` first.
@@ -312,7 +541,7 @@ For column-level lens controls (category filters). Wrap-friendly, snug touch tar
   className="inline-flex items-center rounded-full border border-navy bg-navy-tint px-4 py-2 text-sm leading-none text-navy font-semibold"
   ```
 
-**Toggle behavior.** Chips on `/events` act as toggles, not radio buttons: clicking an inactive chip activates it; clicking the active chip clears the filter. There is **no "All" chip** — the empty (no active chip) state IS the unfiltered view. Use `aria-pressed` to communicate toggle state on the `<Link>`.
+**Toggle behavior.** Chips on `/events` act as toggles, not radio buttons: clicking an inactive chip activates it; clicking the active chip clears the filter. There is **no "All" chip** — the empty (no active chip) state IS the unfiltered view. Use `aria-current="page"` to mark the active chip — these are `<Link>` elements that navigate to routes, so `aria-pressed` (button-only ARIA) is invalid here; `aria-current` reads correctly to AT users as "current page in a set of similar items." See *Mobile patterns* for the horizontal-scroll variant.
 
 ### Scope tabs
 
@@ -553,6 +782,12 @@ Three-row mid-weight editorial composition:
 
 External social and project links carry `rel="noopener" target="_blank"` (plus `rel="me noopener"` on social profiles for IndieWeb h-card discovery). The horizontal inset matches the *Content edge on desktop = 32px* convention.
 
+**Clickability conventions.** Most visible elements in the footer carry a click affordance, with one deliberate exception:
+- The `AdamastorMark` is **NOT** wrapped in a Link, despite the universal footer-logo-to-home convention. The seal owns a click-triggered rainbow easter egg (SMIL animation inside `AdamastorMark.tsx`) — wrapping it in a Link would intercept the click and navigate before the animation fires. Brand moment > convention here.
+- Section headings *link to their primary destination where one exists*: "Browse Events" → `/events`, "Follow Us" → `/subscribe`. "Our Projects" stays as a plain label because the projects below ARE the destinations — forcing a heading link would mis-direct.
+- The tagline ("Only You Know Who You Can Be") wraps in a `<Link href="/about">` with a subtle hover-underline (`hover:underline underline-offset-4 decoration-navy-tint decoration-2`). The italic Lora register and centering stay — the affordance is restrained, the brand moment is preserved.
+- Text-link touch targets: `FOOTER_LINK` is `inline-block py-1.5 …` so `text-sm` links grow from ~17px tall (text-only bounding box) to ~32px tall. Matches the *Touch targets* guidance under *Mobile patterns*.
+
 ### Brand marks
 
 Four image assets in [`public/`](../public):
@@ -697,11 +932,10 @@ The canonical composition for standalone form pages — currently `/events/submi
 ```
 
 **Layout primitives:**
-- Page wrapper: `mx-auto max-w-2xl space-y-8 md:p-4` (32px content edge on desktop per the doubled-padding convention)
-- Header: `space-y-3 pb-2 pt-2` containing Lora H1 (`text-3xl font-bold tracking-tight leading-tight text-navy [font-family:var(--font-lora-bold)]`) + dek (`text-base leading-relaxed text-muted-foreground max-w-[60ch]`)
-- Optional trust aside (`/events/submit` uses one with founder faces; `/preferences` skips it): `flex items-start gap-4 rounded-lg bg-navy-veil/40 p-5` — soft wash distinguishes it from the outlined form module
-- Form module: `space-y-6 rounded-lg border border-navy-frame p-6` — outlined card containing the *whole* form. Sections inside are separated by `<Separator />`, not nested cards.
-- Section heads inside the form: `text-sm font-semibold text-navy`
+- Page wrapper: `mx-auto max-w-2xl space-y-6 md:space-y-8 md:p-4` — 24px outer rhythm on mobile, 32px on desktop with the doubled-padding 32px content edge
+- Header: `space-y-3 pb-2 pt-2` containing Lora H1 (`text-2xl md:text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] [font-family:var(--font-lora-bold)]`) + dek (`text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground max-w-[60ch] [text-wrap:pretty]`) — compacted type on mobile per *Mobile patterns*
+- Optional trust aside (`/events/submit` uses one with founder faces; `/preferences` skips it): `flex flex-col sm:flex-row items-start gap-4 rounded-lg bg-navy-veil/40 p-5` — stacks vertically on mobile so the text column gets full width (otherwise the avatar trio crowds it to ~243px)
+- Form module: `space-y-6 md:rounded-lg md:border md:border-navy-frame md:p-6` — outlined card *at `md:+` only*. On mobile the form renders unframed, edge-to-edge against the page padding, so it reads as the page rather than a card-in-a-page. Sections inside are separated by their own `<h3>` heads (Inter `text-sm font-semibold text-navy`), **not** by `<Separator />` — the heading carries the break.
 - Submit row: `flex justify-end` with the gold pill (`rounded-full bg-gold-hue font-semibold text-white hover:bg-gold-shade`) + `ArrowRightIcon className="ml-2 h-4 w-4"`
 
 **Why this composition.** The H1 + dek lead. The aside (when present) carries trust/context (e.g. "Reviewed by Afonso, Carlos & Malik" on `/events/submit`). The outlined module contains the whole form so it reads as one editorial card, not a stack of sub-cards. The gold pill submit is the page's one conversion moment.

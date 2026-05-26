@@ -42,7 +42,7 @@ export default async function PreferencesPage({ searchParams }: PreferencesPageP
 	}
 
 	return (
-		<div className="mx-auto max-w-2xl space-y-8 md:p-4">
+		<div className="mx-auto max-w-2xl space-y-6 md:space-y-8 md:p-4">
 			{subscription ? (
 				<PreferencesForm
 					initial={{

@@ -10,7 +10,7 @@ import { ArrowRightIcon, CalendarDays, Check, Copy, Mail, MessageCircle, Rss } f
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { type MouseEvent as ReactMouseEvent, useEffect, useMemo, useState, useTransition } from "react";
+import { type MouseEvent as ReactMouseEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 const EVENTS_TIMEZONE = "Europe/Lisbon";
@@ -167,6 +167,16 @@ export default function EventsPageClient({
 	const [copiedFeedUrl, setCopiedFeedUrl] = useState(false);
 	const [copiedSlackCmd, setCopiedSlackCmd] = useState(false);
 
+	// Horizontal-scroll nav rows mount at scrollLeft=0; on deep-links the
+	// active chip can land off-screen (e.g. /events/coimbra — "Coimbra"
+	// is the sixth chip in a row that needs to scroll). Auto-center the
+	// active chip inside its container whenever the active route changes.
+	// Manual scrollLeft instead of Element.scrollIntoView({ inline:'center' })
+	// because the latter bubbles up the ancestor chain and could shift the
+	// whole page; here we want strictly intra-container motion.
+	const cityNavRef = useRef<HTMLElement>(null);
+	const categoryNavRef = useRef<HTMLElement>(null);
+
 	useEffect(() => {
 		if (!isPending) setPendingHref(null);
 	}, [isPending]);
@@ -247,6 +257,18 @@ export default function EventsPageClient({
 	// route to load and lockedFilter to update.
 	const activeHref = pendingHref ?? currentHref;
 
+	useEffect(() => {
+		const centerActiveChip = (nav: HTMLElement | null) => {
+			if (!nav) return;
+			const active = nav.querySelector<HTMLAnchorElement>('a[aria-current="page"]');
+			if (!active) return;
+			const target = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2;
+			nav.scrollLeft = Math.max(0, target);
+		};
+		centerActiveChip(cityNavRef.current);
+		centerActiveChip(categoryNavRef.current);
+	}, [activeHref]);
+
 	// Intercept plain clicks so navigation runs inside startTransition (keeps
 	// the current page interactive). Modifier-key clicks (cmd/ctrl/shift,
 	// middle-button) fall through to the browser's default link handling so
@@ -280,7 +302,7 @@ export default function EventsPageClient({
 	// below, per docs/design-system.md "one highlight per fold."
 	const cityTabClass = (isActive: boolean) =>
 		cn(
-			"inline-flex items-center text-sm leading-6 pb-1 transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:rounded",
+			"inline-flex items-center text-sm leading-6 pb-1 shrink-0 whitespace-nowrap transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:rounded",
 			isActive
 				? "font-semibold text-navy dark:text-cyan border-b-2 border-navy dark:border-cyan"
 				: "text-navy-tone hover:text-navy dark:text-cyan-dim/[0.7] dark:hover:text-cyan-lifted border-b-2 border-transparent",
@@ -291,7 +313,7 @@ export default function EventsPageClient({
 	// cyan-wash with cyan-shade text. See docs/design-system.md.
 	const categoryChipClass = (isActive: boolean) =>
 		cn(
-			"inline-flex items-center rounded-full border px-4 py-2 text-sm leading-none transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+			"inline-flex items-center rounded-full border px-4 py-2 text-sm leading-none shrink-0 whitespace-nowrap transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 			isActive
 				? "border-navy bg-navy-tint text-navy font-semibold dark:border-cyan/[0.4] dark:bg-cyan/[0.12] dark:text-cyan-glow"
 				: "border-navy-frame text-navy-tone hover:text-navy hover:border-navy-tone dark:border-cyan-glow/[0.15] dark:text-cyan-dim/[0.7] dark:hover:text-cyan-lifted",
@@ -334,37 +356,51 @@ export default function EventsPageClient({
 	};
 
 	return (
-		<div className="space-y-10 md:p-4">
+		<div className="space-y-4 md:space-y-10 md:p-4">
 			{/* City scope — small edition-style tab row above the H1. City is a
 			    persistent context (you're in Lisboa, you stay there) and is
 			    already reflected in the URL + H1; treating it as a tab row
 			    rather than a sidebar filter matches that role. The H1 changes
 			    based on the active city. */}
+			{/* Mobile: single-row horizontal scroll. The `-mx-4 px-4` breakout
+			    aligns the scroll-clip with the screen edge (not the page padding
+			    edge), so the row reads as "continues off-screen" instead of
+			    "clipped mid-chip by an arbitrary inset." At `sm:` we flip back
+			    to flex-wrap — by ~640px the seven labels fit on one row without
+			    overflow. The border-b underline runs the full width on mobile
+			    (editorial tab-row register); on desktop it pulls back inside
+			    the page gutter as a quiet section divider. */}
 			<nav
+				ref={cityNavRef}
 				aria-label="City"
-				className="flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-navy-frame dark:border-cyan-glow/[0.12]"
+				className="flex items-center gap-x-6 gap-y-1 overflow-x-auto -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-x-visible sm:-mx-0 sm:px-0 border-b border-navy-frame dark:border-cyan-glow/[0.12]"
 			>
 				<Link
 					href={cityHref(null)}
 					replace
 					scroll={false}
 					onClick={cityClickHandler("all")}
+					aria-current={activeHref === cityHref(null) ? "page" : undefined}
 					className={cityTabClass(activeHref === cityHref(null))}
 				>
 					Everywhere
 				</Link>
-				{SELECTABLE_CITIES.map((city) => (
-					<Link
-						key={city}
-						href={cityHref(city)}
-						replace
-						scroll={false}
-						onClick={cityClickHandler(city)}
-						className={cityTabClass(activeHref === cityHref(city))}
-					>
-						{formatCityLabel(city)}
-					</Link>
-				))}
+				{SELECTABLE_CITIES.map((city) => {
+					const isActive = activeHref === cityHref(city);
+					return (
+						<Link
+							key={city}
+							href={cityHref(city)}
+							replace
+							scroll={false}
+							onClick={cityClickHandler(city)}
+							aria-current={isActive ? "page" : undefined}
+							className={cityTabClass(isActive)}
+						>
+							{formatCityLabel(city)}
+						</Link>
+					);
+				})}
 			</nav>
 
 			{/* 5:3 ratio (8-col grid) so the sidebar has room for the
@@ -377,15 +413,18 @@ export default function EventsPageClient({
 				{/* Events column. Header + category chips + events list. The
 				    navy-wash rail runs down the left edge of the events
 				    list below the chips — chips and header sit outside the
-				    rail. */}
-				<div className="order-2 lg:order-1 lg:col-span-5 space-y-8">
+				    rail. Mobile: order-1 so the H1 "Events" lands above
+				    the fold; the sidebar (calendar + subscribe) becomes a
+				    coda below the list. Desktop: order-1 keeps the events
+				    in the left 5-column slot. */}
+				<div className="order-1 lg:col-span-5 space-y-6 md:space-y-8">
 					{/* Header: title + intro as one "headline + dek" block.
 					    No CTA — subscribe lives in the sidebar; submit-your-
 					    event lives in the editorial coda at the end of the
 					    list. Keeping the header pure lets the H1 actually
 					    act as a page title. */}
 					<header className="space-y-3">
-						<h1 className="text-3xl font-bold tracking-tight leading-tight text-[#104357] [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+						<h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight text-[#104357] [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 							{selectedDate
 								? `Events for ${formatEventDate(selectedDate, hasHydrated)}`
 								: lockedCategory && lockedCity
@@ -402,13 +441,17 @@ export default function EventsPageClient({
 						</h1>
 
 						{intro && !selectedDate ? (
-							<p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
+							<p className="max-w-[70ch] text-sm md:text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
 								{intro}
 							</p>
 						) : null}
 					</header>
 					{categoryFilteringEnabled ? (
-						<nav aria-label="Categories" className="flex flex-wrap gap-2">
+						<nav
+							ref={categoryNavRef}
+							aria-label="Categories"
+							className="flex gap-2 overflow-x-auto -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-x-visible sm:-mx-0 sm:px-0"
+						>
 							{EVENT_CATEGORIES.map((category) => {
 								const isActive = activeHref === categoryHref(category.slug);
 								return (
@@ -418,7 +461,7 @@ export default function EventsPageClient({
 										replace
 										scroll={false}
 										onClick={categoryClickHandler(isActive ? "all" : category.slug)}
-										aria-pressed={isActive}
+										aria-current={isActive ? "page" : undefined}
 										className={categoryChipClass(isActive)}
 									>
 										{category.name}
@@ -443,7 +486,7 @@ export default function EventsPageClient({
 						</div>
 					) : null}
 
-					<div className="border-l border-navy-frame dark:border-cyan-glow/[0.12] pl-8 space-y-10">
+					<div className="border-l border-navy-frame dark:border-cyan-glow/[0.12] pl-4 md:pl-8 space-y-6 md:space-y-10">
 					{filteredEvents.length === 0 ? (
 						selectedDate ? (
 							// Date-filter empty state: user has applied a filter,
@@ -487,7 +530,7 @@ export default function EventsPageClient({
 							// muted text. See getEventDateParts above.
 							const dateParts = getEventDateParts(dayEvents[0].start_time, hasHydrated);
 							return (
-								<section key={dateKey} className="space-y-4">
+								<section key={dateKey} className="space-y-0 md:space-y-4">
 									{!selectedDate && (
 										// `relative` so the navy-tint dot can anchor onto
 										// the parent column's navy-frame rail. Dot
@@ -497,7 +540,7 @@ export default function EventsPageClient({
 										<h2 className="sticky top-0 z-10 bg-background py-3 text-base flex gap-2 items-baseline relative">
 											<span
 												aria-hidden="true"
-												className="absolute left-[-2rem] top-[1.25rem] h-2 w-2 -translate-x-1/2 rounded-full bg-navy-tint"
+												className="absolute left-[-1rem] md:left-[-2rem] top-[1.25rem] h-2 w-2 -translate-x-1/2 rounded-full bg-navy-tint"
 											/>
 											<time dateTime={dateKey} className="font-semibold text-navy dark:text-cyan-lifted">
 												{dateParts.primary}
@@ -656,7 +699,7 @@ export default function EventsPageClient({
 											<p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone">
 												Run a community or building something?
 											</p>
-											<p className="mt-3 max-w-[60ch] text-base leading-relaxed text-muted-foreground">
+											<p className="mt-3 max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground">
 												Add this feed to your Slack or Telegram channel and your members get curated{" "}
 												{scopeLabel} delivered to the channel — no extra work for you, just the relevant
 												ones. Embedding on your own site or want a custom feed? Send Malik a message.
@@ -711,8 +754,10 @@ export default function EventsPageClient({
 				{/* Sidebar — calendar + a quiet outlined subscribe block.
 				    Both filter sections moved out (city → tabs above H1,
 				    category → chips above events list). What's left is
-				    atmosphere + the one editorial "ask." */}
-				<div className="order-1 lg:order-2 lg:col-span-3">
+				    atmosphere + the one editorial "ask." Mobile: order-2
+				    so this stack reads as a coda below the events list
+				    (events first; calendar + newsletter ask after). */}
+				<div className="order-2 lg:col-span-3">
 					<aside className="flex flex-col gap-6 lg:sticky lg:top-4">
 						{/* Calendar gets the same outlined-card treatment as the
 						    subscribe block below so the sidebar reads as a stack

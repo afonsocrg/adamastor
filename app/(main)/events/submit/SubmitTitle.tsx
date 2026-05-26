@@ -22,7 +22,7 @@ export default function SubmitTitle({ profileEmail }: SubmitTitleProps) {
 	}, [profileEmail]);
 
 	return (
-		<h1 className="text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+		<h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 			{firstName ? `Submit your event, ${firstName}` : "Submit your event"}
 		</h1>
 	);

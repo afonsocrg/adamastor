@@ -13,7 +13,6 @@ import {
 } from "@/components/tailwind/ui/alert-dialog";
 import { Button } from "@/components/tailwind/ui/button";
 import { Input } from "@/components/tailwind/ui/input";
-import { Separator } from "@/components/tailwind/ui/separator";
 import { EVENT_CATEGORIES, type EventCategorySlug } from "@/lib/events/categories";
 import { clearSubscribed } from "@/lib/user-identity";
 import { ArrowRightIcon, Linkedin } from "lucide-react";
@@ -141,21 +140,21 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 	return (
 		<>
 			<header className="space-y-3 pb-2 pt-2">
-				<h1 className="text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 					{initial.firstName ? `Hi ${initial.firstName} — manage your subscriptions` : "Manage your subscriptions"}
 				</h1>
-				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
+				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
 					Managing what we send to <span className="font-medium text-foreground">{initial.email}</span>.
 				</p>
 			</header>
 
 			<aside className="rounded-lg bg-navy-veil/40 p-5 dark:bg-cyan-glow/[0.04]">
-				<p className="text-sm leading-relaxed text-muted-foreground">
+				<p className="text-sm leading-snug md:leading-relaxed text-muted-foreground">
 					Weekly emails — we send only what you pick below. One click any time to unsubscribe.
 				</p>
 			</aside>
 
-			<div className="space-y-6 rounded-lg border border-navy-frame p-6 dark:border-cyan-glow/[0.18]">
+			<div className="space-y-6 md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-cyan-glow/[0.18]">
 				<section className="space-y-4">
 					<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Weekly Digest</h2>
 					<div className="flex items-start gap-3">
@@ -192,14 +191,12 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 								Adamastor Weekly
 							</span>
 							<span className="block text-sm text-muted-foreground">
-								An editorial take on Portugal's startup scene — fundraises and founder interviews, every week, with a
+								An editorial take on Portugal’s startup scene — fundraises and founder interviews, every week, with a
 								curation of events.
 							</span>
 						</span>
 					</label>
 				</section>
-
-				<Separator />
 
 				<section className="space-y-4">
 					<div className="space-y-1">
@@ -234,8 +231,6 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 					</div>
 				</section>
 
-				<Separator />
-
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<Button
 						type="button"
@@ -266,7 +261,7 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 							<AlertDialogHeader>
 								<AlertDialogTitle>Unsubscribe from everything?</AlertDialogTitle>
 								<AlertDialogDescription>
-									You'll stop receiving the weekly digest and any per-category event newsletters. You can opt back in any
+									You’ll stop receiving the weekly digest and any per-category event newsletters. You can opt back in any
 									time from this page.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
@@ -334,10 +329,10 @@ export function RequestLinkForm() {
 	if (done) {
 		return (
 			<header className="space-y-3 pb-2 pt-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300 motion-safe:ease-out">
-				<h1 className="text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 					Check your inbox
 				</h1>
-				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
+				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
 					If we have <span className="font-medium text-foreground">{email}</span> on file, a link to manage your
 					preferences is on its way. The link works without a password.
 				</p>
@@ -347,22 +342,22 @@ export function RequestLinkForm() {
 
 	return (
 		<div
-			className={`space-y-8 transition-all duration-150 ease-out motion-reduce:transition-none ${
+			className={`space-y-6 md:space-y-8 transition-all duration-150 ease-out motion-reduce:transition-none ${
 				leaving ? "pointer-events-none -translate-y-1 opacity-0" : "opacity-100"
 			}`}
 			aria-hidden={leaving}
 		>
 			<header className="space-y-3 pb-2 pt-2">
-				<h1 className="text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
 					Manage your subscriptions
 				</h1>
-				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
-					Enter the email address you subscribed with. We'll send you a link to manage which Adamastor newsletters you
+				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
+					Enter the email address you subscribed with. We’ll send you a link to manage which Adamastor newsletters you
 					receive — no login needed.
 				</p>
 			</header>
 
-			<div className="rounded-lg border border-navy-frame p-6 dark:border-cyan-glow/[0.18]">
+			<div className="md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-cyan-glow/[0.18]">
 				<form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
 					<Input
 						type="email"
