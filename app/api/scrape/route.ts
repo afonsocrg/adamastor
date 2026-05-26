@@ -1,5 +1,6 @@
 import { detectCityFromText } from "@/app/(dashboard)/dashboard/add-event/city-mappings";
 import type { MetadataResult } from "@/app/types";
+import { cleanEventDescription } from "@/lib/events/clean-description";
 import { type CheerioAPI, load } from "cheerio";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -215,7 +216,7 @@ function extractDefaultEventData(html: string, originalUrl: string): Event {
 	const jsonLdData = extractFromJsonLd($, originalUrl);
 	return {
 		title: cleanEventTitle(jsonLdData.title || metadata.ogTitle || metadata.title || ""),
-		description: jsonLdData.description || metadata.ogDescription || metadata.description,
+		description: cleanEventDescription(jsonLdData.description || metadata.ogDescription || metadata.description),
 		// Fall back to original URL if og:url meta tag is missing
 		url: normalizeUrl(metadata.ogUrl, originalUrl) || originalUrl,
 		// Try OG image first, then Twitter image
@@ -254,7 +255,7 @@ function extractEventbriteData(html: string, originalUrl: string): Event {
 	return {
 		// Prefer og:title over page title for Eventbrite
 		title: cleanEventTitle(metadata.ogTitle || metadata.title || ""),
-		description: metadata.ogDescription || metadata.description,
+		description: cleanEventDescription(metadata.ogDescription || metadata.description),
 		url: normalizeUrl(metadata.ogUrl, originalUrl) || originalUrl,
 		bannerUrl:
 			normalizeUrl(metadata.ogImage?.[0]?.url, originalUrl) ||
@@ -278,7 +279,7 @@ function extractLumaData(html: string, originalUrl: string): Event {
 
 	return {
 		title: cleanEventTitle((metadata.title || "").replace(" · Luma", "")),
-		description: jsonLdData.description || metadata.description,
+		description: cleanEventDescription(jsonLdData.description || metadata.description),
 		url: normalizeUrl(metadata.ogUrl, originalUrl) || originalUrl,
 		bannerUrl:
 			normalizeUrl(metadata.ogImage?.[0]?.url, originalUrl) ||

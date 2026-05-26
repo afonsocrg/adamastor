@@ -9,7 +9,8 @@
     "lint": "biome lint .",
     "format": "biome format .",
     "typecheck": "tsc --noEmit",
-    "email": "email dev --dir components/email --port 3001"
+    "email": "email dev --dir components/email --port 3001",
+    "test": "tsx --test \"lib/**/*.test.ts\""
   },
   "packageManager": "pnpm@9.5.0",
   "dependencies": {
