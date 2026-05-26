@@ -1,5 +1,21 @@
+const webpack = require("webpack");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Strip moment.js non-English locales from the client bundle. Moment
+  // pulls in ~50–80KB of locale data we never use (the dashboard calendar
+  // is the only moment consumer and it's English-only). When we migrate
+  // off moment to date-fns this plugin becomes unnecessary; until then
+  // it's the cheapest bundle win available.
+  webpack: (config) => {
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/locale$/,
+        contextRegExp: /moment$/,
+      }),
+    );
+    return config;
+  },
   redirects: async () => {
     return [
       {
