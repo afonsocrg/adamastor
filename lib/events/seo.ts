@@ -36,6 +36,8 @@ const CITY_INTROS: Partial<Record<string, string>> = {
 		"Braga is northern Portugal's growing tech hub — anchored by the University of Minho and Startup Braga's accelerator, with Subvisual's community work and conferences shaping the local scene. Adamastor surfaces the events here.",
 	coimbra:
 		"Coimbra's startup scene is anchored by Instituto Pedro Nunes (IPN) — Portugal's longest-running tech incubator — and the University of Coimbra's research ecosystem. The soil that grew Critical Software and Feedzai still produces founders today; Adamastor curates the events here.",
+	algarve:
+		"The Algarve is Portugal's southern tech corner — Faro, Lagos, and Albufeira draw remote founders, bootstrappers, and a growing digital-nomad community, with meetups and product gatherings increasingly spilling beyond the summer season. Adamastor surfaces the events here.",
 	online:
 		"Portugal's startup community is increasingly distributed — Lisboa, Porto, and a growing diaspora. Online events bridge them: virtual meetups, webinars, AMAs, and remote pitch nights curated by Adamastor.",
 };
@@ -158,9 +160,29 @@ export function eventsRouteFeedPath({
 }
 
 /**
- * Produce the metadata for any /events route variant. Includes a per-route
- * `<link rel="alternate" type="application/rss+xml">` so feed readers and
- * discovery tools find the right feed from any events URL.
+ * Pathname of the iCal feed for any events route variant. Matches the
+ * sibling `/calendar.ics` route segment under each events page — mirrors
+ * the RSS feed structure so RSS and iCal are at parity across the matrix.
+ */
+export function eventsRouteCalendarPath({
+	city,
+	category,
+}: {
+	city?: string | null;
+	category?: EventCategorySlug | null;
+}): string {
+	if (city && category) return `/events/${city}/${category}/calendar.ics`;
+	if (city) return `/events/${city}/calendar.ics`;
+	if (category) return `/events/${category}/calendar.ics`;
+	return "/events/calendar.ics";
+}
+
+/**
+ * Produce the metadata for any /events route variant. Includes per-route
+ * `<link rel="alternate">` for both the RSS feed and the iCal feed so
+ * discovery tools find the right feed from any events URL — RSS for
+ * notification-stream consumers (Slack, Telegram, IFTTT), iCal for
+ * calendar-subscription consumers (Google Calendar, Apple Calendar).
  */
 export function buildEventsRouteMetadata({ city, category, pathname }: EventsRouteSeoInput): Metadata {
 	const { title, description } = getEventsRouteTitleAndDescription({ city, category });
@@ -170,6 +192,8 @@ export function buildEventsRouteMetadata({ city, category, pathname }: EventsRou
 	const ogUrl = `${SITE_URL}${pathname}`;
 	const feedPath = eventsRouteFeedPath({ city, category });
 	const feedTitle = `Adamastor — ${title} (RSS)`;
+	const calendarPath = eventsRouteCalendarPath({ city, category });
+	const calendarTitle = `Adamastor — ${title} (iCal)`;
 
 	return {
 		title: fullTitle,
@@ -178,6 +202,7 @@ export function buildEventsRouteMetadata({ city, category, pathname }: EventsRou
 			canonical,
 			types: {
 				"application/rss+xml": [{ url: feedPath, title: feedTitle }],
+				"text/calendar": [{ url: calendarPath, title: calendarTitle }],
 			},
 		},
 		openGraph: {

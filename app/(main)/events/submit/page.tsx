@@ -4,12 +4,31 @@ import { getTurnstileSiteKey } from "@/lib/turnstile";
 import type { Metadata } from "next";
 import Image from "next/image";
 import SubmitEventForm from "./SubmitEventForm";
+import SubmitTitle from "./SubmitTitle";
+
+const SUBMIT_TITLE = "Submit an event — Adamastor";
+const SUBMIT_DESCRIPTION =
+	"Are you organising a tech, startup or design event in Portugal? Share it with Adamastor's community and reach more attendees.";
 
 export const metadata: Metadata = {
-	title: "Submit an event — Adamastor",
-	description:
-		"Are you organising a tech, startup or design event in Portugal? Share it with Adamastor's community and reach more attendees.",
+	title: SUBMIT_TITLE,
+	description: SUBMIT_DESCRIPTION,
+	alternates: { canonical: "/events/submit" },
 	robots: { index: true, follow: true },
+	openGraph: {
+		title: SUBMIT_TITLE,
+		description: SUBMIT_DESCRIPTION,
+		url: "https://adamastor.blog/events/submit",
+		siteName: "Adamastor",
+		type: "website",
+		images: [{ url: "/socialPreview2.jpg", width: 1200, height: 630, alt: "Submit an event to Adamastor" }],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: SUBMIT_TITLE,
+		description: SUBMIT_DESCRIPTION,
+		images: ["/socialPreview2.jpg"],
+	},
 };
 
 export default async function SubmitEventPage() {
@@ -22,19 +41,17 @@ export default async function SubmitEventPage() {
 	return (
 		<div className="mx-auto max-w-2xl space-y-8 md:p-4">
 			<header className="space-y-3 pb-2 pt-2">
-				<h1 className="text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)]">
-					Submit your event
-				</h1>
+				<SubmitTitle profileEmail={profile?.email ?? null} />
 				<p className="max-w-[60ch] text-base leading-relaxed text-muted-foreground [text-wrap:pretty]">
-					Adamastor curates the events worth knowing about in Portugal's tech and startup scene. Tell us about yours
-					and we'll review it within a couple of hours.
+					Adamastor curates the events worth knowing about in Portugal's tech and startup scene. Tell us about yours and
+					we'll review it within a couple of hours.
 				</p>
 			</header>
 
 			{/* Trust strip: three real faces + reassurance copy. Soft
-			    navy-faded wash distinguishes it from the outlined form
+			    navy-wash wash distinguishes it from the outlined form
 			    module below without competing for visual weight. */}
-			<aside className="flex items-start gap-4 rounded-lg bg-navy-faded/40 p-5 dark:bg-[rgba(76,228,240,0.04)]">
+			<aside className="flex items-start gap-4 rounded-lg bg-navy-veil/40 p-5 dark:bg-cyan-glow/[0.04]">
 				<div className="flex shrink-0 -space-x-2">
 					<Image
 						src="/afonso.jpeg"
@@ -59,15 +76,13 @@ export default async function SubmitEventPage() {
 					/>
 				</div>
 				<div className="space-y-1">
-					<h2 className="text-sm font-semibold text-navy dark:text-[#E3F2F7]">
-						Reviewed by Afonso, Carlos & Malik
-					</h2>
+					<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Reviewed by Afonso, Carlos & Malik</h2>
 					<p className="text-sm leading-relaxed text-muted-foreground">
-						The three of us read every submission and get back to you within a couple of hours.
-						Questions before you submit?{" "}
+						The three of us read every submission and get back to you within a couple of hours. Questions before you
+						submit?{" "}
 						<a
 							href="mailto:hello@adamastor.blog"
-							className="font-medium text-navy underline underline-offset-4 decoration-cyan decoration-2 hover:text-cyan-darker dark:text-[#E3F2F7] dark:hover:text-cyan transition-colors"
+							className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted dark:hover:text-cyan transition-colors"
 						>
 							Get in touch
 						</a>

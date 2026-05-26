@@ -38,6 +38,10 @@ Adamastor coordinates with Malik's other Lisbon-area community properties when s
 - [About Adamastor](https://adamastor.blog/about)
 - [RSS feed (weekly digest)](https://adamastor.blog/feed.xml)
 
+### For organisers
+
+- [Submit an event](https://adamastor.blog/events/submit) — organisers running tech, startup, or design events in Portugal can submit; editorial reviews within a couple of hours.
+
 ### Events (browse by city)
 
 - [All upcoming events](https://adamastor.blog/events)

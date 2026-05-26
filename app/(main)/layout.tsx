@@ -1,9 +1,20 @@
+import AdamastorMark from "@/components/AdamastorMark";
 import MobileTabBar from "@/components/MobileTabBar";
 import Navbar from "@/components/navbar";
 import { ArrowRightIcon, Linkedin, Rss, Twitter } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+
+// Footer column primitives. Extracted to keep 15+ link instances and 3
+// column headers visually consistent — any future tweak (hover state,
+// tracking, color) is a single edit. Constants live here rather than as
+// per-instance className duplication to enforce the editorial publication
+// register the rest of the footer establishes.
+const FOOTER_HEADING = "text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone";
+const FOOTER_LINK = "text-navy transition-colors hover:underline dark:text-cyan-lifted";
+const FOOTER_LINK_WITH_ICON = `${FOOTER_LINK} inline-flex items-center gap-2`;
+const FOOTER_NAV = "space-y-3 min-w-0";
+const FOOTER_LIST = "space-y-2 text-sm";
 
 export default function MainLayout({ children }: { children: ReactNode }) {
 	return (
@@ -28,86 +39,133 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 			        tracking register so the footer reads as a publication
 			        index, not a sitemap dump.
 			    (3) Copyright strap on a quiet bottom row. */}
-			<footer className="mt-12 border-t border-navy-faded dark:border-[rgba(76,228,240,0.12)]">
+			<footer className="mt-12 border-t border-navy-frame dark:border-cyan-glow/[0.12]">
 				<div className="max-w-screen-xl mx-auto px-4 md:px-8 py-8">
 					<p className="text-sm text-muted-foreground">Organising an event in Portugal?</p>
 					<Link
 						href="/events/submit"
-						className="-mx-2 -my-1 mt-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-base font-semibold text-navy transition-colors hover:bg-navy-faded dark:text-[#E3F2F7] dark:hover:bg-[rgba(76,228,240,0.06)]"
+						className="-mx-2 -my-1 mt-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-base font-semibold text-navy transition-colors hover:bg-navy-wash dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06]"
 					>
-						Submit your event
-						<ArrowRightIcon className="h-4 w-4 text-orange-main" aria-hidden="true" />
+						Get your event listed
+						<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />
 					</Link>
 				</div>
 
-				<div className="border-t border-navy-faded dark:border-[rgba(76,228,240,0.12)]">
-					<div className="max-w-screen-xl mx-auto grid grid-cols-1 gap-8 px-4 py-10 md:grid-cols-3 md:gap-12 md:px-8">
+				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
+					<div className="max-w-screen-xl mx-auto grid grid-cols-1 gap-8 px-4 py-10 md:grid-cols-4 md:gap-12 md:px-8">
 						<div>
-							<Image
-								src="/adamastorMark.svg"
-								alt="Adamastor"
-								width={214}
-								height={188}
-								className="h-12 w-auto dark:hidden"
-							/>
-							<Image
-								src="/adamastorMarkDark.svg"
-								alt="Adamastor"
-								width={214}
-								height={188}
-								className="hidden h-12 w-auto dark:block"
-							/>
+							{/* Inlined SVG (not <Image>) so the paths are stylable for the
+							    one-shot "ink draw-on" animation on first intersection.
+							    Color is driven by currentColor → light/dark via text-*. */}
+							<AdamastorMark className="h-12 w-auto text-navy dark:text-white" />
 						</div>
 
-						<nav aria-label="Our projects" className="space-y-3 md:justify-self-center">
-							<p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-pastel">Our projects</p>
-							<ul className="space-y-2 text-sm">
+						{/* Browse Events: curated site-wide internal links to the highest-
+						    intent events route variants. SEO purpose — every page on the
+						    site sends link equity + anchor-text signal to these routes;
+						    user-discovery purpose — visitors landing on the digest can
+						    find their slice of the events surface from any page. Anchors
+						    intentionally include geographic suffix ("in Portugal" /
+						    "in Lisboa") as keyword-rich link text, even though some
+						    destination page titles stay terse. */}
+						<nav aria-label="Browse Events" className={FOOTER_NAV}>
+							<p className={FOOTER_HEADING}>Browse Events</p>
+							<ul className={FOOTER_LIST}>
+								{/* Order: Lisboa-anchored first (highest-intent for our audience),
+								    then country-scope brand-aligned beats, ending with the niche
+								    category. Reads as broadest-to-narrowest and groups by scope. */}
+								<li>
+									<Link href="/events/lisboa" className={FOOTER_LINK}>
+										Startup events in Lisboa
+									</Link>
+								</li>
+								<li>
+									<Link href="/events/startups-fundraising" className={FOOTER_LINK}>
+										Startup & Fundraising events in Portugal
+									</Link>
+								</li>
+								<li>
+									<Link href="/events/lisboa/software-engineering" className={FOOTER_LINK}>
+										Software Engineering events in Lisboa
+									</Link>
+								</li>
+								<li>
+									<Link href="/events/design" className={FOOTER_LINK}>
+										Design events in Portugal
+									</Link>
+								</li>
+								<li>
+									<Link href="/events/ai" className={FOOTER_LINK}>
+										AI events in Portugal
+									</Link>
+								</li>
+								<li>
+									<Link href="/events/product" className={FOOTER_LINK}>
+										Product Management events in Portugal
+									</Link>
+								</li>
+							</ul>
+						</nav>
+
+						<nav aria-label="Our Projects" className={FOOTER_NAV}>
+							<p className={FOOTER_HEADING}>Our Projects</p>
+							<ul className={FOOTER_LIST}>
 								<li>
 									<Link
-										href="https://lisboaux.com/?utm_source=adamastor&utm_medium=footer&utm_campaign=cross_link"
+										href="https://lisboaux.com/?utm_source=adamastor.blog&utm_medium=footer&utm_campaign=cross_link"
 										rel="noopener"
 										target="_blank"
-										className="text-navy hover:underline dark:text-[#E3F2F7]"
+										className={FOOTER_LINK}
 									>
 										LisboaUX
 									</Link>
 								</li>
 								<li>
 									<Link
-										href="https://github.com/lisboajs?utm_source=adamastor&utm_medium=footer&utm_campaign=cross_link"
+										href="https://github.com/lisboajs?utm_source=adamastor.blog&utm_medium=footer&utm_campaign=cross_link"
 										rel="noopener"
 										target="_blank"
-										className="text-navy hover:underline dark:text-[#E3F2F7]"
+										className={FOOTER_LINK}
 									>
 										LisboaJS
 									</Link>
 								</li>
 								<li>
 									<Link
-										href="https://outono.org/?utm_source=adamastor&utm_medium=footer&utm_campaign=cross_link"
+										href="https://lisbonaiweek.com/?utm_source=adamastor.blog&utm_medium=footer&utm_campaign=cross_link"
 										rel="noopener"
 										target="_blank"
-										className="text-navy hover:underline dark:text-[#E3F2F7]"
+										className={FOOTER_LINK}
+									>
+										Lisbon AI Week
+									</Link>
+								</li>
+								<li>
+									<Link
+										href="https://outono.org/?utm_source=adamastor.blog&utm_medium=footer&utm_campaign=cross_link"
+										rel="noopener"
+										target="_blank"
+										className={FOOTER_LINK}
 									>
 										Outono
 									</Link>
 								</li>
 								<li>
 									<Link
-										href="https://www.linkedin.com/school/fi-portugal/?utm_source=adamastor&utm_medium=footer&utm_campaign=cross_link"
+										href="https://www.linkedin.com/school/fi-portugal/?utm_source=adamastor.blog&utm_medium=footer&utm_campaign=cross_link"
 										rel="noopener"
 										target="_blank"
-										className="text-navy hover:underline dark:text-[#E3F2F7]"
+										className={FOOTER_LINK}
 									>
 										Founder Institute Portugal
 									</Link>
 								</li>
 								<li>
 									<Link
-										href="https://www.startupgrind.com/lisbon/?utm_source=adamastor&utm_medium=footer&utm_campaign=cross_link"
+										href="https://www.startupgrind.com/lisbon/?utm_source=adamastor.blog&utm_medium=footer&utm_campaign=cross_link"
 										rel="noopener"
 										target="_blank"
-										className="text-navy hover:underline dark:text-[#E3F2F7]"
+										className={FOOTER_LINK}
 									>
 										Startup Grind Lisbon
 									</Link>
@@ -115,16 +173,19 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 							</ul>
 						</nav>
 
-						<nav aria-label="Follow us" className="space-y-3 md:justify-self-end">
-							<p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-pastel">Follow us</p>
-							<ul className="space-y-2 text-sm">
+						{/* Follow Us: dropped the previous `md:justify-self-end` so all
+						    three nav columns share a uniform left-aligned grid. The
+						    icon-prefix register distinguishes social affordances from
+						    the other two columns' text-only links; alignment direction
+						    no longer carries that weight. Labels wrapped in <span> so
+						    icon/text spacing is stable across formatter passes. */}
+						<nav aria-label="Follow Us" className={FOOTER_NAV}>
+							<p className={FOOTER_HEADING}>Follow Us</p>
+							<ul className={FOOTER_LIST}>
 								<li>
-									<Link
-										href="/feed.xml"
-										className="inline-flex items-center gap-2 text-navy hover:underline dark:text-[#E3F2F7]"
-									>
+									<Link href="/feed.xml" className={FOOTER_LINK_WITH_ICON}>
 										<Rss className="h-4 w-4" aria-hidden="true" />
-										RSS
+										<span>RSS</span>
 									</Link>
 								</li>
 								<li>
@@ -132,10 +193,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 										href="https://x.com/meetAdamastor"
 										rel="me noopener"
 										target="_blank"
-										className="inline-flex items-center gap-2 text-navy hover:underline dark:text-[#E3F2F7]"
+										className={FOOTER_LINK_WITH_ICON}
 									>
 										<Twitter className="h-4 w-4" aria-hidden="true" />
-										X
+										<span>X</span>
 									</Link>
 								</li>
 								<li>
@@ -143,10 +204,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 										href="https://www.linkedin.com/company/adamastor-magazine/"
 										rel="me noopener"
 										target="_blank"
-										className="inline-flex items-center gap-2 text-navy hover:underline dark:text-[#E3F2F7]"
+										className={FOOTER_LINK_WITH_ICON}
 									>
 										<Linkedin className="h-4 w-4" aria-hidden="true" />
-										LinkedIn
+										<span>LinkedIn</span>
 									</Link>
 								</li>
 							</ul>
@@ -154,20 +215,20 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 					</div>
 				</div>
 
-				<div className="border-t border-navy-faded dark:border-[rgba(76,228,240,0.12)]">
+				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
 					<div className="max-w-screen-xl mx-auto px-4 py-6 md:px-8">
-						<p className="text-center text-base italic text-navy dark:text-[#E3F2F7] [font-family:var(--font-lora-bold)] [text-wrap:balance]">
+						<p className="text-center text-base italic text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
 							Only You Know Who You Can Be
 						</p>
 					</div>
 				</div>
 
-				<div className="border-t border-navy-faded dark:border-[rgba(76,228,240,0.12)]">
+				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
 					<div className="max-w-screen-xl mx-auto flex items-center justify-between gap-3 px-4 py-4 md:px-8">
 						<p className="text-xs text-muted-foreground">© 2026 Adamastor</p>
 						<Link
 							href="/about"
-							className="text-xs text-muted-foreground transition-colors hover:text-navy hover:underline dark:hover:text-[#E3F2F7]"
+							className="text-xs text-muted-foreground transition-colors hover:text-navy hover:underline dark:hover:text-cyan-lifted"
 						>
 							About us
 						</Link>
