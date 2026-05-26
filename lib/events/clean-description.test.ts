@@ -35,11 +35,59 @@ test("preserves heading-style hash mid-paragraph", () => {
 	);
 });
 
-test("transforms a run of 3+ all-caps words to Title Case", () => {
+test("strips blockquote markers at line start", () => {
+	assert.equal(cleanEventDescription("> Quoted line"), "Quoted line");
+	assert.equal(cleanEventDescription("> One\n> Two"), "One\nTwo");
+});
+
+test("strips bold markers (** and __)", () => {
+	assert.equal(cleanEventDescription("**Bold here**"), "Bold here");
+	assert.equal(cleanEventDescription("Read **this** carefully"), "Read this carefully");
+	assert.equal(cleanEventDescription("__Also bold__"), "Also bold");
+});
+
+test("strips italic markers (* and _) without eating bullets or snake_case", () => {
+	assert.equal(cleanEventDescription("Read *this* word"), "Read this word");
+	assert.equal(cleanEventDescription("A _quiet_ note"), "A quiet note");
+	// Bullet list — must not be stripped
+	assert.equal(cleanEventDescription("* item one"), "* item one");
+	// snake_case — underscores stay
+	assert.equal(cleanEventDescription("Variable foo_bar_baz here"), "Variable foo_bar_baz here");
+});
+
+test("strips bold wrapping italic with shouty content (real row 126 pattern)", () => {
 	assert.equal(
-		cleanEventDescription("JOIN US FOR LISBON STARTUP WEEK"),
-		"Join Us For Lisbon Startup Week",
+		cleanEventDescription("**DO NOT FORGET TO REGISTER *ONLY* ON OUR OFFICIAL WEBSITE:**"),
+		"Do Not Forget To Register Only On Our Official Website:",
 	);
+});
+
+test("flattens markdown links to label only", () => {
+	assert.equal(cleanEventDescription("Sign up [here](https://example.com) today"), "Sign up here today");
+	// "REGISTER FOR FREE HERE" — 4 long-caps in a row → transforms.
+	assert.equal(
+		cleanEventDescription("[REGISTER FOR FREE HERE](https://events.ironhack.com/r/x)"),
+		"Register For Free Here",
+	);
+});
+
+test("unescapes backslash-escaped punctuation from table sources", () => {
+	assert.equal(
+		cleanEventDescription("Tech Meetup Aveiro \\| Continuidade no Negócio\\, Qualidade"),
+		"Tech Meetup Aveiro | Continuidade no Negócio, Qualidade",
+	);
+});
+
+test("transforms a run of 3+ long-caps words to Title Case", () => {
+	assert.equal(cleanEventDescription("JOIN LISBON STARTUP WEEK"), "Join Lisbon Startup Week");
+});
+
+test("leaves 2-word long-caps phrases alone (under threshold)", () => {
+	// "HUGE DEAL" has 2 long-caps — under the ≥3 threshold. Same for
+	// "YOUTH ENTREPRENEURSHIP", "SOCIAL INNOVATION", etc. Trade-off accepted
+	// to preserve real acronym pairs like "AWS GCP" / "AI ACT".
+	assert.equal(cleanEventDescription("HUGE DEAL today"), "HUGE DEAL today");
+	assert.equal(cleanEventDescription("YOUTH ENTREPRENEURSHIP rules"), "YOUTH ENTREPRENEURSHIP rules");
 });
 
 test("transforms a shouty run embedded in normal text", () => {
@@ -49,32 +97,51 @@ test("transforms a shouty run embedded in normal text", () => {
 	);
 });
 
-test("leaves scattered short acronyms (≤2 chars) alone", () => {
-	assert.equal(
-		cleanEventDescription("AI and IT are huge in 2026."),
-		"AI and IT are huge in 2026.",
-	);
+test("leaves scattered short acronyms alone", () => {
+	assert.equal(cleanEventDescription("AI and IT are huge in 2026."), "AI and IT are huge in 2026.");
 	assert.equal(
 		cleanEventDescription("Don’t miss it. AI IT JS are cool acronyms."),
 		"Don’t miss it. AI IT JS are cool acronyms.",
 	);
 });
 
-test("leaves 2-acronym sequences alone (under threshold)", () => {
+test("leaves common acronym PAIRS alone (no long-cap run of 3)", () => {
+	// "AWS GCP" / "AI ACT" / "NFC SUMMIT" / "CNCF KCD" — 2 long-caps each.
+	// Threshold is ≥3 long, so these stay untouched.
+	assert.equal(cleanEventDescription("Powered by AWS GCP today."), "Powered by AWS GCP today.");
+	assert.equal(cleanEventDescription("One Year of AI ACT"), "One Year of AI ACT");
+	assert.equal(cleanEventDescription("NFC SUMMIT is back"), "NFC SUMMIT is back");
+	assert.equal(cleanEventDescription("CNCF KCD Porto"), "CNCF KCD Porto");
+});
+
+test("handles Unicode uppercase (Portuguese diacritics)", () => {
+	// "O EVENTO QUE UNE OS PONTOS ESTÁ DE VOLTA" — many long-caps, threshold met.
 	assert.equal(
-		cleanEventDescription("Powered by AWS and GCP. Built in Lisbon."),
-		"Powered by AWS and GCP. Built in Lisbon.",
+		cleanEventDescription("O EVENTO QUE UNE OS PONTOS ESTÁ DE VOLTA!"),
+		"O Evento Que Une Os Pontos Está De Volta!",
 	);
 });
 
-test("leaves 2 consecutive shouty words alone (under threshold)", () => {
-	assert.equal(cleanEventDescription("HUGE DEAL today"), "HUGE DEAL today");
+test("handles a run that starts with a short-caps word", () => {
+	assert.equal(
+		cleanEventDescription("DO NOT FORGET TO REGISTER ONLY ON OUR OFFICIAL WEBSITE"),
+		"Do Not Forget To Register Only On Our Official Website",
+	);
 });
 
-test("combines heading strip and de-shout", () => {
+test("handles apostrophes inside all-caps words (DON'T)", () => {
+	// "DON'T BRING A BACKLOG TO A GUNFIGHT" — 4 long-caps once apostrophe is
+	// accounted for; single-letter "A" extends the run rather than breaking it.
+	assert.equal(cleanEventDescription("DON'T BRING A BACKLOG TO A GUNFIGHT!"), "Don't Bring A Backlog To A Gunfight!");
+});
+
+test("does NOT cross paragraph breaks when extending a run", () => {
+	// "1PM" and "LACS" sit on consecutive paragraphs; they're two separate
+	// caps tokens, and the \n\n between should break any in-progress run so
+	// they don't get merged and demoted together.
 	assert.equal(
-		cleanEventDescription("#### JOIN US FOR LISBON STARTUP WEEK"),
-		"Join Us For Lisbon Startup Week",
+		cleanEventDescription("Registration opens at 1PM\n\nLACS is a great venue"),
+		"Registration opens at 1PM\n\nLACS is a great venue",
 	);
 });
 
@@ -85,16 +152,17 @@ test("preserves multi-paragraph structure", () => {
 	);
 });
 
+test("collapses runs of 3+ blank lines to 2", () => {
+	assert.equal(cleanEventDescription("Para 1\n\n\n\n\nPara 2"), "Para 1\n\nPara 2");
+});
+
 test("trims surrounding whitespace", () => {
 	assert.equal(cleanEventDescription("  hello  "), "hello");
 });
 
-test("transforms 3+ caps acronyms in a comma-separated list (known trade-off)", () => {
-	// Documents the known edge case: 3+ caps words separated by punctuation+space
-	// still count as a run, so acronym lists get Title-Cased. Acceptable per the
-	// "more than 2 caps words → transform" rule.
-	assert.equal(
-		cleanEventDescription("Powered by AWS, GCP, AZURE today."),
-		"Powered by Aws, Gcp, Azure today.",
-	);
+test("transforms 3+ long-caps acronyms in a comma-separated list (known trade-off)", () => {
+	// Three long-caps acronyms separated only by commas/spaces still satisfy
+	// the ≥3 threshold and get Title-Cased. Acceptable — bare comma-separated
+	// acronym lists are rare in real descriptions.
+	assert.equal(cleanEventDescription("Powered by AWS, GCP, AZURE today."), "Powered by Aws, Gcp, Azure today.");
 });

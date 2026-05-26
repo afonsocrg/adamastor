@@ -1,6 +1,7 @@
 import { detectCityFromText } from "@/app/(dashboard)/dashboard/add-event/city-mappings";
 import type { MetadataResult } from "@/app/types";
 import { cleanEventDescription } from "@/lib/events/clean-description";
+import { cleanEventTitle } from "@/lib/events/clean-title";
 import { type CheerioAPI, load } from "cheerio";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -14,6 +15,7 @@ interface Event {
 	url?: string;
 	bannerUrl?: string;
 	startTime?: string; // -M: changed this from Date to string.
+	endTime?: string;
 	city?: string;
 }
 
@@ -193,6 +195,7 @@ function extractFromJsonLd($: CheerioAPI, baseUrl: string): Partial<Event> {
 				title: data.name,
 				description: data.description,
 				startTime: data.startDate,
+				endTime: data.endDate,
 				bannerUrl: normalizeUrl(typeof data.image === "string" ? data.image : data.image?.[0], baseUrl),
 				city,
 			};
@@ -225,6 +228,7 @@ function extractDefaultEventData(html: string, originalUrl: string): Event {
 			normalizeUrl(metadata.ogImage?.[0]?.url, originalUrl) ||
 			normalizeUrl(metadata.twitterImage?.[0]?.url, originalUrl),
 		startTime: jsonLdData.startTime || metadata.eventStartTime,
+		endTime: jsonLdData.endTime || metadata.eventEndTime,
 		city: jsonLdData.city || detectCityFromCandidates(metadata.ogTitle, metadata.ogDescription, metadata.description),
 	};
 }
@@ -261,6 +265,7 @@ function extractEventbriteData(html: string, originalUrl: string): Event {
 			normalizeUrl(metadata.ogImage?.[0]?.url, originalUrl) ||
 			normalizeUrl(metadata.twitterImage?.[0]?.url, originalUrl),
 		startTime: metadata.eventStartTime, // M: I'm now keeping this as a string.
+		endTime: metadata.eventEndTime,
 		city: detectCityFromCandidates(locationText, metadata.description, metadata.title),
 	};
 }
@@ -278,7 +283,7 @@ function extractLumaData(html: string, originalUrl: string): Event {
 	const jsonLdData = extractFromJsonLd($, originalUrl);
 
 	return {
-		title: cleanEventTitle((metadata.title || "").replace(" · Luma", "")),
+		title: cleanEventTitle(metadata.title || ""),
 		description: cleanEventDescription(jsonLdData.description || metadata.description),
 		url: normalizeUrl(metadata.ogUrl, originalUrl) || originalUrl,
 		bannerUrl:
@@ -286,6 +291,7 @@ function extractLumaData(html: string, originalUrl: string): Event {
 			normalizeUrl(metadata.twitterImage?.[0]?.url, originalUrl) ||
 			jsonLdData.bannerUrl,
 		startTime: jsonLdData.startTime || metadata.eventStartTime,
+		endTime: jsonLdData.endTime || metadata.eventEndTime,
 		city: jsonLdData.city || detectCityFromCandidates(metadata.description, metadata.title),
 	};
 }
@@ -406,31 +412,4 @@ export async function POST(request: NextRequest) {
 		console.error("Error in scrape API:", error);
 		return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
 	}
-}
-
-/**
- * Cleans common prefixes/suffixes from event titles.
- * Removes things like "[Online]", "(Virtual)", "🌐", etc.
- */
-function cleanEventTitle(title: string): string {
-	return (
-		title
-			// Remove bracketed online indicators
-			.replace(/\[online\]/gi, "")
-			.replace(/\[virtual\]/gi, "")
-			.replace(/\[remote\]/gi, "")
-			.replace(/\[webinar\]/gi, "")
-			// Remove parenthesized online indicators
-			.replace(/\(online\)/gi, "")
-			.replace(/\(virtual\)/gi, "")
-			.replace(/\(remote\)/gi, "")
-			.replace(/\(webinar\)/gi, "")
-			// Remove common emoji indicators
-			.replace(/🌐/g, "")
-			.replace(/💻/g, "")
-			.replace(/🖥️/g, "")
-			// Clean up extra whitespace
-			.replace(/\s+/g, " ")
-			.trim()
-	);
 }

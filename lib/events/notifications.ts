@@ -47,10 +47,7 @@ async function resolveAdminRecipients(): Promise<string[]> {
 
 	try {
 		const supabase = createServiceRoleClient();
-		const { data, error } = await supabase
-			.from("profiles")
-			.select("id, role")
-			.eq("role", "admin");
+		const { data, error } = await supabase.from("profiles").select("id, role").eq("role", "admin");
 
 		if (error) {
 			console.error("[notifications] failed to load admin profiles", error);
