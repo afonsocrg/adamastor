@@ -4,10 +4,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EVENT_CATEGORY_COLORS, type EventCategorySlug, isEventCategorySlug } from "@/lib/events/categories";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
-import { useCallback, useEffect, useState } from "react";
+import {
+	cloneElement,
+	isValidElement,
+	useCallback,
+	useEffect,
+	useState,
+	type KeyboardEvent,
+	type ReactNode,
+} from "react";
 import { Calendar, type View, momentLocalizer } from "react-big-calendar";
 import AgendaList from "./AgendaList";
-import "./calendar-custom.css";
+// calendar-custom.css is imported at the page-level (page.tsx) so the rbc base
+// stylesheet ships with the initial document instead of the dynamic chunk.
 
 const AGENDA_LENGTH_DAYS = 30;
 
@@ -54,7 +63,12 @@ interface CalendarEvent {
 // Define props for the component
 interface CalendarTestClientProps {
 	initialEvents: CalendarEvent[];
-	user?: any; // Replace with your user type
+	user?: unknown;
+	// Anchor `date` state to the server-resolved "now" so the live calendar's
+	// initial month matches the skeleton's. Without this, rbc re-anchors to
+	// `new Date()` on mount, which can disagree with serverNow across midnight
+	// or just spend a render landing on the right month.
+	initialDate?: Date;
 }
 
 function formatToolbarLabel(view: View, date: Date): string {
@@ -94,11 +108,24 @@ interface CalendarToolbarProps {
 	onView: (view: View) => void;
 }
 
+function CalendarEventWrapper({ children, event }: { children: ReactNode; event?: CalendarEvent }) {
+	if (!isValidElement<Record<string, unknown>>(children)) return <>{children}</>;
+
+	const label = event?.title ? `${event.url ? "Open" : "Preview"} event: ${event.title}` : "Calendar event";
+
+	return cloneElement(children, {
+		tabIndex: 0,
+		role: event?.url ? "link" : "group",
+		"aria-label": label,
+	});
+}
+
 // Custom rbc slot renderers — defined at module level (not in a useMemo
 // inside the component) because they close over no state and reference only
 // imported helpers. Hoisting saves a per-render useMemo and a stable ref
 // allocation for `components`.
 const calendarComponents = {
+	eventWrapper: CalendarEventWrapper,
 	week: {
 		// Stacked Week header — weekday caps (architectural register, matches
 		// site-level section nav) above the date numeral in Lora Bold. Today's
@@ -149,17 +176,27 @@ const calendarComponents = {
 					: "bg-navy-tone dark:bg-cyan-dim";
 			const start = moment(event.start);
 			const time = start.minutes() === 0 ? start.format("ha") : start.format("h:mma");
-			return (
-				<span className="flex w-full min-w-0 items-center gap-1.5 overflow-hidden text-xs">
-					<span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} aria-hidden="true" />
-					<span className="shrink-0 text-muted-foreground">{time}</span>
+			const renderEventRow = (kind: "base" | "preview") => (
+				<span
+					className={`rbc-month-event-row rbc-month-event-row--${kind} flex w-full min-w-0 items-center gap-1.5 overflow-hidden text-xs`}
+					aria-hidden={kind === "preview"}
+				>
+					<span className={`rbc-month-event-dot h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} aria-hidden="true" />
+					<span className="rbc-month-event-time shrink-0 text-muted-foreground">{time}</span>
 					{/* min-w-0 is the load-bearing bit: without it the title's
 					    flex min-width defaults to its content width (=full
 					    string), so truncate can't kick in. */}
-					<span className="min-w-0 flex-1 truncate font-medium text-navy dark:text-cyan-lifted">
+					<span className="rbc-month-event-title min-w-0 flex-1 truncate font-medium text-navy dark:text-cyan-lifted">
 						{event.title}
 					</span>
 				</span>
+			);
+
+			return (
+				<>
+					{renderEventRow("base")}
+					{renderEventRow("preview")}
+				</>
 			);
 		},
 	},
@@ -219,37 +256,11 @@ function CalendarToolbar({ view, date, onNavigate, onView }: CalendarToolbarProp
 	);
 }
 
-function UpcomingEvents({ events }: { events: CalendarEvent[] }) {
-	// Single `now` per render — previously the inline filter+count called
-	// `new Date()` twice and the time advanced between them. Hoisting also
-	// makes the filter→sort→slice chain run on one stable timestamp.
-	const now = new Date();
-	const upcoming = events
-		.filter((e) => e.start >= now)
-		.sort((a, b) => a.start.getTime() - b.start.getTime());
-	return (
-		<div className="bg-neutral-100 dark:bg-background p-4 rounded-lg">
-			<h3 className="text-lg font-semibold mb-2">Upcoming Events ({upcoming.length})</h3>
-			<ul className="space-y-2">
-				{upcoming.slice(0, 5).map((event) => (
-					<li key={event.id} className="text-sm">
-						<span className="font-medium">{event.title}</span> -
-						<span className="text-muted-foreground ml-1">
-							{moment(event.start).format("MMM DD, YYYY HH:mm")}
-							{event.city && ` • ${event.city}`}
-						</span>
-					</li>
-				))}
-			</ul>
-		</div>
-	);
-}
-
-export default function CalendarTestClient({ initialEvents = [], user }: CalendarTestClientProps) {
+export default function CalendarTestClient({ initialEvents = [], user, initialDate }: CalendarTestClientProps) {
 	// Initialize state with the events from the server
 	const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
 	const [view, setView] = useState<View>("month");
-	const [date, setDate] = useState(new Date());
+	const [date, setDate] = useState(() => initialDate ?? new Date());
 
 	const handleNavigate = useCallback((newDate: Date) => {
 		setDate(newDate);
@@ -293,10 +304,11 @@ export default function CalendarTestClient({ initialEvents = [], user }: Calenda
 	const eventPropGetter = useCallback((event: CalendarEvent) => {
 		const slug = event.categorySlugs?.[0];
 		const category = slug && isEventCategorySlug(slug) ? `cat-${slug}` : "cat-none";
+		const edge = moment(event.start).isoWeekday() === 7 ? " rbc-event--edge-right" : "";
 		const isPast = event.end.getTime() < Date.now();
-		if (!isPast) return { className: category };
+		if (!isPast) return { className: `${category}${edge}` };
 		return {
-			className: `${category} rbc-event--past`,
+			className: `${category}${edge} rbc-event--past`,
 			style: { opacity: 0.42 },
 		};
 	}, []);
@@ -325,6 +337,15 @@ export default function CalendarTestClient({ initialEvents = [], user }: Calenda
 			window.open(event.url, "_blank", "noopener,noreferrer");
 		}
 	}, []);
+
+	const handleKeyPressEvent = useCallback(
+		(event: CalendarEvent, keyboardEvent: KeyboardEvent<HTMLElement>) => {
+			if (keyboardEvent.key !== "Enter" && keyboardEvent.key !== " ") return;
+			keyboardEvent.preventDefault();
+			handleSelectEvent(event);
+		},
+		[handleSelectEvent],
+	);
 
 	const handleSelectSlot = useCallback(
 		({ start, end }: { start: Date; end: Date }) => {
@@ -461,6 +482,7 @@ export default function CalendarTestClient({ initialEvents = [], user }: Calenda
 							onNavigate={handleNavigate}
 							onView={handleViewChange}
 							onSelectEvent={handleSelectEvent}
+							onKeyPressEvent={handleKeyPressEvent}
 							onSelectSlot={handleSelectSlot}
 							selectable={false} // !!user: Only allow selection if user is logged in
 							toolbar={false}
@@ -469,12 +491,11 @@ export default function CalendarTestClient({ initialEvents = [], user }: Calenda
 							dayPropGetter={dayPropGetter}
 							components={calendarComponents}
 							scrollToTime={new Date(1970, 0, 1, 8, 40)} // 1970 = Unix Epoch. We only care about the time.
+							tooltipAccessor={() => ""}
 						/>
 					</div>
 				)}
 			</div>
-
-			<UpcomingEvents events={events} />
 		</div>
 	);
 }

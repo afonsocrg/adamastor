@@ -1,22 +1,35 @@
 "use client";
 
-// Renders the static MonthSkeleton until React hydrates + the dynamic
-// CalendarTestClient chunk has loaded; then swaps to the live calendar.
+// Renders the static MonthSkeleton while the real calendar's JS chunk loads
+// and mounts, then cross-fades to the live calendar.
 //
-// The skeleton is server-rendered via this component's first render
-// (hydrated=false). After hydration, useEffect flips state, triggering
-// a re-render that mounts the dynamic-imported CalendarTestClient. The
-// dynamic chunk preloads in parallel via the module-level `import()`
-// statement below, so by the time the user could click anything the JS
-// is usually already in cache.
+// Design choices (each addresses one root cause of the previous "second flash"):
 //
-// Why not just put MonthSkeleton in dynamic({ loading: ... })?
-// `next/dynamic`'s `loading` callback doesn't receive props — we'd lose
-// access to events/date needed to render an accurate skeleton. Doing the
-// swap in a stateful wrapper keeps both branches prop-aware.
+// 1. CSS Grid stacking instead of `position: absolute`.
+//    Both children share `col-start-1 row-start-1` and overlap in the same
+//    grid cell. The real calendar mounts in its FINAL layout context (static
+//    flow, sized by content). No `absolute → static` className flip mid-life,
+//    which previously made rbc re-measure its container.
+//
+// 2. Manual `import()` + useState instead of `next/dynamic`.
+//    next/dynamic with `ssr: false` runs an internal state machine that can
+//    yield null for one render tick even when the chunk is preloaded — a
+//    visible white frame. Holding the resolved module ourselves means we
+//    only render the live calendar once we definitely have it.
+//
+// 3. Hidden mount phase + one requestAnimationFrame before fade-start.
+//    Lets rbc complete its first measurement + paint before the skeleton's
+//    opacity starts dropping. During that mounting frame, the live calendar
+//    is rendered at opacity-0 under the skeleton so it cannot pop in early.
+//
+// 4. `initialDate={serverNow}` passed through.
+//    Keeps the live calendar's initial month aligned with the skeleton's
+//    so there's no visible "snap to a different month" on mount.
+//
+// The stylesheet (incl. rbc's base CSS) is imported in page.tsx so it
+// arrives in the initial document, not the dynamic chunk.
 
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useState, type ComponentType } from "react";
 import MonthSkeleton from "./MonthSkeleton";
 
 interface CalendarEventLike {
@@ -32,72 +45,65 @@ interface CalendarEventLike {
 interface CalendarWithSkeletonProps {
 	initialEvents: CalendarEventLike[];
 	user?: unknown;
-	// `now` from the server so the skeleton's "today" / past-day math
-	// resolves to the same date on server + client; prevents a rare
-	// hydration mismatch when SSR + hydration straddle midnight.
 	serverNow: Date;
 }
 
-// Dynamic-imported live calendar. `ssr: false` skips server rendering
-// (which would otherwise produce an empty pre-hydration HTML that flashes
-// after the skeleton). The dynamic chunk loads in parallel with the
-// initial page payload because Next.js inlines the import as a module
-// preload link in the SSR response.
-const CalendarTestClient = dynamic(() => import("./CalendarTestClient"), {
-	ssr: false,
-	// Render nothing during the dynamic load — the wrapper's hydrated
-	// branch handles the visible state below. Without `loading: () => null`
-	// next/dynamic would briefly inject its own (empty) fallback over our
-	// skeleton.
-	loading: () => null,
-});
+type LiveCalendar = ComponentType<{
+	initialEvents: CalendarEventLike[];
+	user?: unknown;
+	initialDate?: Date;
+}>;
 
-// Cross-fade duration in ms. Kept in JS so the post-fade unmount timer
-// matches the CSS transition exactly.
 const FADE_MS = 300;
 
 export default function CalendarWithSkeleton({ initialEvents, user, serverNow }: CalendarWithSkeletonProps) {
-	// Three phases:
-	//   "skeleton" — only MonthSkeleton rendered (initial paint + SSR).
-	//   "crossfade" — chunk loaded, real calendar rendered ON TOP of
-	//     skeleton via absolute positioning; both visible during a 300ms
-	//     opacity transition.
-	//   "done" — skeleton unmounted; real calendar switched to static
-	//     positioning so it can grow naturally for views with variable
-	//     height (Agenda especially).
-	const [phase, setPhase] = useState<"skeleton" | "crossfade" | "done">("skeleton");
+	const [LiveCalendar, setLiveCalendar] = useState<LiveCalendar | null>(null);
+	// "skeleton" — only skeleton visible.
+	// "mounting" — live calendar mounted but hidden while rbc measures.
+	// "crossfade" — both rendered; skeleton fading to 0 over FADE_MS.
+	// "done" — skeleton unmounted; only live calendar.
+	const [phase, setPhase] = useState<"skeleton" | "mounting" | "crossfade" | "done">("skeleton");
 
+	// Effect 1: load the live calendar's module, then enter "mounting" so the
+	// live calendar can render hidden under the skeleton before the fade starts.
 	useEffect(() => {
-		// Preload the dynamic chunk before showing the real calendar so the
-		// fade-in animation runs against an already-mounted component (no
-		// gap between flip and chunk-arrival).
 		let cancelled = false;
-		let unmountTimer: ReturnType<typeof setTimeout> | null = null;
 		import("./CalendarTestClient")
-			.then(() => {
+			.then((mod) => {
 				if (cancelled) return;
-				setPhase("crossfade");
-				unmountTimer = setTimeout(() => {
-					if (!cancelled) setPhase("done");
-				}, FADE_MS);
+				setLiveCalendar(() => mod.default as LiveCalendar);
+				setPhase("mounting");
 			})
 			.catch((err) => {
 				console.error("Calendar dynamic import failed", err);
 			});
 		return () => {
 			cancelled = true;
-			if (unmountTimer) clearTimeout(unmountTimer);
 		};
 	}, []);
 
-	const realIsAbsolute = phase === "crossfade";
-	const realIsVisible = phase !== "skeleton";
+	// Effect 2: once the live component is mounted, wait one animation frame
+	// (so rbc has a chance to measure + paint), then start the fade.
+	useEffect(() => {
+		if (!LiveCalendar || phase !== "mounting") return;
+		let unmountTimer: ReturnType<typeof setTimeout> | null = null;
+		const rafId = requestAnimationFrame(() => {
+			setPhase("crossfade");
+			unmountTimer = setTimeout(() => setPhase("done"), FADE_MS);
+		});
+		return () => {
+			cancelAnimationFrame(rafId);
+			if (unmountTimer) clearTimeout(unmountTimer);
+		};
+	}, [LiveCalendar, phase]);
+
+	const liveIsVisible = phase === "crossfade" || phase === "done";
 
 	return (
-		<div className="relative">
+		<div className="grid">
 			{phase !== "done" && (
 				<div
-					className={`transition-opacity duration-300 ${
+					className={`relative z-20 col-start-1 row-start-1 transition-opacity duration-300 motion-reduce:transition-none ${
 						phase === "crossfade" ? "pointer-events-none opacity-0" : "opacity-100"
 					}`}
 					aria-hidden={phase === "crossfade" ? "true" : undefined}
@@ -105,13 +111,14 @@ export default function CalendarWithSkeleton({ initialEvents, user, serverNow }:
 					<MonthSkeleton date={serverNow} events={initialEvents} />
 				</div>
 			)}
-			{realIsVisible && (
+			{LiveCalendar && (
 				<div
-					className={`motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 ${
-						realIsAbsolute ? "absolute inset-0" : ""
+					className={`relative col-start-1 row-start-1 transition-opacity duration-300 motion-reduce:transition-none ${
+						liveIsVisible ? "z-30 opacity-100" : "pointer-events-none z-10 opacity-0"
 					}`}
+					aria-hidden={liveIsVisible ? undefined : "true"}
 				>
-					<CalendarTestClient initialEvents={initialEvents} user={user} />
+					<LiveCalendar initialEvents={initialEvents} user={user} initialDate={serverNow} />
 				</div>
 			)}
 		</div>

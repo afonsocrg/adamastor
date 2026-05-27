@@ -1,3 +1,28 @@
+# Hand-off — 2026-05-27
+
+Closes the calendar cross-fade work that was WIP at end of 2026-05-26. One commit centres on `/dashboard/calendar/{page,CalendarWithSkeleton,CalendarTestClient,MonthSkeleton,calendar-custom}.tsx,css` plus a new engineering reference doc.
+
+---
+
+## ✅ Resolved: calendar "second white flash" + skeleton→live layout shift
+
+The cross-fade issue carried over as open #7 from 2026-05-26 is closed. The root cause turned out to be a stack of contributing factors rather than a single bug — all four addressed in one combined patch:
+
+1. **`next/dynamic` null-yield on mount.** `next/dynamic({ ssr: false, loading: () => null })` runs its own state machine that yielded `null` for one render tick after the chunk resolved, producing a visible white frame. Replaced with manual `import("./CalendarTestClient").then((mod) => setLiveCalendar(() => mod.default))` storing the resolved component in `useState`. We only render the live calendar once we definitely have it.
+2. **`absolute → static` wrapper-class flip re-measured rbc.** The prior implementation mounted the live calendar with `absolute inset-0`, then flipped to static positioning post-fade — that layout-context change reflowed the container and rbc re-measured. Replaced with CSS Grid stacking (`grid` parent, both children share `col-start-1 row-start-1`). The live wrapper class no longer changes across phases.
+3. **rbc base CSS shipped in the dynamic chunk.** `calendar-custom.css` `@import`s the rbc package stylesheet, and the file was imported in `CalendarTestClient.tsx` — so the whole stylesheet rode the dynamic chunk. Moved the import to `page.tsx` (server component) so Next.js inlines it as a `<link>` in the SSR document head — rbc rules are present before any JS runs.
+4. **Residual `@apply animate-in` on `.rbc-month-view`.** Was replaying a fade-in on every live-calendar mount, on top of the wrapper's fade. Removed from `calendar-custom.css`.
+
+After those four, a separate layout shift remained: the skeleton was ~53px shorter than the live calendar, so page height jumped when the live mounted. Diagnosis pinned the cause to the skeleton's calendar grid using `minHeight: 660px` + ~30px day-headers ≈ 690px, while the live calendar inline-styles its wrapper at `height: 740px`. Fix: wrapped the skeleton's day-headers + 6-week grid in a `<div style={{ height: 740 }} className="flex flex-col">` with `gridTemplateRows: "repeat(6, 1fr)"` on the inner grid. Skeleton grid wrapper is now 1058px vs live 1062px (residual 4px is within CLS "good" threshold and below the perception threshold).
+
+Final tightening (added by Codex-assisted iteration after the above): explicit `"mounting"` phase in `CalendarWithSkeleton.tsx`. The live calendar is now rendered at `opacity-0 z-10` underneath the skeleton (`z-20`) during a dedicated mount phase, then the wrapper z-jumps to `z-30 opacity-100` for the cross-fade. This gives rbc a full paint cycle to measure before any visible motion begins.
+
+**New engineering reference**: `docs/react-big-calendar-loading-stability.md` captures the core principle (*the first painted loading UI and the final hydrated UI must occupy the same geometry*) and the full set of synchronization rules — anchor date, week start convention, wrapper height, toolbar height, row layout model, CSS availability. Future calendar work (incl. the public-facing variant) should follow these.
+
+**Companion change**: `CalendarTestClient.tsx` now accepts `initialDate?: Date` and seeds its date state from it (defaults to `new Date()` for safety). `page.tsx` passes `serverNow` through. Keeps the live calendar's initial month aligned with the skeleton's — fixes a subtle midnight-crossing date-anchor mismatch.
+
+---
+
 # Hand-off — 2026-05-26 (late evening)
 
 Two commits today on `main`, not pushed (~56 commits unpushed). Both centre on `/dashboard/calendar`: a brand-aligned redesign across all four views, then a perf pass with an unfinished skeleton/cross-fade refactor.
@@ -68,7 +93,7 @@ From `2026-05-26 (earlier)` and prior, plus the new entries from today:
 
 **New from today:**
 
-7. **Calendar cross-fade second flash** (open issue from `684c907`). Refactor to CSS Grid stacking on resume — render skeleton + real in same grid cell, drop `absolute inset-0` and the post-fade class change. Combined with `find-skills` discovery (now symlinked from `/Users/malik/.agents/skills/find-skills` to `~/.claude/skills/find-skills` — see Tools section), the next session should query find-skills for "smooth client-component mount transitions / hydration flash in Next.js App Router" before implementing.
+7. ~~**Calendar cross-fade second flash**~~ ✅ Resolved 2026-05-27. See the top-of-file section for full diagnosis and fix. Reference doc: `docs/react-big-calendar-loading-stability.md`.
 8. **Agenda revisit** flagged mid-session: Malik wanted to revisit some of the day-grouped layout decisions "with more time and mental space." Specifics not captured; ask before re-opening.
 9. **Calendar window edge handling** — prev/next currently shows empty cells past the ±window. On-demand re-fetch trigger when user navigates to a month outside the loaded window.
 
@@ -104,13 +129,13 @@ Updated from yesterday's roadmap. Today's two big chunks landed:
 ### Calendar architecture
 
 - `app/(dashboard)/dashboard/calendar/page.tsx` (server component) — fetches windowed events + user in parallel; passes `initialEvents`, `user`, `serverNow` to `CalendarWithSkeleton`.
-- `app/(dashboard)/dashboard/calendar/CalendarWithSkeleton.tsx` (client component, hosts the dynamic import) — three-phase state machine; WIP cross-fade.
+- `app/(dashboard)/dashboard/calendar/CalendarWithSkeleton.tsx` (client component, hosts the dynamic import) — four-phase state machine (`skeleton → mounting → crossfade → done`) with CSS Grid stacking + explicit z-index layering. See `docs/react-big-calendar-loading-stability.md` for the synchronization rules the skeleton must honour.
 - `app/(dashboard)/dashboard/calendar/MonthSkeleton.tsx` (renders inside CalendarWithSkeleton) — static look-alike for first paint.
 - `app/(dashboard)/dashboard/calendar/CalendarTestClient.tsx` (client component, dynamic-loaded) — the real react-big-calendar wrapper. Renders the AgendaList for the Agenda view; renders rbc Calendar for the grid views.
 - `app/(dashboard)/dashboard/calendar/AgendaList.tsx` — custom day-grouped editorial list.
 - `app/(dashboard)/dashboard/calendar/calendar-custom.css` — single CSS file, organized into 10 numbered sections with a TOC at top.
 
-`react-big-calendar` is bundled into the route. The Calendar component is dynamic-imported via `CalendarWithSkeleton` so it can render `ssr: false` (cleaner skeleton swap path) — though see the open cross-fade issue.
+`react-big-calendar` is bundled into the route. The Calendar component is loaded via a manual `import("./CalendarTestClient")` in a `useEffect` (not `next/dynamic`) and stored in `useState`, so we control the exact moment of mount and avoid `next/dynamic`'s internal null-yield. The stylesheet (incl. rbc's base CSS via `@import`) is imported in `page.tsx` so it ships in the SSR document, not the dynamic chunk.
 
 ### Category color mapping is reused beyond the calendar
 

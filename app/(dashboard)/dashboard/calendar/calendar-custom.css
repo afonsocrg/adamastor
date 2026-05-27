@@ -36,7 +36,6 @@
 /* Month view container */
 .rbc-month-view {
 	@apply border-0;
-	@apply animate-in;
 }
 
 /* Remove left border in all-day cell */
@@ -293,7 +292,12 @@
    width; without this the un-truncated content pushes the whole row past
    the container and slides the toolbar offscreen.
 
-   `position: relative` is the anchor for the hover-reveal popover below. */
+   MonthSkeleton.tsx intentionally mirrors this baseline geometry. These
+   metrics can change when the design calls for it, but update the skeleton
+   and row-limit assumptions in the same patch; see
+   docs/react-big-calendar-loading-stability.md.
+
+   `position: relative` is the anchor for the hover-reveal preview below. */
 .rbc-calendar .rbc-month-view .rbc-event {
 	position: relative;
 	background-color: transparent !important;
@@ -309,6 +313,7 @@
    container that can shrink with its parent, so the inner flex layout can
    truncate the title via `min-w-0` on the title span. */
 .rbc-calendar .rbc-month-view .rbc-event .rbc-event-content {
+	position: relative;
 	display: block;
 	min-width: 0;
 	overflow: hidden;
@@ -316,63 +321,116 @@
 	transition: opacity 120ms ease-out;
 }
 
-/* Hover reveal — on pointer-enter, the .rbc-event-content escapes its cell
-   into an absolute-positioned popover that expands to its content width
-   (capped at 320px), gets a white background + soft navy-frame border +
-   shadow, and lifts above sibling cells via z-index. The host .rbc-event
-   needs overflow visible during the reveal so the popover can paint past
-   the cell boundary.
+.rbc-calendar .rbc-month-view .rbc-event .rbc-month-event-row--preview {
+	display: none;
+}
+
+/* Hover reveal — on pointer-enter/focus, a preview clone of the existing
+   event row becomes the one-line reading lens. The compact base row stays in
+   normal flow, which keeps sibling events and the skeleton geometry stable.
 
    Scoped to NOT past events via :not(.rbc-event--past) — past items are
    archival and shouldn't grab focus on hover. */
-.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):hover {
+.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):is(:hover, :focus-visible) {
+	outline: none;
 	overflow: visible;
 	z-index: 30;
 }
 
-.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):hover .rbc-event-content {
+.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):is(:hover, :focus-visible) .rbc-month-event-row--base {
+	opacity: 0;
+}
+
+.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):is(:hover, :focus-visible) .rbc-event-content {
+	overflow: visible;
+}
+
+.rbc-calendar
+	.rbc-month-view
+	.rbc-event:not(.rbc-event--past):is(:hover, :focus-visible)
+	.rbc-month-event-row--preview {
 	position: absolute;
-	top: -4px;
+	top: -6px;
 	left: -4px;
-	padding: 4px 8px;
+	display: flex;
+	padding: 4px 10px;
 	background-color: white;
 	border: 1px solid rgba(232, 240, 244, 1);
-	border-radius: 6px;
-	box-shadow: 0 4px 14px rgba(16, 67, 87, 0.1);
+	border-radius: 999px;
+	box-shadow: 0 8px 22px rgba(16, 67, 87, 0.14);
 	white-space: nowrap;
 	width: max-content;
-	max-width: 320px;
+	max-width: min(680px, calc(100vw - 64px));
 	min-width: calc(100% + 8px);
 	transform-origin: top left;
-	animation: rbc-month-event-reveal 140ms ease-out forwards;
+	animation: rbc-month-event-reveal 180ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.rbc-calendar
+	.rbc-month-view
+	.rbc-event.rbc-event--edge-right:not(.rbc-event--past):is(:hover, :focus-visible)
+	.rbc-month-event-row--preview {
+	right: -4px;
+	left: auto;
+	transform-origin: top right;
+}
+
+.rbc-calendar
+	.rbc-month-view
+	.rbc-event:not(.rbc-event--past):is(:hover, :focus-visible)
+	.rbc-month-event-row--preview
+	.rbc-month-event-title {
+	overflow: visible;
+}
+
+.rbc-calendar
+	.rbc-month-view
+	.rbc-event:not(.rbc-event--past):is(:hover, :focus-visible)
+	.rbc-month-event-row--preview
+	.rbc-month-event-title {
+	flex: 0 1 auto;
+	text-overflow: clip;
+	font-size: 0.8125rem;
+	font-weight: 650;
 }
 
 /* Dark-mode popover */
-.dark .rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):hover .rbc-event-content {
+.dark
+	.rbc-calendar
+	.rbc-month-view
+	.rbc-event:not(.rbc-event--past):is(:hover, :focus-visible)
+	.rbc-month-event-row--preview {
 	background-color: hsla(201, 72%, 8%, 1);
 	border-color: rgba(76, 228, 240, 0.18);
-	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 8px 22px rgba(0, 0, 0, 0.34);
 }
 
-/* Subtle enter animation — fades in, nudges down a hair, and lands at a
-   slight scale-up so the popover reads as 'lifting off the grid' with a
-   touch more presence than the original cell row. `forwards` fill-mode
-   holds the to-state after the animation completes. */
+/* The reveal lands with a small lift and scale so it feels playful without
+   getting springy. `forwards` fill-mode holds the to-state after the
+   animation completes. */
 @keyframes rbc-month-event-reveal {
 	from {
-		opacity: 0;
-		transform: translateY(-2px) scale(0.98);
+		opacity: 0.42;
+		transform: translateY(1px) scale(0.985);
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0) scale(1.05);
+		transform: translateY(-2px) scale(1.03);
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.rbc-calendar .rbc-month-view .rbc-event:not(.rbc-event--past):hover .rbc-event-content {
+	.rbc-calendar .rbc-month-view .rbc-event,
+	.rbc-calendar .rbc-month-view .rbc-event .rbc-event-content {
+		transition: none;
+	}
+
+	.rbc-calendar
+		.rbc-month-view
+		.rbc-event:not(.rbc-event--past):is(:hover, :focus-visible)
+		.rbc-month-event-row--preview {
 		animation: none;
-		transform: scale(1.05);
+		transform: none;
 	}
 }
 

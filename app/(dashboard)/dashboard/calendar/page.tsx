@@ -1,6 +1,10 @@
 import CalendarWithSkeleton from "./CalendarWithSkeleton";
 import { createClient } from "@/lib/supabase/server";
 import { getUserProfile } from "@/lib/supabase/authentication";
+// Hoisted from CalendarTestClient so the stylesheet (incl. rbc's base CSS via @import)
+// ships with the initial document, not the dynamic chunk. Avoids one-frame unstyled
+// flash when the calendar's JS arrives before its CSS is applied.
+import "./calendar-custom.css";
 
 // Fetch window: 60 days back, 180 days (6mo) forward. Past matters less than
 // future (organisers care about what's coming, not what shipped), so the
