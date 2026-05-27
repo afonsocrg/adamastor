@@ -57,15 +57,30 @@ Reference fonts via Tailwind arbitrary value:
 <p className="[font-family:var(--font-inter)]">42 subscribers</p>
 ```
 
-**Type usage:**
-- Page title (h1): Lora Bold + `font-bold` + `text-3xl` minimum, `text-navy`
-- Module heading (sidebar block, empty state heading): Lora Bold + `font-bold` + `text-lg`, `text-navy`
-- Section headers (h3, in-content): Inter `font-semibold`
-- Body, labels, table cells: Inter (the default)
-- Numerical displays (stat headlines, pull-quotes): Lora Bold + `font-bold` + `tabular-nums`
-- Code / env var / technical token: Inconsolata, `text-xs`, `bg-muted` padded
+### Type allocation — Lora is rare
+
+A display serif earns its power by being rare. When every heading on the page is in Lora, the contrast collapses — the reader's eye does the editorial-register work everywhere, and Lora stops feeling special. Per the brand's "editorial publication, not SaaS" register, Lora is **reserved for two surfaces**:
+
+1. **Page H1** — the one editorial moment per page. The named title.
+2. **Blockquote / pull-quote** — Lora italic, a structurally different role (italic + body-scale, not heading hierarchy). The "second voice" pull-out.
+
+**Everything else uses Inter**, with hierarchy carried by weight + size + color + structural rules (hairlines, kickers, spacing):
+
+| Role | Family | Weight | Mobile / Desktop |
+|---|---|---|---|
+| **Page H1** | Lora Bold | 700 | 30px (text-3xl) → 31px (text-[1.9375rem]) / 48px (text-5xl) |
+| **Page-section H2** (Subscribe, Feedback, Read next, About) | Inter | 600 | 24px (text-2xl) / 30px (text-3xl) |
+| **Body H2** (in prose, w/ navy-frame top hairline rule) | Inter | 600 | 22px (text-[1.375rem]) / 24px (text-2xl) |
+| **Body H3** | Inter | 600 | 17px / 18px |
+| **Section kickers** (uppercase tracked labels) | Inter | 600 | 11px / 12px (text-xs) |
+| **Blockquote** | Lora | 400 italic | 22px |
+| **Body text** | Inter (prose-lg default) | 400 | 17px (mobile) / 18px (prose-lg) |
 
 **Why Lora and not CalSans or Crimson Text?** CalSans (modern startup display font) and Crimson Text (classical book serif) were both dropped because neither matched Adamastor's "contemporary digital publication" voice. CalSans read too "SaaS product"; Crimson read too "Victorian literary magazine." Lora Bold is designed for screen reading, sits between them in feel, and pairs cleanly with Inter for body.
+
+**Why the body H2 hairline rule and the smaller-than-page-section size**: body H2 (24px) and page-section H2 (30px) are both Inter SemiBold navy — they need a discriminator. The hairline above body H2 signals "section break IN the article body" vs page-section H2 which is structural chrome around the article. The size differential reinforces hierarchy (body sections are nested inside the article).
+
+**Why Inter for kickers (not Lora small caps)**: Inter at 10–12px holds its geometry crisply. Lora at the same size loses serif definition and reads fuzzy. Kickers also appear MANY times per page (one per section), and any Lora occurrence beyond H1 + blockquote dilutes Lora's editorial power.
 
 ## Color
 
@@ -609,6 +624,38 @@ The `navy-tone` resting colour recedes from `text-foreground` body copy so the l
 - Multiple inline references stacked in one paragraph, or any link in small-text contexts (bios, captions, footnotes) → **muted reference link** (dotted, quieter)
 - Six dotted links in one paragraph still works visually; six solid `editorialLink` would compete with body text.
 
+### Inline prose link (TipTap-rendered body)
+
+The canonical link treatment INSIDE long-form article body (`.article-prose a`). Matches the editorial inline link pattern exactly — one canonical inline-link treatment across the publication. The body color and the link color are both navy (the typography anchor), so the underline carries 100% of the affordance signal. Earned weight: 2px thickness at 4px offset, font-medium.
+
+```css
+.article-prose a {
+  color: rgb(16, 67, 87);          /* navy */
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: rgb(167, 225, 252);  /* navy-tint */
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-skip-ink: auto;
+  transition: text-decoration-color 180ms ease-out;
+}
+
+.article-prose a:hover,
+.article-prose a:focus-visible {
+  text-decoration-color: rgb(16, 67, 87);  /* navy */
+}
+
+.article-prose a:focus-visible {
+  outline: 2px solid rgb(167, 225, 252);
+  outline-offset: 4px;
+  border-radius: 1px;
+}
+```
+
+**Orange-hue was considered for the hover state and rejected.** Inline body links are editorial connective tissue, not CTAs. The orange-hue accent stays reserved for directional moments (Subscribe arrow, "More from Carlos →", Continue links). Body links stay in the navy family — the underline color is the only thing that moves on hover.
+
+**Why no font-medium-vs-Lora-italic alternative**: italic emphasis (`<em>`) is already used in body prose, and italic-for-links would compete with italic-for-emphasis. Bold weight + steady navy color is the cleanest discriminator.
+
 ### Badges
 
 Meaning matters — pick the variant that communicates, don't default to "secondary."
@@ -947,6 +994,352 @@ The canonical composition for standalone form pages — currently `/events/submi
 
 **Identity-aware behavior.** Form-page templates that collect name + email integrate with `lib/user-identity.ts` for the *personalized greeting + pre-filled identity hint* pattern. Auth-locked email (from an authenticated profile) always wins over localStorage; pre-fill the name from localStorage *only* when the saved identity matches the locked email.
 
+### Editorial article template
+
+The canonical composition for a single-article reading surface (`/posts/[id]`). Editorial register first — signed long-form by a named author, not a journalistic news article.
+
+```
+─── 5px navy strip ─── masthead + section strap ───
+
+  <article>  max-w-screen-xl mx-auto + 2-col grid at lg+
+
+  ┌── (Optional) Admin controls ───────────────────┐  (justify-end, post owners only)
+
+  ┌── Hero block ──────────────────────────────────┐
+  │  Kicker: "THE ADAMASTOR WEEKLY · WEEK N"        │  (Inter SemiBold 11/12px, navy-tone, tracked)
+  │           or "OPINION" for guest pieces
+  │
+  │  H1:  Lora Bold, 31px mobile → 48px desktop     │  (navy, text-wrap balance, stripped of "| Week N")
+  │
+  │  ─── navy-frame hairline ─────────────────────  │
+  │  [avatar 56]  By Author · Date · X min read     │  (one row, name-link, dateline muted)
+  │               Role line (Inter 12px, navy-tone) │  (Carlos: canonical credential string;
+  │               Share row (Copy / Bluesky / X /   │   Opinion: derived from authors.bio first
+  │                          LinkedIn)               │   sentence)
+  │  ─── navy-frame hairline ─────────────────────  │
+  └─────────────────────────────────────────────────┘
+
+  ┌── Floating TOC (lg+ only, left rail) ─────────┐
+  │  Auto-extracted from h2/h3 in TipTap JSON.    │
+  │  Padding-top aligns nav with first paragraph; │
+  │  container height bounded by last meaningful  │
+  │  paragraph (sticky releases at body's end).   │
+  └────────────────────────────────────────────────┘
+
+  ┌── Body ─────────────────────────────────────────┐
+  │  .article-prose at max-w-[68ch], navy text,     │
+  │  17px mobile / 18px desktop                     │
+  │  Inline links use canonical inline-prose-link   │
+  │  pattern (see Component conventions)            │
+  │  Body H2 (Inter SemiBold + navy-frame hairline) │
+  │  Body H3 (Inter SemiBold, no rule)              │
+  │  Blockquote (Lora italic 22px navy-tone)        │
+  └─────────────────────────────────────────────────┘
+
+  ┌── Author bio strap ────────────────────────────┐
+  │  Duotone portrait + Lora bold name + bio +     │
+  │  social icons. Weekly adds "More from Carlos →"│
+  │  inline link to /subscribe at the foot.        │
+  └─────────────────────────────────────────────────┘
+
+  ┌── Subscribe coda ──────────────────────────────┐
+  │  Scope-aware: Weekly = "A weekly read on       │
+  │  Portugal's startup scene. Every Tuesday by    │
+  │  Carlos Resende." / Opinion = "...plus         │
+  │  occasional opinion from named voices..."      │
+  │  Gold pill submit (text-white).                │
+  └─────────────────────────────────────────────────┘
+
+  ┌── Read next (Opinion only) ────────────────────┐
+  │  Kicker: "More opinion". 3 recent Opinions.    │
+  │  Weekly hides this — yesterday's digest is     │
+  │  dead news; subscribe coda IS the next-read    │
+  │  for Weeklies.                                 │
+  └─────────────────────────────────────────────────┘
+
+  ┌── Reader notes (feedback) ─────────────────────┐
+  │  "Reply to this piece". Anonymous. Toast on    │
+  │  submit chains to subscribe (foot-in-the-door).│
+  └─────────────────────────────────────────────────┘
+
+  Sticky CTA bar (white bg, gold pill button)
+  ↑ Gated on BOTH the in-coda submit row AND the
+    navbar Subscribe pill being offscreen.
+</article>
+```
+
+**Layout primitives:**
+
+- **Container**: `mx-auto max-w-screen-xl px-0 pb-20 md:p-4 md:pb-24` — matches the navbar's width contract (max-w-screen-xl) so masthead chrome and article body share the same left content edge at every viewport. Mobile drops the article's own `px-4` and relies on main's `p-4` only, so body content aligns at x=16 with the navbar wordmark.
+- **Grid at lg+**: `lg:grid lg:grid-cols-[12rem_minmax(0,48rem)_1fr] lg:gap-12` — TOC | body (capped at 48rem for reading line length) | empty space. The body cap prevents the wider outer container from blowing up prose line lengths.
+- **Aside (TOC) horizontal nudge**: at xl+ the navbar's outer-padding-centered inner edge diverges from the article's main-padded inner edge by 32px. Calc-based margin on the aside corrects this: `style={{ marginLeft: 'min(0px, max(-32px, calc((1280px - 100vw) / 2)))' }}`.
+- **Mobile vertical gap navbar → article**: `-mt-2 md:mt-0` on the article pulls it up 8px on mobile (main's `p-4` provides 16px gap by default).
+- **Hero mobile spacing**: `space-y-5 md:space-y-8` between heading-group and byline; `space-y-2 md:space-y-4` between kicker and H1.
+- **Article section spacing**: `space-y-8 md:space-y-12` between hero / body / author / coda / read-next / feedback.
+
+**TOC behavior** (`PostTOC.tsx`):
+- **Vertical alignment**: a small JS pass measures the target element (`.article-prose`)'s top and applies `padding-top` to a container wrapping the nav, so the nav's first row sits at the first paragraph's y-position. Uses padding (not margin) on the container to avoid margin-collapsing with the nav child.
+- **Sticky range**: the same JS sets the container's `height` to `lastContentBottom - containerTop`, where `lastContentBottom` walks the article-prose children in reverse to find the last child with non-empty text content. This skips TipTap's trailing empty `<p>` and binds sticky to the actual last paragraph — the TOC stops following exactly at the body's end, not at the column's end.
+- **Active section**: scroll-position-based (not IntersectionObserver) — picks the deepest h2/h3 whose top has crossed the viewport's 25% line. Document-order scan keeps the active state stable.
+- **ID injection**: TipTap renders h2/h3 without IDs; PostTOC walks `.article-prose h2, h3` on mount, assigns IDs from the server-extracted heading list, and sets `scrollMarginTop: 6rem` so anchor jumps land below the masthead.
+
+**Sticky CTA bar gating** (`SubscribeForm.tsx`):
+- Visible only when **both** the in-coda submit row AND the navbar Subscribe pill are offscreen.
+- Implementation: a unified scroll-based recompute (not pure IntersectionObserver). On every scroll, re-query the navbar pill (which is conditionally rendered — null when user is logged in or subscribed) and check rect visibility. IO alone would break when the pill conditionally unmounts after hydration.
+- Bar background `bg-white/95`, gold pill button with `text-white` (matches the navbar Subscribe pill).
+- Sonner toast on feedback submit chains to subscribe via the `action` prop — foot-in-the-door pattern at peak reader engagement.
+
+**Kind-aware behavior** (`lib/posts/kind.ts`):
+- Posts are classified as `weekly` or `opinion`. Heuristic: Carlos Resende author OR title contains `Week N` → weekly; else opinion.
+- Kicker label: `getKickerLabel(kind, weekLabel)` returns "The Adamastor Weekly · Week 21" or "Opinion".
+- Title display: `getDisplayTitle()` strips the `| Week N` suffix from Weekly titles.
+- Read-next: shown only on Opinion (3 recent Opinions; the Subscribe coda is the natural exit ramp for Weeklies).
+- Author strap CTA: "More from Carlos →" appears on Weekly only.
+- Byline role line: Weekly uses Carlos's canonical credentials ("Expert Evaluator at the European Commission and Co-founder of Founder Institute Portugal."); Opinion derives from the first sentence of `authors.bio`.
+
+### Cross-route consistency
+
+Rules that span more than one editorial template (`/`, `/posts/[id]`, `/events`, `/about`). When you find yourself making the same micro-decision twice on different surfaces, codify it here.
+
+**Lexicon canon (kickers + publication names):**
+
+| Kind | Card kicker (homepage river, sidebar) | Hero / post-page kicker | Subscribe coda heading | Sticky bar label |
+|---|---|---|---|---|
+| Weekly | `THE ADAMASTOR WEEKLY` | `THE ADAMASTOR WEEKLY · WEEK N` | `Subscribe to The Adamastor Weekly` | `The Adamastor Weekly · Every Tuesday` |
+| Opinion | `OPINION` | `OPINION` | `Subscribe to Adamastor` | `Adamastor` |
+
+`getFeedCardLabel(kind)` in `lib/posts/kind.ts` is the single source of truth for the card kicker. It used to return `"Weekly Digest" / "Guest Article"` — both retired in favour of the canonical publication-name vocabulary, so a reader sees the same noun on `/`, `/posts/[id]`, and the sidebar Opinion stack. Don't introduce a third short form. `"Adamastor Weekly"` without the article appears in list contexts (subscription preference checkboxes, JSON-LD entity names) where the leading "The" reads stilted — that's an intentional exception.
+
+**Photo treatment policy** (when does the duotone filter apply?):
+
+| Surface | Photo treatment |
+|---|---|
+| `/about` Masthead cards (founder portraits) | **Duotone** (`url(#duotone-navy-portrait)`), `rounded-md` square |
+| `/posts/[id]` AuthorStrap | **Duotone**, `rounded-md` square |
+| `/posts/[id]` ReadNext | **Duotone**, `rounded-md` square (same surface as AuthorStrap) |
+| `/` Hero portrait (when re-enabled) | **No filter**, `rounded-full` circle |
+| `/` Sidebar Opinion items | **No filter**, `rounded-full` circle |
+| `/` River cards | **No avatar** (text-only — Carlos's face would repeat ~9× per page) |
+
+The duotone is reserved for the **earned editorial moments** where a single face anchors a piece (the named author of an article, the publication's mastheads). On surfaces where multiple authors appear at small scale (homepage sidebar, future hero), use clean circles — the duotone's contrast is too strong for repeated small icons and the filter's current calibration doesn't degrade gracefully under 48px. The `DuotonePortraitFilter` SVG def itself should ship only on pages that actually consume `url(#duotone-navy-portrait)` — don't render it globally.
+
+**Hover background token** (single value across the page):
+
+- `hover:bg-navy-veil/40` for surface hovers on interactive cards/items (hero, river card, ReadNext item, "Browse all events" inline action, pagination buttons). Dark-mode equivalent: `dark:hover:bg-cyan-glow/[0.04]`.
+- Do not introduce parallel hover values (`navy-frame/30`, `navy-veil/60`, `navy-wash`). One token = one visual register for "this is interactive."
+
+**Hairlines = `navy-frame`** (don't use shadcn `<Separator/>` for editorial dividers):
+
+- The shadcn `<Separator/>` component renders as `bg-border`, which resolves to the grey `--border` HSL token — visually a different colour from the brand `border-navy-frame`. Mixing them on a page produces hairlines that don't agree.
+- For editorial separators (between river cards, between hero and river, between sidebar modules), use `border-b border-navy-frame` directly (or `border-t`, or `divide-y divide-navy-frame` on lists). Reserve `<Separator/>` for shadcn-style admin/form contexts where the grey reads as utility chrome.
+
+**Kicker geometry (canonical)**:
+
+- Main-column kickers (river card, hero, post-page hero, sidebar module heading): `text-[11px] md:text-xs font-semibold uppercase tracking-[0.18em]`.
+- Smaller per-item kickers (sidebar Opinion item, sidebar event date plaque): `text-[10px] font-semibold uppercase tracking-[0.18em]` (or `tracking-[0.14em]` for the date plaque which has even less room for tracking to breathe).
+- Color: navy-tone for Weekly/neutral; `text-orange-hue` for Opinion (the single warm-accent moment per fold).
+
+**Left-edge alignment with the navbar wordmark**:
+
+- Navbar uses `px-4 md:px-8` (16px mobile, 32px desktop). Main wraps content in `p-4` (16px both viewports). To meet the navbar's 32px edge at md+, editorial pages with their own grids add a *second* `md:p-4` to their grid wrapper (the same trick `/events` uses). The homepage's outer grid does this; `/posts/[id]` does it via the article container's `md:p-4`.
+- Interactive cards inside the grid (river card, hero) extend their hover surface outward via the `-mx-4 px-4` pairing — content stays at the same x position as the H1, the surface bleeds 16px past on each side.
+
+### Editorial homepage template
+
+The canonical composition for `/` (and the paginated archive at `/page/[page]`). Mirrors `/events`' 8-column grid exactly so a reader switching between the two surfaces lands on the same column widths and gutters. Editorial register, no SaaS feed-card grid.
+
+```
+─── 5px navy strip ─── masthead + section strap ───
+
+  max-w-screen-xl mx-auto p-4 + md:p-4  (32px content edge at md+)
+  ┌── grid grid-cols-1 gap-8 md:p-4 lg:grid-cols-8 lg:gap-20 ────────┐
+  │ ┌── main (order-1 lg:col-span-5 space-y-10 lg:space-y-12) ───┐  │
+  │ │ <Masthead>                                                 │  │
+  │ │   <h1>Lora Bold · text-xl/2xl · "Latest from Adamastor"</h1>│ │
+  │ │   <p>"A weekly read on Portugal's startup scene. …"</p>    │  │
+  │ │ </Masthead>                                                │  │
+  │ │ <PostRiver currentPage posts totalPages>                   │  │
+  │ │   [RiverCard]×10  (kicker · title Inter bold · lede ·      │  │
+  │ │                    author · date)                          │  │
+  │ │   <nav aria-label="Pagination">Newer / Page N / Older</nav>│  │
+  │ │ </PostRiver>                                               │  │
+  │ │ <SubscribeForm kind="opinion" />                           │  │
+  │ └────────────────────────────────────────────────────────────┘  │
+  │ ┌── sidebar (order-2 lg:col-span-3) ─────────────────────────┐  │
+  │ │ <HomeSidebar opinions upcomingEvents>                      │  │
+  │ │   <section>  "From the opinion desk" (orange kicker)       │  │
+  │ │     "Named voices in the ecosystem" Lora module heading    │  │
+  │ │     ul × 4 opinion items (40px circular avatar + Inter     │  │
+  │ │              title + author·date)                          │  │
+  │ │   </section>                                               │  │
+  │ │   <section>  "Upcoming" (navy-tone kicker)                 │  │
+  │ │     "Events worth showing up to" Lora module heading       │  │
+  │ │     ul × 3 events (date plaque + Inter title + city)       │  │
+  │ │     "Browse all events →" exit link                        │  │
+  │ │   </section>                                               │  │
+  │ │ </HomeSidebar>                                             │  │
+  │ └────────────────────────────────────────────────────────────┘  │
+  └──────────────────────────────────────────────────────────────────┘
+```
+
+**Layout primitives:**
+
+- **Container**: page contents render directly into main's `max-w-screen-xl mx-auto p-4` — no extra wrapper. An additional `md:p-4` on the grid wrapper adds the second 16px layer at md+, putting content at x=32 (same as the navbar's `md:px-8`).
+- **Grid at lg+**: `lg:grid-cols-8 lg:gap-20` with main as `lg:col-span-5` and sidebar as `lg:col-span-3`. 80px gutter is editorial, not SaaS-tight. The H1+dek lives *inside* the main column so the sidebar's top aligns with the H1 baseline (the 8-col rule).
+- **Mobile collapse**: single column with `order-1` main → `order-2` sidebar. Sidebar reads as a coda, not as a competing pane.
+- **Main vertical rhythm**: `space-y-10 lg:space-y-12` between Masthead / Hero (when present) / River / SubscribeForm.
+
+**Masthead** (`components/home/Masthead.tsx`):
+
+- `<header className="space-y-3 pb-2 pt-2">`
+- H1: `text-xl md:text-2xl font-bold leading-tight text-navy [font-family:var(--font-lora-bold)] [text-wrap:balance] dark:text-cyan-lifted` — quiet editorial nameplate, intentionally smaller than `/events`' H1 because it sits *above* the river (which carries its own typographic weight at scale).
+- Dek: opens with the canonical brand strapline `"A weekly read on Portugal's startup scene."` then names the offering mix — must reuse the strapline verbatim from `/about` for cross-surface voice consistency.
+- Default heading `"Latest from Adamastor"`; the `/page/[page]` route overrides to `"From the Adamastor archive"`.
+
+**River cards** (`components/home/PostRiver.tsx`):
+
+- `<article>` with `border-b border-navy-frame last:border-b-0` — single-tone navy hairlines (deliberately NOT shadcn's `<Separator />`, which uses the grey `--border` token and diverges from the rest of the page's hairlines).
+- Card link uses the negative-margin hover trick: `sm:-mx-4 sm:px-4 sm:hover:bg-navy-veil/40` so the hover surface extends 16px outward without shifting content rightward off the masthead's left edge.
+- Kicker row: `text-[11px] md:text-xs font-semibold uppercase tracking-[0.18em]` — canonical kicker geometry. Color is kind-aware: Opinion = `text-orange-hue`, Weekly = `text-navy-tone dark:text-cyan-dim`.
+- Title: Inter bold `text-[1.22rem] sm:text-[1.55rem]` — catalog/scan mode, intentionally not Lora (Lora is reserved for the Masthead H1 + the post-page H1; using it here would dilute the editorial signal).
+- Week label hangs in the right gutter when present (`text-[0.78rem] tracking-[0.04em] text-muted-foreground/75`).
+- `<time datetime="…">` wraps the visible date (semantic HTML + AI freshness signal).
+- Pagination: outlined navy lozenges (`border-navy-frame px-3 py-2 text-sm`) with hover `bg-navy-veil/40` and focus-visible ring. No `sm:px-4` on the nav wrapper (would re-introduce the indent the cards just escaped).
+
+**Sidebar** (`components/home/HomeSidebar.tsx`):
+
+- `<aside className="flex flex-col gap-8 lg:sticky lg:top-24 lg:gap-10">` — sticky at lg+ so the editorial modules stay in view through the river scroll.
+- Module chrome: `lg:rounded-lg lg:border lg:border-navy-frame lg:p-6` — outlined card only at lg+. On mobile the chrome drops per the *Mobile patterns → card register* rule; the sidebar reads as a coda continuation, not as twin boxed widgets.
+- Module heading group: kicker (`text-xs font-semibold uppercase tracking-[0.18em]`) + Lora H2 (`text-lg font-bold [font-family:var(--font-lora-bold)] [text-wrap:balance]`). Opinion module's kicker is `text-orange-hue`; "Upcoming" stays `text-navy-tone`.
+- Opinion items: 40px circular avatar (`rounded-full border border-navy-frame`, no duotone — see *Photo treatment policy* below) + Inter `text-sm font-semibold` title + author · `<time>`.
+- Event items: date plaque (`w-12 rounded-md border bg-navy-veil/40`, weekday small caps + day numeric tabular) + Inter title + city. External links are UTM-tagged with `medium: "referral"`, `campaign: "home_sidebar_events"`, `content: event.id` so home-sourced clicks attribute correctly in destination analytics.
+- "Browse all events →" exit link uses the *Inline action with hover-background* pattern (navy semibold + orange-hue arrow).
+
+**Featured hero (currently hidden)**: `components/home/FeaturedHero.tsx` exists but is not rendered on `/`. The earlier version surfaced the latest post above the river with an oversized Lora title + portrait. Held back pending a future revisit. Re-enabling is a 3-line diff in `app/(main)/page.tsx`: re-add the import, the `const [heroPost, …riverPosts] = posts;` destructure, and the conditional render. The component itself remains in source so iterating on it can happen without re-deriving the layout.
+
+**SEO scaffolding the homepage adds**:
+
+- Per-page `metadata` export with `alternates: { canonical: "/" }` and `openGraph: { url: "/" }` (the root layout has `metadataBase` but no canonical).
+- JSON-LD `@graph` of Organization + WebSite + Blog. The Blog entity nests a `blogPost` array of 10 BlogPostings with `@id`, `headline` (cleaned via `getDisplayTitle`), `url`, `datePublished`, and `author` Person — gives Google + AI engines explicit "/ is the canonical hub for these articles" relationships, increasing the odds recent posts get retrieved during AI fan-out queries about Adamastor.
+- The paginated `/page/[page]` route sets `robots: { index: false, follow: true }` — archive pages shouldn't compete with `/` for entry-page ranking but should still pass crawl signals through to individual posts.
+
+## Admin / dashboard chrome
+
+The admin surface (`/dashboard/*` routes) is a different space from the public publication. Primary user is Carlos (editorial co-founder, writes the Weekly Digest, reviews guest pieces, curates events) — the chrome should feel like a writer's tool, not a SaaS console. Set in `app/(dashboard)/layout.tsx`, `components/app-sidebar.tsx`, `components/nav-main.tsx`, `components/dashboard-trigger.tsx`.
+
+### Surface principles
+
+- **White surface, navy chrome.** Sidebar `bg-white`, all framing elements in the navy family — `navy.frame` for hairlines and dividers, `navy.tone` for inactive nav items and breadcrumb crumbs, `navy.shade` for active items and current-page breadcrumbs.
+- **Chrome recedes when not in use.** The collapse/expand trigger lives behind a hover-reveal inside the sidebar header; the editorial chrome stays clean by default. Only the breadcrumb and current page heading are persistently visible.
+- **Editorial language over SaaS labels.** "New article" instead of "Create New Post"; "Guest articles" instead of "Other Articles". Labels describe what's actually in a view (Carlos writes 85%, the rest is guest pieces — say "Guest", not "Newsroom" which overstates a 3-person team).
+
+### Sidebar group labels
+
+```tsx
+className="font-serif uppercase tracking-[0.18em] text-[10px] text-navy-tone"
+```
+
+- Serif (Lora) gives the chrome an editorial register against the sans nav items
+- `tracking-[0.18em]` and `text-[10px]` evoke section flags in a print publication
+- `text-navy-tone` keeps them quiet — they label, they don't compete
+
+Group labels apply when a section has 2+ items (`EVENTS`, `READERS`). The single top-level Articles group is unlabeled — its sub-items (`New article`, `My articles`, `Guest articles`) are self-evident from the parent route.
+
+### Active state
+
+```tsx
+// Active nav item
+className="bg-navy-tint text-navy-shade font-medium hover:bg-navy-tint"
+```
+
+- Soft `navy.tint` fill marks the active row
+- `navy.shade` text + medium weight for emphasis
+- **No left accent bar** — earlier iterations layered a 3px navy.shade bar on top of the tint fill; that overshouts. The fill alone is enough.
+- Inactive hover: `hover:bg-navy-frame` (lighter than tint)
+- Cyan was previously used here (the `bg-[#04C9D8]` legacy); navy.tint is the correct canonical light-mode highlight per the painter's vocabulary.
+
+### Hairline dividers
+
+Between groups, a subtle hairline:
+```tsx
+className="border-t border-navy-frame mt-1 pt-2"
+```
+
+`navy.frame` is the workhorse for structural framing throughout the system — using it inside the chrome reinforces that this is the same "paper" as the rest of the surface.
+
+### Notification badges
+
+Pending-review counts (Submissions inbox, etc.) use `orange.hue` (#E05E00):
+```tsx
+className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-hue px-1.5 text-[11px] font-semibold leading-none text-white"
+```
+
+Orange.hue is the design system's "CTA accent — small caps, arrows, easter eggs" tier. A notification count is exactly that — it calls attention without overshouting. Navy.shade (the previous badge color) was too quiet for the urgency the count is meant to convey.
+
+### IA pattern: action items first
+
+When a group contains both creation actions and destination views, list the action first:
+
+```
+EVENTS
+  + New event           ← creation action
+  Submissions ●         ← destination (inbox)
+  Calendar              ← destination (view)
+```
+
+Mirrors the editorial workflow: create → review → see. The "New X" items use plus-prefix icons (CalendarPlus, PenSquare); destination items use noun-icons (Inbox, Calendar, Newspaper).
+
+### Sidebar trigger
+
+The collapse/expand trigger uses lucide's state-aware icons:
+- Expanded: `ChevronsLeft` («) with aria-label "Hide sidebar"
+- Collapsed: `ChevronsRight` (») with aria-label "Show sidebar"
+
+Two placements with different visibility behavior:
+
+| Placement | When sidebar is expanded | When sidebar is collapsed |
+|---|---|---|
+| Sidebar header (`placement="sidebar"`) | `opacity-0`, revealed on `group-hover/sidebar-header:opacity-100` | Off-canvas (hidden with sidebar) |
+| Top bar (`placement="topbar"`) | `opacity-0 pointer-events-none` (space reserved, no layout shift) | `opacity-100 delay-150` (always visible — the only re-entry path) |
+
+`delay-150` on the topbar trigger's appearance sequences the handoff: the sidebar's 200ms offcanvas slide completes before the topbar trigger fades in. The user sees *sidebar leaves → trigger appears* rather than the two overlapping.
+
+Both wrap a Tooltip showing the label + a `<kbd>` chip with `⌘B`:
+```tsx
+<kbd className="inline-flex h-5 items-center rounded border border-navy-frame bg-navy-frame/40 px-1.5 font-mono text-[10px] text-navy-tone">⌘B</kbd>
+```
+
+The kbd uses navy.frame for border + 40% fill so it reads as "part of the chrome, not a chip."
+
+### Sidebar state persistence
+
+The sidebar primitive (`components/tailwind/ui/sidebar.tsx`) writes a `sidebar_state` cookie on every toggle (`true` / `false`). **The cookie must be read server-side** in `app/(dashboard)/layout.tsx` and passed to `<SidebarProvider defaultOpen={...}>` — otherwise the cookie is written but ignored, and every page load starts open regardless of prior state. This was a real bug discovered mid-session.
+
+```tsx
+const cookieStore = await cookies();
+const sidebarOpen = cookieStore.get("sidebar_state")?.value !== "false";
+<SidebarProvider defaultOpen={sidebarOpen}>
+```
+
+Reading server-side also means no flash-of-open-then-collapse during hydration.
+
+### Team avatars
+
+`lib/team.ts` is the single source of truth for editorial team email → name + photo. `NavUser` at the sidebar footer uses `getTeamMember(profile.email)` to surface the correct display name ("Carlos Resende" not "Carlosjoseresende") and `/carlos.jpeg` from `/public`. Non-team accounts fall back to the email local-part + initials. When the `profiles` table eventually gains an `avatar_url` column, swap the lookup for `profile.avatar_url`.
+
+### Top-bar chrome
+
+```tsx
+<div className="flex items-center gap-2 px-4 py-5">
+  <DashboardTrigger placement="topbar" className="-ml-1" />
+  <DynamicBreadcrumbs />
+</div>
+```
+
+- `py-5` (was `py-3`) — pushes breadcrumb down so it sits on the same vertical line as the sidebar trigger (still 1px off; flagged for follow-up)
+- Breadcrumb colors: inactive crumbs in `navy.tone`, current page in `navy.shade font-medium` — same color ramp as the nav items
+- No visible separator between trigger and breadcrumb — the chrome reads as one row
+
 ## Implementation
 
 ### Where tokens live
@@ -991,6 +1384,29 @@ All outbound cross-links to partner orgs and the founders' sibling projects use 
 
 Site-wide instance count as a reference: ~16 outbound UTM-tagged links across the about page and footer at time of writing. If that grows past ~30, consider centralising the UTM builder into a small helper (`buildCrossLinkUrl(href, medium)`) rather than inlining the query string everywhere.
 
+**Article-body outbound links (`/posts/[id]`).** Editor-authored prose links inside `.article-prose` are decorated client-side via `app/(main)/posts/[id]/ArticleLinkDecorator.tsx`. Scheme:
+
+```
+?utm_source=adamastor.blog&utm_medium=post&utm_campaign=<post-slug>
+```
+
+- **`utm_medium=post`** distinguishes article-body clicks from the editorial cross-link surface (`footer`, `about`, etc.).
+- **`utm_campaign=<post-slug>`** uses the post's slug (or numeric id as fallback) — destinations see *which* article drove a click, not just that one came from Adamastor.
+
+The decorator is mounted as a sibling of `<PostPreview>` and runs in `useEffect`. It works in two passes:
+
+1. An eager `querySelectorAll('.article-prose a[href]')` for warm cases (HMR, back-button restore where TipTap is already hydrated).
+2. A `MutationObserver` on `document.body` watching subtree additions. Required because TipTap (novel) renders the article body *after* mount — a naive on-mount sweep finds zero anchors on cold loads. The observer filters by `.article-prose` ancestry so it only decorates inside the editor surface.
+
+Skip rules:
+- Same-domain links (`adamastor.blog` or current host) — UTMs would pollute internal navigation analytics and appear in shared canonical URLs.
+- `mailto:` / `tel:` / non-`http(s)` protocols.
+- Anything already carrying `utm_source`, `utm_medium`, or `utm_campaign` — admins may have set partner-specific campaigns at write-time; respect them.
+
+Side effect: ensures every decorated outbound link has `target="_blank"` and `rel` includes `noopener noreferrer` (tabnabbing guarantee, applied even if TipTap's link extension didn't set them).
+
+**Why client-side and not write-time decoration?** Rewriting URLs when content is saved would mutate the canonical post body in the DB, conflicting with future edits and making admins' raw URLs disagree with the public-facing version. Client-side decoration leaves SSR'd HTML clean (crawlers + AI bots see the original destination as the indexable link) while still attributing user clicks back to Adamastor.
+
 ## Known limitations / open questions
 
 - **Cyan deprecation.** Cyan is currently restricted to dark-mode anchoring and rare brand-moment hues. Open question: should we deprecate it entirely (move dark-mode anchors to navy-family tones via a different naming scheme), or keep cyan as a specifically-cool brand counterpoint that's reserved for hero / "wow" beats only?
@@ -1007,3 +1423,13 @@ Site-wide instance count as a reference: ~16 outbound UTM-tagged links across th
   - *Muted reference link* (dotted, navy-tone): everywhere else.
 
   Open question: should "Subscribe to the Weekly" use the same hover-background pattern as "Submit your event" (consistent register for sub-CTAs that route to forms), or keep the underline-led editorial inline link? Currently leaning toward inline-action-with-hover-background for both, since they're parallel actions structurally. Resolve before any new sub-CTA lands so we don't pile up a third precedent.
+- **Blockquote variant pending decision.** `/posts/[id]` ships with a temporary `QuoteVariantPicker` that toggles between four variant rules in `styles/prosemirror.css` (`.quote-a` Marginal Glyph, `.quote-d` Indent Margin, `.quote-e` Twin Apertures, `.quote-f` Tactile Broadside). Once a direction is picked, delete the picker + the three unchosen rules + promote the chosen rule to an unscoped `.article-prose blockquote`.
+- **`authors.role` column** (DB schema). Opinion byline role line is currently derived from `authors.bio` first sentence — uneven length, mixes credentials with project pitches. Adding `authors.role` (short headline-style credential, NYT-style 60–80 chars) would replace the heuristic with a controlled string per contributor. Carlos's canonical row would store "Co-founder of Adamastor. Curates The Adamastor Weekly since 2017." or similar.
+- **White text on gold pills (a11y).** The gold pill (`bg-gold-hue #D4A657` + `text-white`) has a 2.23:1 contrast ratio — fails WCAG AA. Used on the navbar Subscribe pill, the form-page submits, and the post-page Subscribe coda + sticky bar. Per Malik's call (this session), the brand convention is white-on-gold across all pills. A future a11y pass may revisit (the previous proposal — navy-on-gold — was rejected). Workaround until then: ensure the gold pill text is large enough (text-sm + font-semibold satisfies AA Large Text at 4.5:1 minimum is still failed, but it's the lightest violation; flag as a known issue).
+- **`orange-hue` text contrast (a11y).** `text-orange-hue` (`rgb(224, 94, 0)`) on white at small text sizes (`text-[10px]` / `text-[11px]` kickers) has not been measured. Used on every Opinion kicker (river card, hero kicker if re-enabled, sidebar Opinion module, sidebar item, ReadNext). Likely passes AA Large Text but may fail AA Normal at these sizes. Worth measuring with axe / Lighthouse once a Lighthouse pass is possible against a production build. If it fails, the cleanest fix is darkening to an `orange-shade` variant for text use while keeping `orange-hue` for arrow-tip icons.
+- **FeaturedHero hidden, not deleted.** `components/home/FeaturedHero.tsx` is in source but unrendered by `app/(main)/page.tsx` (deliberate — held back for a future revisit). Re-enabling is a 3-line restore: re-add the import, the `const [heroPost, …riverPosts] = posts;` destructure, the conditional `{heroPost ? <FeaturedHero post={heroPost} /> : null}`, and pass `riverPosts` (not `posts`) to `<PostRiver/>`. Restore the `<DuotonePortraitFilter/>` mount too if the revisit brings back duotone portraits (current direction is clean circles, no filter).
+- **`SubscribeForm` sticky bar `max-w` drift.** The sticky CTA bar inside `components/SubscribeForm.tsx` uses `max-w-screen-lg` for its inner container. The rest of the site's containers run on `max-w-screen-xl` (navbar, footer, main, `/events`, `/posts/[id]` article). At xl+ viewports the sticky bar's content edge will sit 128px inset from where the editorial chrome above sits — minor, only visible at xl+ and only on the rare moment the sticky bar is showing, but worth catching in a future polish pass.
+- **`ArticleLinkDecorator` depends on a MutationObserver.** Outbound article-link UTM tagging on `/posts/[id]` runs client-side and waits for TipTap to render the article body. Three implications: (a) crawlers and AI bots reading the SSR HTML see the original unedited destination URL — desired behaviour for SEO/AI canonical links, but it means *click* attribution is via the runtime decoration only; (b) a user who clicks a link in the first ~100ms after a cold mount before TipTap has rendered will hit the un-tagged URL — accept the rare miss; (c) any future article-body re-render (currently none — `editable: false`) would be caught by the observer, no extra work needed.
+- **Lighthouse SEO baseline still uncaptured.** The session that landed the SEO sweep couldn't run `npx lighthouse` (sandbox classifier blocked external-package execution). Open: install `lighthouse` as a devDependency and run against a `next build && next start` to get an objective before/after score for production. Manual rubric scores (29/40 → 34.5/40 across `/` + `/posts/[id]`) are documented in the previous handoff but they're a less defensible artefact than a Lighthouse number.
+- **No `/llms.txt` yet.** Flagged in the SEO sweep as a follow-up — would surface `/`, `/events`, `/about` as canonical entry points for AI-agent crawlers with brief context. Adamastor already meets the SEO fundamentals layer (canonical, JSON-LD, semantic time, E-E-A-T signals); the `llms.txt` is the next layer up.
+- **Robots.txt AI bot allowlist unverified.** Worth checking that `GPTBot`, `ChatGPT-User`, `PerplexityBot`, `ClaudeBot`/`anthropic-ai`, and `Google-Extended` are not blocked. Blocking them prevents citation in their respective AI surfaces; current state is unknown without reading the deployed robots.txt.

@@ -1,29 +1,36 @@
 "use client";
 
+import { Button } from "@/components/tailwind/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/tailwind/ui/form";
+import { Textarea } from "@/components/tailwind/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
+import posthog from "posthog-js";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { Button } from "@/components/tailwind/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/tailwind/ui/form";
-import { Separator } from "@/components/tailwind/ui/separator";
-import { Textarea } from "@/components/tailwind/ui/textarea";
-import posthog from "posthog-js";
-
 const FormSchema = z.object({
 	feedback: z.string().min(5, {
-		message: "Feedback must be at least 5 characters.",
+		message: "Note must be at least 5 characters.",
 	}),
 });
 
+type FeedbackValues = z.infer<typeof FormSchema>;
+
 export function FeedbackForm() {
-	const form = useForm<z.infer<typeof FormSchema>>({
+	const form = useForm<FeedbackValues>({
 		resolver: zodResolver(FormSchema),
+		defaultValues: { feedback: "" },
 	});
 
-	function onSubmit(data: z.infer<typeof FormSchema>) {
-		// We're using PostHog. Might make sense to change later.
+	function scrollToSubscribe() {
+		const subscribeSection = document.querySelector<HTMLElement>("[data-subscribe-region]");
+		if (subscribeSection) {
+			subscribeSection.scrollIntoView({ behavior: "smooth", block: "start" });
+		}
+	}
+
+	function onSubmit(data: FeedbackValues) {
 		posthog.capture("feedback_submitted", {
 			feedback_text: data.feedback,
 			feedback_length: data.feedback.length,
@@ -32,52 +39,62 @@ export function FeedbackForm() {
 			timestamp: new Date().toISOString(),
 		});
 
-		// Show success message to user
-		toast.success("Thanks for your feedback! 🙏", {
-			description: "We really appreciate you taking the time to help us improve.",
+		// Peak-end + foot-in-the-door: the reader just invested effort writing
+		// a note. That's the maximum-commitment moment of the session. Surface
+		// a subscribe escalation in the same beat — small ask after a larger
+		// one, framed conversationally rather than transactionally.
+		toast.success("Thanks for the note. Carlos reads every one.", {
+			description: "While you're here — get next Tuesday's edition in your inbox.",
+			action: {
+				label: "Subscribe",
+				onClick: scrollToSubscribe,
+			},
 		});
 
-		// Reset the form after submission
-		form.reset({
-			feedback: "",
-		});
+		form.reset({ feedback: "" });
 	}
 
 	return (
-		<Form {...form}>
-			<Separator />
-			<div className="mb-10" />
-			<div className="mb-10 space-y-2">
-				<h2 className="scroll-m-20 text-lg text-primary/80 font-medium tracking-tight">Feedback</h2>
-				<p className="text-muted-foreground">
-					We'd love to hear your feedback about Adamastor. It will help us build a better platform for you.
-				</p>
-			</div>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6 mb-20">
-				<FormField
-					control={form.control}
-					name="feedback"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel className="text-muted-foreground">Feedback</FormLabel>
-							<FormControl>
-								<Textarea
-									placeholder="What could be better?"
-									className="resize-none h-36 px-5 py-4 rounded-xl"
-									{...field}
-								/>
-							</FormControl>
-
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<div className="ml-auto mt-6 w-fit">
-					<Button variant="outline" className="rounded-xl px-6 py-5" type="submit">
-						Send Feedback
-					</Button>
-				</div>
-			</form>
-		</Form>
+		<section className="border-t border-navy-frame pt-10">
+			<p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone dark:text-cyan-dim">
+				Reader notes
+			</p>
+			<h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] md:text-3xl">
+				Reply to this piece
+			</h2>
+			<p className="mt-3 max-w-[55ch] text-base leading-relaxed text-muted-foreground">
+				Anonymous. Carlos reads every note that comes in.
+			</p>
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
+					<FormField
+						control={form.control}
+						name="feedback"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel className="sr-only">Note</FormLabel>
+								<FormControl>
+									<Textarea
+										placeholder="Type your thoughts here…"
+										className="resize-none h-32 leading-relaxed"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<div className="flex justify-end">
+						<Button
+							type="submit"
+							variant="outline"
+							className="rounded-lg border-navy px-5 font-medium text-navy hover:bg-navy-wash dark:border-cyan-glow/40 dark:text-cyan-lifted"
+						>
+							Send note
+						</Button>
+					</div>
+				</form>
+			</Form>
+		</section>
 	);
 }

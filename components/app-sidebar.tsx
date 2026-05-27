@@ -1,131 +1,91 @@
 "use client";
 
-import { CalendarIcon, DatabaseIcon, Frame, InboxIcon, MailIcon, NewspaperIcon, PieChart, TicketIcon } from "lucide-react";
+import {
+	BarChart3Icon,
+	CalendarIcon,
+	CalendarPlusIcon,
+	InboxIcon,
+	MailIcon,
+	PenSquareIcon,
+	UserIcon,
+	UsersIcon,
+} from "lucide-react";
+import Image from "next/image";
 import type * as React from "react";
 
-import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
+import { DashboardTrigger } from "@/components/dashboard-trigger";
+import { NavMain, type NavItem } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
 	SidebarHeader,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
 } from "@/components/tailwind/ui/sidebar";
-// Import your actual type instead of creating a custom one
 import type { UserWithProfile } from "@/lib/supabase/authentication";
+import { getTeamMember } from "@/lib/team";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-	profile?: UserWithProfile; // Use your actual type
+	profile?: UserWithProfile;
 	pendingSubmissionsCount?: number;
 }
 
 export function AppSidebar({ profile, pendingSubmissionsCount = 0, ...props }: AppSidebarProps) {
-	// Create user data from profile, with fallback to existing data
-	// Handle optional email with safe navigation
-	const userData = profile
-		? {
-				name: profile.email?.split("@")[0] || "User", // Safe navigation for optional email
-				email: profile.email || "user@example.com", // Provide fallback for optional email
-				avatar: "/avatars/shadcn.jpg",
-			}
-		: {
-				name: "shadcn",
-				email: "m@example.com",
-				avatar: "/avatars/shadcn.jpg",
-			};
-
-	const data = {
-		user: userData,
-		navMain: [
-			{
-				title: "Articles",
-				url: "/dashboard/posts",
-				icon: NewspaperIcon,
-				isActive: true,
-				items: [
-					{
-						title: "My Articles",
-						url: "/dashboard/posts?tab=my-posts",
-					},
-					{
-						title: "Other Articles",
-						url: "/dashboard/posts?tab=others-posts",
-					},
-				],
-			},
-			{
-				title: "Events",
-				url: "/dashboard/add-event",
-				icon: TicketIcon,
-			},
-			{
-				title: "Event submissions",
-				url: "/dashboard/event-submissions",
-				icon: InboxIcon,
-				badgeCount: pendingSubmissionsCount,
-			},
-			{
-				title: "Calendar",
-				url: "/dashboard/calendar",
-				icon: CalendarIcon,
-			},
-			{
-				title: "Analytics",
-				url: "/dashboard/analytics",
-				icon: DatabaseIcon,
-			},
-			{
-				title: "Subscribers",
-				url: "/dashboard/subscribers",
-				icon: MailIcon,
-			},
-		],
-		navSecondary: [],
-		projects: [
-			{
-				name: "Design Engineering",
-				url: "#",
-				icon: Frame,
-			},
-			{
-				name: "Sales & Marketing",
-				url: "#",
-				icon: PieChart,
-			},
-			{
-				name: "Travel",
-				url: "#",
-				icon: Map,
-			},
-		],
+	const member = getTeamMember(profile?.email);
+	const userData = {
+		name: member?.name ?? profile?.email?.split("@")[0] ?? "User",
+		email: profile?.email ?? "user@example.com",
+		avatar: member?.photo,
 	};
 
+	const articlesGroup: NavItem[] = [
+		{ title: "New article", url: "/dashboard/posts/new", icon: PenSquareIcon },
+		{ title: "My articles", url: "/dashboard/posts?tab=my-posts", icon: UserIcon },
+		{ title: "Guest articles", url: "/dashboard/posts?tab=others-posts", icon: UsersIcon },
+	];
+
+	const eventsGroup: NavItem[] = [
+		{ title: "New event", url: "/dashboard/add-event", icon: CalendarPlusIcon },
+		{
+			title: "Submissions",
+			url: "/dashboard/event-submissions",
+			icon: InboxIcon,
+			badgeCount: pendingSubmissionsCount,
+		},
+		{ title: "Calendar", url: "/dashboard/calendar", icon: CalendarIcon },
+	];
+
+	const readersGroup: NavItem[] = [
+		{ title: "Readership", url: "/dashboard/analytics", icon: BarChart3Icon },
+		{ title: "Subscribers", url: "/dashboard/subscribers", icon: MailIcon },
+	];
+
 	return (
-		<Sidebar variant="floating" {...props}>
-			<SidebarHeader>
-				<SidebarMenu>
-					<SidebarMenuItem>
-						<SidebarMenuButton size="lg" asChild>
-							<a href="/">
-								<div className="flex aspect-square size-8 items-center justify-center rounded-full bg-cyan text-sidebar-primary-foreground" />
-								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-semibold">Adamastor</span>
-								</div>
-							</a>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				</SidebarMenu>
+		<Sidebar variant="floating" collapsible="offcanvas" className="[&>div]:bg-white" {...props}>
+			<SidebarHeader className="px-2 pt-3 pb-3">
+				<div className="group/sidebar-header flex items-center justify-between">
+					<a href="/" aria-label="Adamastor" className="flex h-8 items-center pl-[3px]">
+						<Image
+							src="/adamastorLogotype.svg"
+							alt="Adamastor"
+							width={140}
+							height={28}
+							priority
+							className="h-7 w-auto"
+						/>
+					</a>
+					<DashboardTrigger placement="sidebar" />
+				</div>
 			</SidebarHeader>
+
 			<SidebarContent>
-				<NavMain items={data.navMain} />
-				<NavSecondary items={data.navSecondary} className="mt-auto" />
+				<NavMain label="Articles" items={articlesGroup} />
+				<NavMain label="Events" items={eventsGroup} dividerTop />
+				<NavMain label="Readers" items={readersGroup} dividerTop />
 			</SidebarContent>
+
 			<SidebarFooter>
-				<NavUser user={data.user} />
+				<NavUser user={userData} />
 			</SidebarFooter>
 		</Sidebar>
 	);

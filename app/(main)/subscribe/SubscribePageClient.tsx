@@ -23,7 +23,8 @@ import {
 	setSubscribed,
 	type SavedIdentity,
 } from "@/lib/user-identity";
-import { ArrowRightIcon, Linkedin } from "lucide-react";
+import { LinkedInIcon } from "@/public/social";
+import { ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -385,7 +386,7 @@ export default function SubscribePageClient() {
 								rel="noopener"
 								className="inline-flex items-center gap-1 font-medium text-navy hover:underline dark:text-cyan-lifted"
 							>
-								<Linkedin className="h-3.5 w-3.5" aria-hidden="true" />
+								<LinkedInIcon className="h-3.5 w-3.5" aria-hidden="true" />
 								LinkedIn
 							</a>
 						</p>

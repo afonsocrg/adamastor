@@ -1,209 +1,161 @@
-# Hand-off — 2026-05-27
+# Hand-off — 2026-05-27 (late evening): homepage redesign + cross-route consistency + SEO sweep
 
-Closes the calendar cross-fade work that was WIP at end of 2026-05-26. One commit centres on `/dashboard/calendar/{page,CalendarWithSkeleton,CalendarTestClient,MonthSkeleton,calendar-custom}.tsx,css` plus a new engineering reference doc.
+Two sessions of work landed in this branch: the prior session's `/posts/[id]` editorial redesign (already documented in the previous handoff and now committed in the same sweep) and this session's homepage redesign + cross-route consistency + SEO sweep + icon migration + UTM decoration on outbound article links.
 
----
+Touched files:
 
-## ✅ Resolved: calendar "second white flash" + skeleton→live layout shift
+**New components / surfaces:**
 
-The cross-fade issue carried over as open #7 from 2026-05-26 is closed. The root cause turned out to be a stack of contributing factors rather than a single bug — all four addressed in one combined patch:
+- `app/(main)/page.tsx` — full restructure
+- `app/(main)/page/[page]/page.tsx` — paginated archive route, reusing the same composition without the hero
+- `components/home/Masthead.tsx` — Lora-quiet editorial nameplate (text-xl/2xl)
+- `components/home/FeaturedHero.tsx` — kind-aware hero card (currently rendered hidden — held back for revisit)
+- `components/home/PostRiver.tsx` — uniform card pattern + pagination
+- `components/home/HomeSidebar.tsx` — sticky 2-module sidebar (Opinion stack + Upcoming events teaser)
+- `lib/home/upcoming-events.ts` — thin wrapper around `fetchPublicEvents` for the sidebar
+- `app/(main)/posts/[id]/ArticleLinkDecorator.tsx` — MutationObserver-based UTM decoration for outbound article-body links
 
-1. **`next/dynamic` null-yield on mount.** `next/dynamic({ ssr: false, loading: () => null })` runs its own state machine that yielded `null` for one render tick after the chunk resolved, producing a visible white frame. Replaced with manual `import("./CalendarTestClient").then((mod) => setLiveCalendar(() => mod.default))` storing the resolved component in `useState`. We only render the live calendar once we definitely have it.
-2. **`absolute → static` wrapper-class flip re-measured rbc.** The prior implementation mounted the live calendar with `absolute inset-0`, then flipped to static positioning post-fade — that layout-context change reflowed the container and rbc re-measured. Replaced with CSS Grid stacking (`grid` parent, both children share `col-start-1 row-start-1`). The live wrapper class no longer changes across phases.
-3. **rbc base CSS shipped in the dynamic chunk.** `calendar-custom.css` `@import`s the rbc package stylesheet, and the file was imported in `CalendarTestClient.tsx` — so the whole stylesheet rode the dynamic chunk. Moved the import to `page.tsx` (server component) so Next.js inlines it as a `<link>` in the SSR document head — rbc rules are present before any JS runs.
-4. **Residual `@apply animate-in` on `.rbc-month-view`.** Was replaying a fade-in on every live-calendar mount, on top of the wrapper's fade. Removed from `calendar-custom.css`.
+**Lifted / migrated:**
 
-After those four, a separate layout shift remained: the skeleton was ~53px shorter than the live calendar, so page height jumped when the live mounted. Diagnosis pinned the cause to the skeleton's calendar grid using `minHeight: 660px` + ~30px day-headers ≈ 690px, while the live calendar inline-styles its wrapper at `height: 740px`. Fix: wrapped the skeleton's day-headers + 6-week grid in a `<div style={{ height: 740 }} className="flex flex-col">` with `gridTemplateRows: "repeat(6, 1fr)"` on the inner grid. Skeleton grid wrapper is now 1058px vs live 1062px (residual 4px is within CLS "good" threshold and below the perception threshold).
+- `components/SubscribeForm.tsx` — was `app/(main)/posts/[id]/SubscribeForm.tsx`, now shared between the post page and the homepage subscribe coda
+- `public/social/index.tsx` — added `WhatsAppIcon`; the existing `BlueskyIcon` / `LinkedInIcon` / `TwitterIcon` (X glyph) are now used everywhere lucide's `Linkedin` / `Twitter` used to live
 
-Final tightening (added by Codex-assisted iteration after the above): explicit `"mounting"` phase in `CalendarWithSkeleton.tsx`. The live calendar is now rendered at `opacity-0 z-10` underneath the skeleton (`z-20`) during a dedicated mount phase, then the wrapper z-jumps to `z-30 opacity-100` for the cross-fade. This gives rbc a full paint cycle to measure before any visible motion begins.
+**Modified for cross-route consistency:**
 
-**New engineering reference**: `docs/react-big-calendar-loading-stability.md` captures the core principle (*the first painted loading UI and the final hydrated UI must occupy the same geometry*) and the full set of synchronization rules — anchor date, week start convention, wrapper height, toolbar height, row layout model, CSS availability. Future calendar work (incl. the public-facing variant) should follow these.
+- `app/(main)/posts/[id]/page.tsx` — metadata rewrite (clean title via `getDisplayTitle`, canonical, `og:type=article`, `article:published_time`, `article:modified_time`, `article:author`, twitter card, dropped legacy `keywords`); JSON-LD breadcrumb + article schema now use the cleaned title; mounts `<ArticleLinkDecorator postSlug={…}/>` sibling-of `<PostPreview>`
+- `app/(main)/posts/[id]/ShareRow.tsx` — added WhatsApp share button, explicit `className="h-4 w-4"` per icon so the inner shape centers in the 36px button
+- `app/(main)/posts/[id]/AuthorStrap.tsx` — switched to branded `BlueskyIcon`/`LinkedInIcon`/`TwitterIcon`; deleted the duplicated inline Bluesky path; replaced the `typeof Linkedin` type hack with a clean `IconComponent = (props: SVGProps) => JSX.Element` type
+- `app/(main)/posts/[id]/PostHero.tsx` + `Byline.tsx` — accept `publishedAtIso` prop, visible date wrapped in `<time datetime="…">`
+- `app/(main)/posts/[id]/ReadNext.tsx` — orange Opinion kicker (cross-route consistency), small duotone author avatar per item, hover-bg normalized to `navy-veil/40`
+- `app/(main)/about/page.tsx` — `linkIconMap` uses branded `LinkedInIcon`/`TwitterIcon`
+- `app/(main)/layout.tsx` — footer "Follow Us" column uses branded icons
+- `app/(main)/preferences/PreferencesPageClient.tsx` + `subscribe/SubscribePageClient.tsx` — branded LinkedIn icon
+- `app/layout.tsx` — RSS `<link rel="alternate">` title normalized to `"The Adamastor Weekly"` (was `"Adamastor — Weekly Digest"`)
+- `lib/home-posts.ts` — fetches `bio`, `image_url`, `slug` so the hero byline + sidebar have what they need
+- `lib/posts/kind.ts` — `getFeedCardLabel` returns `"The Adamastor Weekly" | "Opinion"` (was `"Weekly Digest" | "Guest Article"`)
+- `lib/posts/related.ts` — adds `image_url` to the select + the `RelatedPost` type
 
-**Companion change**: `CalendarTestClient.tsx` now accepts `initialDate?: Date` and seeds its date state from it (defaults to `new Date()` for safety). `page.tsx` passes `serverNow` through. Keeps the live calendar's initial month aligned with the skeleton's — fixes a subtle midnight-crossing date-anchor mismatch.
+**Deleted:**
 
----
+- `components/home-posts-feed.tsx` — replaced by `components/home/PostRiver.tsx`
+- `components/authorCard.tsx`, `components/nav-projects.tsx`, `components/nav-secondary.tsx`, `components/shareWidget.tsx` — orphaned by the prior session's `/posts/[id]` redesign
 
-# Hand-off — 2026-05-26 (late evening)
+**Docs updated:**
 
-Two commits today on `main`, not pushed (~56 commits unpushed). Both centre on `/dashboard/calendar`: a brand-aligned redesign across all four views, then a perf pass with an unfinished skeleton/cross-fade refactor.
-
----
-
-## ✅ What landed today
-
-### `c3631e1` — feat: dashboard calendar redesign — brand palette + scannable Month view
-
-Aligns the admin calendar with the design-system migration. Touches `app/(dashboard)/dashboard/calendar/{page,CalendarTestClient,calendar-custom.css}.tsx`, adds `app/(dashboard)/dashboard/calendar/AgendaList.tsx`, extends `lib/events/categories.ts` with a color mapping.
-
-**Across all views:**
-
-- Category-tinted event chips via `eventPropGetter` + `cat-{slug}` CSS classes. Mapping in `EVENT_CATEGORY_COLORS` (lib/events/categories.ts): `software-engineering → navy`, `ai → cyan`, `design → orange`, `product → gold`, `startups-fundraising → green`. Each category gets a `chip` (full pill), a `dot` (small filled circle for Month view's inline rendering), and a `label`.
-- Past days + events fade. `dayPropGetter` returns `className: "rbc-day--past"` + inline `style={{ backgroundColor: "rgba(232, 240, 244, 0.6)" }}` for past cells; `eventPropGetter` adds `rbc-event--past` + inline `opacity: 0.42` for past events. Inline styles ship in the SSR HTML so the wash + fade are present on first paint, not waiting on the custom CSS to apply.
-- Sibling fade on hover in time-grid views. Two mechanisms (belt-and-suspenders): a CSS `.rbc-day-slot:has(.rbc-event:hover) .rbc-event:not(:hover) { opacity: 0.2 !important; transform: scale(0.97); }` rule, plus a JS-driven `mouseover` / `mouseout` listener that toggles `rbc-event--dimmed` on siblings. Either works alone; together they cover Chromium's flaky `:has` re-evaluation on `:hover`.
-- Orange-hue 'now' time-line in Day/Week (was cyan). Gradient version for Week fades across past/future columns.
-- Removed all SSR entry animations (`fadeInUp` on `.rbc-{month,time,agenda}-view`, staggered `.rbc-row` reveals). Per design-system.md: "no default entry animation on SSR'd pages — replaying a fade+slide on hydration creates perceived jank."
-
-**New custom AgendaList component** replaces rbc's tabular Agenda view with a day-grouped editorial list: Lora day headings ("Tuesday, May 26"), indented event rows showing time range + title + category pill + city. Title links to event.url in a new tab; an Edit icon on hover routes to `/events/[id]/edit`. Past events drop to `opacity-40`.
-
-**Per-view chrome:**
-
-- **Week**: stacked `MON / 25` header (Inter caps + tracking above Lora Bold numeral). Today's numeral wears the navy-tint pill. Required `min-height: 3.5rem` on `.rbc-row.rbc-time-header-cell` (rbc's intrinsic sizing resolves to ~42px regardless of child content) AND `overflow: visible` on `.rbc-header` (rbc's default `overflow: hidden` clipped the stacked content). Today's column body is transparent — pill alone signals today.
-- **Month**: weekday headers right-aligned to match in-cell date numerals; no top/bottom dividers around the header row. Today's cell has NO wash (white); today's date numeral wears the navy-tint pill. Past in-range and past off-range cells look identical (both get navy-frame at 60% via `rbc-day--past`; off-range bg dropped). Events render as inline rows: `● 11am Title…` with category dot + time + truncated title. Hover on a non-past event reveals a popover (140ms fade + scale to 1.05) that expands to the full title up to 320px.
-- **Day** inherits the time-grid CSS from Week.
-
-**Outer wrapper**: `<div className="rounded-lg border border-navy-frame bg-white p-5 …">`. The inner `.rbc-calendar` border + rounded-xl were dropped — the wrapper provides the only border tone.
-
-**Click behaviour**: clicking an event opens `event.url` in a new tab (matches Agenda). The persistent `.rbc-selected` ring was removed — no useful workflow for "stay selected."
-
-### `684c907` — perf(calendar): windowed query, moment locale strip, skeleton cross-fade (wip)
-
-Three perf passes, the third unfinished.
-
-**1. Windowed events query.** `page.tsx` now fetches only events in `[now − 60d, now + 180d]`. Past matters less than future for organisers (they care about what's coming), so the asymmetry is intentional. Drops SSR payload from ~840 rows to ~100–200. Navigating outside the window currently shows empty cells; on-demand re-fetch on prev/next at the window edges is a follow-up.
-
-**2. moment.js locale strip.** `webpack.IgnorePlugin` in `next.config.js` ignores `^./locale$` inside the moment module — drops ~50–80KB of non-English locale data from the production bundle. **Caveat**: Turbopack (dev) ignores `webpack` config, so dev runs still ship the full moment. The IgnorePlugin only applies to production builds. Until we migrate off moment entirely (next-likely-target), this is a prod-only win.
-
-**3. Skeleton cross-fade — WIP, open issue documented below.** New `MonthSkeleton.tsx` server-renders a look-alike grid: toolbar shell (calendar icon + Lora "May 2026" + nav button shapes + view-select shape), MON/TUE/WED day headers, 7×6 grid with date numerals + today pill + past wash + event-count "ghost" bars sized to actual events-per-day. New `CalendarWithSkeleton.tsx` is a three-phase state machine:
-- `"skeleton"` — SSR + first paint, only the skeleton rendered.
-- `"crossfade"` — chunk preloaded (via `import("./CalendarTestClient")` in useEffect), real calendar mounts `absolute inset-0` on top of skeleton, both visible during 300ms opacity transition.
-- `"done"` — 300ms timer fires, skeleton unmounts, real calendar's wrapper drops `absolute inset-0` and returns to static flow (so Agenda's variable height isn't capped).
-
-**Open issue**: there's still a perceptible "second white moment" after the cross-fade completes — Malik described it as "the page transitions to all white after a first mount and then loads the calendar again." Suspected causes: React Strict Mode double-mount in dev (which would visually disappear in production), or the `absolute → static` wrapper-class change re-triggering rbc's mount measurements. Refactor plan agreed on but not implemented: **CSS Grid stacking** — render both skeleton and real calendar in the same grid cell (`col-start-1 row-start-1`), they overlap naturally without `position: absolute`, real calendar's wrapper class never changes across phases.
-
-**Vercel-best-practices cleanup applied in the same pass:**
-
-- `page.tsx`: `Promise.all` for parallel `getUserProfile(supabase)` + events query; explicit column list in `select()` (no `*`). Added `serverNow: Date` prop passed to `CalendarWithSkeleton` so SSR + hydration agree on "today" (avoids a midnight-crossing mismatch). `select('id, title, ...')` initially included `name` (carried over from the old `event.title || event.name` fallback) and hit `column events.name does not exist` — removed.
-- `CalendarTestClient.tsx`: hoisted `calendarComponents` to module scope (was `useMemo([] -> {…})`); functional `setState` in `handleSelectSlot` (drops `events` from deps); **fixed a real interval-leak bug** in the week midnight effect — `clearInterval` was returned from inside the `setTimeout` callback, which is meaningless (the timer callback's return is ignored), so on unmount after midnight the interval kept firing forever. Lifted `dailyInterval` out so the useEffect's cleanup actually clears it. Hoisted duplicate `new Date()` calls in the Upcoming Events block into a single `now`. Trimmed `CalendarEvent` interface (dropped unused `location`, `description`).
-- `AgendaList.tsx`: hoisted `Date.now()` out of the per-event map loop.
+- `docs/design-system.md` — added the Editorial homepage template, Cross-route consistency rules (lexicon canon, photo treatment policy, hover-bg token, hairlines, kicker geometry, navbar left-edge alignment), article-body UTM decoration pattern, plus six new entries under Known limitations / open questions
+- `.agents/product-marketing.md` — added the lexicon canon section; retired "Weekly Digest" / "Guest Article" with a row in the banned-words table
 
 ---
 
-## 🟡 Carried over (still open)
+## What landed — design and editorial decisions worth remembering
 
-From `2026-05-26 (earlier)` and prior, plus the new entries from today:
+### Cross-route geometry is locked
 
-1. **SSL 526 on `www.adamastor.blog`** — P0 from two days ago. Cloudflare → Vercel SSL mode is "Full (strict)" but Vercel doesn't have a cert for `www`. Add `www.adamastor.blog` as a domain in Vercel project → Domains, 301 → apex.
-2. **Lighthouse a11y issues**:
-   - Subscribe button contrast: white on `bg-gold-hue` (#D4A657) = 2.23:1. Fix: navy text on gold. Same pattern on the Submit button across `/events/submit`, `/subscribe`, `/preferences`.
-   - ~~Calendar day numbers: `#ababab` on white = 2.29:1.~~ ✅ Resolved as part of the calendar redesign — off-range date numbers now use `text-navy-tone/70`, current-month numbers use `text-navy` (full strength).
-3. **Validate JSON-LD** via Rich Results Test against `/`, `/about`, `/posts/<latest>`, `/events`, `/events/lisboa/design`.
-4. **Submit sitemap** to Google Search Console + Bing Webmaster Tools.
-5. **Manual AI visibility baseline** — screenshot ChatGPT / Perplexity / Claude results, re-check in 4–6 weeks.
-6. **Update `social_links` rows** in DB for Carlos, Afonso, Malik.
+The homepage now mirrors `/events`' 8-column grid exactly: `lg:grid-cols-8 gap-8 lg:gap-20`, with `lg:col-span-5` for the main column and `lg:col-span-3` for the sidebar. Same gap, same gutter, same content-left edge. A reader switching between `/` and `/events` lands on the same grid every time. Inside the main column the H1+dek live above the river so the sidebar top aligns with the H1 baseline — the same composition rule `/events` uses for its calendar + subscribe sidebar.
 
-**New from today:**
+Left-edge alignment with the navbar wordmark is fixed via a second `md:p-4` on the grid wrapper (so 16px main padding + 16px page padding = 32px at md+, matching `navbar md:px-8`). The earlier-session misalignment is gone. Interactive cards inside the grid extend their hover surfaces outward via `-mx-4 px-4` so the surface hover bleeds 16px past the content edge without shifting content.
 
-7. ~~**Calendar cross-fade second flash**~~ ✅ Resolved 2026-05-27. See the top-of-file section for full diagnosis and fix. Reference doc: `docs/react-big-calendar-loading-stability.md`.
-8. **Agenda revisit** flagged mid-session: Malik wanted to revisit some of the day-grouped layout decisions "with more time and mental space." Specifics not captured; ask before re-opening.
-9. **Calendar window edge handling** — prev/next currently shows empty cells past the ±window. On-demand re-fetch trigger when user navigates to a month outside the loaded window.
+### Lora gradient is hierarchical
 
----
+- Masthead H1 (`text-xl md:text-2xl`, 20/24px Lora Bold): the publication nameplate. Quiet. Doesn't compete with the river below.
+- Hero title when rendered (`text-[1.75rem] md:text-[2.25rem]`, 28/36px Lora Bold): clearly larger than the masthead, but smaller than the post-page H1 (31/48px) — preview never out-shouts the destination.
+- Sidebar module headings (`text-lg` Lora Bold): tertiary anchors. Lora earns its place by being structural.
+- River card titles, sidebar item titles: Inter. Catalog mode.
 
-## 📋 Malik's planned work — release roadmap (from Notion)
+The earlier dissonance (masthead at 36px Lora directly above a hero at 44px Lora) was resolved by dropping the masthead to its quiet nameplate size + keeping the hero text-anchor at a 12px scale gap. The post-page H1 is still the destination-emphasis moment.
 
-Updated from yesterday's roadmap. Today's two big chunks landed:
+### Lexicon canon
 
-- ~~Remove `####` from event descriptions.~~ ✅ (earlier `aead11a` + `0d91733`)
-- ~~Remove ALL CAPS from event descriptions.~~ ✅ (earlier `aead11a` + `0d91733`)
-- ~~Look into adding an **end time** to the events.~~ ✅ (earlier `80e918c`)
-- ~~Make calendar UI fit the box.~~ ✅ Resolved as part of the redesign — outer wrapper sets the calendar dimensions; toolbar + grid fit within. Inner `.rbc-calendar` border removed so the navy-frame outer wrapper is the only frame.
-- **Create and deploy cron job and workers for sending the newsletters.** — next likely candidate. The subscriber + categories model is shipped; the missing piece is the send loop.
-- **Check and tweak email templates.** Welcome / preferences-link / per-category-newsletter. Brand palette (navy + cyan + gold) + seal as header ornament. Test sends to `delivered@resend.dev`.
-- **Design the "unsubscribe from everything" state or page.** The button exists on `/preferences`; the destination/confirmation state doesn't.
-- **Public-facing calendar variant.** Today's redesign is admin-only. Malik flagged that the calendar will be adapted for public use so event organisers + community builders can see when events overlap and pick better dates. **Open performance plan** (discussed but not implemented) prioritises:
-  - moment.js → date-fns migration (~290KB → ~10-20KB on every public page)
-  - ISR + on-demand revalidation (public has no cookie auth → CDN-cacheable)
-  - Cloudflare Workers KV for events-feed caching at edge globally (Malik has paid CF account, MCP now connected — see Tools)
-  - Hover-prefetch on prev/next/select buttons (only meaningful once query is windowed AND prev/next re-fetch)
-  - Possibly: replace rbc with a lighter custom calendar (~5–10KB) for the public read-only variant
-- **Redesign Articles screen to be consistent with Events.** `/` editorial pass — biggest open design task. The kicker-color tension lives here (open #2 from yesterday's handoff: doc says `orange-dark`, code uses `#24acb5`).
-- **Redesign Articles route.** Per-post or per-author surfaces; spec needed before starting.
-- **Improve auto-tag situation.** `inferEventCategorySlugs` in `lib/events/categories.ts` works but is keyword-heuristic. Many Portuguese-titled events fall through to `cat-none` (visible in the calendar as the neutral navy-veil block). Possibly LLM-assist on submission.
-- **Update PostHog tracking** so we can answer "what's happening in our product." Decide on a small set of events before instrumenting.
-- **Dynamic OG images per events route**.
+Single source of truth in `lib/posts/kind.ts` → `getFeedCardLabel`:
 
----
+- Weekly → `"The Adamastor Weekly"` (card kicker), `"The Adamastor Weekly · Week N"` (hero / post-page kicker)
+- Opinion → `"Opinion"` everywhere
 
-## 🧠 Context the next session should know
+`"Weekly Digest"` and `"Guest Article"` are retired. JSON-LD `Blog.name` and the RSS feed title also normalized to `"The Adamastor Weekly"`. The strapline `"A weekly read on Portugal's startup scene."` is the canonical line used verbatim on `/about`, the homepage Masthead dek, `/subscribe`, `/preferences`, and the SubscribeForm coda — same publication voice on every surface that describes the Weekly.
 
-### Calendar architecture
+### Color carries meaning
 
-- `app/(dashboard)/dashboard/calendar/page.tsx` (server component) — fetches windowed events + user in parallel; passes `initialEvents`, `user`, `serverNow` to `CalendarWithSkeleton`.
-- `app/(dashboard)/dashboard/calendar/CalendarWithSkeleton.tsx` (client component, hosts the dynamic import) — four-phase state machine (`skeleton → mounting → crossfade → done`) with CSS Grid stacking + explicit z-index layering. See `docs/react-big-calendar-loading-stability.md` for the synchronization rules the skeleton must honour.
-- `app/(dashboard)/dashboard/calendar/MonthSkeleton.tsx` (renders inside CalendarWithSkeleton) — static look-alike for first paint.
-- `app/(dashboard)/dashboard/calendar/CalendarTestClient.tsx` (client component, dynamic-loaded) — the real react-big-calendar wrapper. Renders the AgendaList for the Agenda view; renders rbc Calendar for the grid views.
-- `app/(dashboard)/dashboard/calendar/AgendaList.tsx` — custom day-grouped editorial list.
-- `app/(dashboard)/dashboard/calendar/calendar-custom.css` — single CSS file, organized into 10 numbered sections with a TOC at top.
+- `text-orange-hue` on every Opinion kicker (river card, hero kicker if re-enabled, sidebar Opinion module heading, sidebar Opinion item kicker, ReadNext "More opinion" + per-item "Opinion"). Orange = named voice / personal take.
+- Weekly kickers stay `text-navy-tone` (institutional editorial backbone).
+- Arrow-tip icons stay `text-orange-hue` — the same warm accent used for outbound-action affordances (`More from Carlos →`, `Browse all events →`, `Read →`).
+- One hover-background token (`hover:bg-navy-veil/40`) across hero, river card, ReadNext, "Browse all events", pagination buttons.
+- Hairlines = `border-navy-frame` everywhere editorial. Shadcn's `<Separator/>` (grey `--border` token) is reserved for admin/form contexts.
 
-`react-big-calendar` is bundled into the route. The Calendar component is loaded via a manual `import("./CalendarTestClient")` in a `useEffect` (not `next/dynamic`) and stored in `useState`, so we control the exact moment of mount and avoid `next/dynamic`'s internal null-yield. The stylesheet (incl. rbc's base CSS via `@import`) is imported in `page.tsx` so it ships in the SSR document, not the dynamic chunk.
+### Photo treatment policy
 
-### Category color mapping is reused beyond the calendar
+Duotone (`url(#duotone-navy-portrait)`) is reserved for the earned editorial moments where a single face anchors a piece: `/about` Masthead cards, `/posts/[id]` AuthorStrap, and `/posts/[id]` ReadNext. Homepage portraits (the future hero, the sidebar Opinion stack) use clean `rounded-full` circles with no filter — duotone's contrast is too strong at sub-48px scale and the filter's calibration doesn't degrade gracefully there. The `DuotonePortraitFilter` SVG def ships only on pages that actually consume it; the homepage no longer mounts it.
 
-`EVENT_CATEGORY_COLORS` in `lib/events/categories.ts` exposes `chip` (full pill class), `dot` (small filled circle for Month view inline rendering), and `label` (short display name). When the public-facing calendar lands, reuse this mapping for any category visualisation.
+### SEO scaffolding strengthened
 
-### `dayPropGetter` and `eventPropGetter` carry inline styles, not just classnames
+Manual rubric scored both surfaces before and after (Lighthouse CLI was blocked by the sandbox classifier — see Open threads below):
 
-This was load-bearing for first-paint correctness: classes alone meant past wash + opacity were missing in initial paint (CSS file injection is async in some dev modes). Inline styles ship in SSR HTML. Don't drop them when refactoring.
+- `/`: 14/20 → 16/20 (+10%). Added canonical, `<time datetime>` on all dates, enriched the Blog JSON-LD with `blogPost[]` of 10 BlogPostings (gives Google + AI engines explicit "/ is the canonical hub" relationships).
+- `/posts/[id]`: 15/20 → 18.5/20 (+17.5%). Title cleaned via `getDisplayTitle`, canonical, `og:type=article`, `article:published_time`, `article:modified_time`, `article:author`, twitter card, dropped legacy `keywords`, BreadcrumbList + JSON-LD `headline` now use cleaned title, `<time datetime>` semantic in Byline.
 
-### The week-midnight `useEffect` had a real interval leak
+The post-page title artefact (`"Founder vs. Reality Fit  | Week 21"` with double space, leaking into SERP titles + OG cards + breadcrumbs + JSON-LD headline simultaneously) was a single-fix cleanup that landed on all four surfaces at once.
 
-Fixed in `684c907` but worth re-stating: when setting up an interval inside a setTimeout callback, the interval handle MUST be lifted to the outer scope (using `let dailyInterval` declared before the setTimeout) so the useEffect's return-cleanup can clear it. Returning a function from the setTimeout's callback does nothing — that return value is ignored.
+`/page/[page]` carries `robots: { index: false, follow: true }` — archive pages shouldn't compete with `/` for entry-page ranking but should still pass crawl signals through to individual posts.
 
-### Cross-fade open issue — refactor plan ready
+### UTM on outbound article links
 
-The position-`absolute` overlay during crossfade phase causes a visible flicker when transitioning to phase "done" (skeleton unmounts, real wrapper class changes from `absolute inset-0 …` to `…`). Refactor to CSS Grid stacking:
+`app/(main)/posts/[id]/ArticleLinkDecorator.tsx` decorates every external link inside `.article-prose` with `?utm_source=adamastor.blog&utm_medium=post&utm_campaign=<post-slug>`. Required a MutationObserver (TipTap renders article body AFTER mount, so a naive on-mount sweep finds zero anchors). Skips internal links, non-http(s) protocols, and anything already carrying `utm_*`. Also ensures `target="_blank"` and `rel` includes `noopener noreferrer`. Crawlers + AI bots reading SSR HTML see the original un-tagged destination — desired for SEO/AI canonical links; click attribution is via runtime decoration only.
 
-```tsx
-<div className="grid">
-  {phase !== "done" && (
-    <div className={`col-start-1 row-start-1 transition-opacity duration-300 ${phase === "crossfade" ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
-      <MonthSkeleton {...} />
-    </div>
-  )}
-  {phase !== "skeleton" && (
-    <div className="col-start-1 row-start-1 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
-      <CalendarTestClient {...} />
-    </div>
-  )}
-</div>
-```
+### Icon system
 
-Both children at same grid cell → they overlap naturally → real calendar's wrapper class doesn't change between crossfade and done.
-
-### Tools added today
-
-- **Cloudflare MCP** is now available (Workers, KV, D1, R2, Hyperdrive). For the public-facing calendar performance plan, Workers KV is the killer pattern: cron-update an `events:index.json` on event approval/edit, serve at <50ms from edge globally.
-- **Vercel MCP** is also connected (deployments, runtime logs, search docs).
-- **PostHog MCP** is connected (extensive — feature flags, dashboards, surveys, LLM eval, error tracking).
-- **Supabase MCP** is connected. Note: `mcp__supabase__apply_migration` still doesn't find this project; migrations still go through the dashboard SQL editor (see `[[reference_supabase_workflow]]` in memory).
-- **`find-skills` skill** is now symlinked from `/Users/malik/.agents/skills/find-skills` to `~/.claude/skills/find-skills`. Use it when there's a need for functionality that might exist as an installable skill — e.g. the smooth-mount problem.
-
-### Tools and quirks (unchanged from prior handoffs)
-
-- **Turbopack + App Router shared layout caching**: still occasionally serves stale HTML after rapid edits to shared layouts. `preview_stop` + `preview_start` fixes it.
-- **Turbopack ignores webpack config in dev**. The `webpack.IgnorePlugin` in next.config.js only applies to production builds — dev keeps the full moment.
-- **DOM-verify, don't screenshot** UI work (per `[[feedback_no_screenshots]]`).
-- **Don't auto-update `docs/design-system.md`** when code/doc conflict (per `[[feedback_design_system_changes]]`) — surface the conflict and ask.
-- **Resend QA**: `delivered@resend.dev` (not `@example.com`).
-- **`.next` cache can corrupt** on aggressive HMR / file moves. Symptom: `ENOENT … app-build-manifest.json`. Fix: `rm -rf .next` and restart.
+Branded SVG icons from `/public/social/index.tsx` replace lucide's stroke-based icons in every editorial surface (footer, /about masthead, AuthorStrap, preferences, subscribe). `WhatsAppIcon` added there, plus a Share-on-WhatsApp button in `ShareRow`. Lucide still owns the line icons that aren't social-brand glyphs (`ArrowRightIcon`, `Globe`, `Github`, `Rss`, etc.).
 
 ---
 
-## 🔁 Push reminder
+## Open threads carried over
 
-**56 commits unpushed** (54 at start of day + today's 2: `c3631e1`, `684c907`). The calendar redesign is admin-only and not yet user-facing in a meaningful way — push pressure is low.
+These didn't ship in this sweep. Priority order:
+
+### From this session
+
+1. **Lighthouse baseline.** Install `lighthouse` as a devDependency, run against `next build && next start` to get an objective production SEO/perf score. The manual rubric (above) is documented but a Lighthouse number is more defensible.
+2. **FeaturedHero decision.** Currently hidden — held back for revisit. Either re-enable (3-line restore in `app/(main)/page.tsx`) or delete the component. Don't leave it dangling.
+3. **`/llms.txt`** — surface `/`, `/events`, `/about` for AI agents. Adamastor meets the SEO fundamentals; this is the next layer up.
+4. **`robots.txt` AI bot allowlist check.** Verify `GPTBot`, `ChatGPT-User`, `PerplexityBot`, `ClaudeBot`/`anthropic-ai`, `Google-Extended` are not blocked. Blocking them prevents citation.
+5. **`orange-hue` text contrast** at small kicker sizes (10–11px) — likely passes AA Large Text but unverified at AA Normal. Measure once Lighthouse is in place; if it fails, introduce `orange-shade` for text use.
+6. **`SubscribeForm` sticky bar `max-w-screen-lg`** drifts from the site's `max-w-screen-xl` containers at xl+. Minor, fix in a polish pass.
+
+### From the prior session (still open)
+
+7. **Blockquote variant decision** — `QuoteVariantPicker` is currently mounted on every post page. Pick a variant (A Marginal Glyph, D Indent Margin, E Twin Apertures, F Tactile Broadside), promote it to unscoped `.article-prose blockquote`, delete the picker + the three unchosen variants. **Must remove before pushing to production.**
+8. **`authors.role` column.** Opinion byline role line is currently derived from `authors.bio`'s first sentence via JS regex — uneven length (Stuart Cerne's first sentence is 122 chars; NYT-Opinion convention is 60–80). A dedicated `authors.role` column with controlled headline-style credentials would replace the heuristic. Migration is one column add + dashboard UI for editing.
+9. **Reciprocity-flip feedback dek** ("You've just spent 7 minutes with Carlos. He'd like to hear back. Anonymous.") — held back from the copy refinements pass on the post page. Worth A/B-testing once analytics are in place.
+10. **White-on-gold contrast** — known a11y issue, Malik's call: keep white text site-wide.
+
+### Operations / not-yet-addressed
+
+- SSL 526 on `www.adamastor.blog` (P0, three handoffs ago)
+- JSON-LD validation against Rich Results Test
+- Sitemap submission (Google Search Console + Bing)
+- AI visibility baseline screenshots (manual citation check across ChatGPT / Perplexity / Google AI Overviews)
+- `social_links` DB rows for Carlos / Afonso / Malik
+- Public-facing calendar variant (perf plan documented two handoffs ago)
+- Newsletter cron + workers (deployment phase)
+- Email template tweaks (welcome / preferences-link / per-category)
+- "Unsubscribe from everything" destination page
+- Dynamic OG images per events route
+- PostHog event tracking schema
+- Existing image aspect-ratio warning on `adamastorLogotype.svg` in dev console (cosmetic, surfaced during this session's verification)
+
+---
+
+## Push reminder
+
+Two sessions of unpushed work consolidate in the next commit:
+
+- **Prior session**: `/posts/[id]` editorial redesign (PostHero, Byline, ShareRow, PostTOC, AuthorStrap, ReadNext, QuoteVariantPicker, DuotonePortraitFilter, kind/content/headings/related libs, prosemirror.css updates).
+- **This session**: homepage redesign + cross-route consistency + SEO sweep + icon migration + UTM decoration.
 
 Before pushing:
 
-- `npm run build` locally — the calendar work touches enough CSS + components that a clean prod build catches issues Turbopack-dev silently allows.
-- `npm test` — `node:test` suite for cleaners still passes; no new tests added today.
-- `npx tsc --noEmit` — already runs as `npm run typecheck`.
-- Vercel preview Lighthouse for the calendar page once pushed.
+- `npm run build` — verify the new components + metadata changes compile cleanly under production.
+- `npm test` — node:test cleaners.
+- `npx tsc --noEmit` — typecheck (the `IconComponent` cast in AuthorStrap is intentional; lucide's icon component type isn't quite `(SVGProps) => JSX.Element`).
+- Manual smoke on `/` (10 cards rendering, kicker `"THE ADAMASTOR WEEKLY"`, sidebar circles, no duotone), `/posts/175` (Weekly — clean title, ShareRow with 4 buttons including WhatsApp, ReadNext doesn't render), `/posts/165` (Opinion — orange kicker, ReadNext with duotone avatars), `/page/2` (paginated archive, no hero, `robots: noindex,follow`).
+- Lighthouse on the post page once pushed to Vercel preview.
 
----
-
-## Suggested opening for the next session
-
-> Read `HANDOFF.md` first. Calendar is in a good state visually but has one open issue: the cross-fade between skeleton and real calendar still has a second visible white moment. The refactor plan is documented above (CSS Grid stacking). Before implementing, invoke the `find-skills` skill (now symlinked into `~/.claude/skills/`) with a query about "smooth client-component mount transitions / hydration flash in Next.js App Router" — there may be a more idiomatic pattern available. Per the per-page editorial-review pattern: observe → ask → propose options → apply, never apply unilaterally.
-
-Sleep well.
+The `QuoteVariantPicker` should be removed before pushing to production. Pick a blockquote variant first.

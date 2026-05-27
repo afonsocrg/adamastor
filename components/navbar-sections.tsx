@@ -12,8 +12,8 @@ export default function NavbarSections() {
 	const pathname = usePathname() ?? "/";
 
 	return (
-		<div className="hidden md:block border-b border-navy-frame dark:border-cyan-glow/[0.12]">
-			<div className="max-w-screen-xl mx-auto flex flex-wrap items-center gap-x-8 gap-y-1 px-8">
+		<div className="hidden md:block border-b border-navy-frame dark:border-cyan-glow/[0.12] md:px-8">
+			<div className="max-w-screen-xl mx-auto flex flex-wrap items-center gap-x-8 gap-y-1">
 				{SECTIONS.map((section) => {
 					const active = section.match(pathname);
 					return (

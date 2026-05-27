@@ -1,7 +1,8 @@
 import AdamastorMark from "@/components/AdamastorMark";
 import MobileTabBar from "@/components/MobileTabBar";
 import Navbar from "@/components/navbar";
-import { ArrowRightIcon, Linkedin, Rss, Twitter } from "lucide-react";
+import { LinkedInIcon, TwitterIcon } from "@/public/social";
+import { ArrowRightIcon, Rss } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -202,7 +203,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 										target="_blank"
 										className={FOOTER_LINK_WITH_ICON}
 									>
-										<Twitter className="h-4 w-4" aria-hidden="true" />
+										<TwitterIcon className="h-4 w-4" aria-hidden="true" />
 										<span>X</span>
 									</Link>
 								</li>
@@ -213,7 +214,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 										target="_blank"
 										className={FOOTER_LINK_WITH_ICON}
 									>
-										<Linkedin className="h-4 w-4" aria-hidden="true" />
+										<LinkedInIcon className="h-4 w-4" aria-hidden="true" />
 										<span>LinkedIn</span>
 									</Link>
 								</li>

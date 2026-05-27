@@ -19,10 +19,16 @@ export function NavUser({
 	user: {
 		name: string;
 		email: string;
-		avatar: string;
+		avatar?: string;
 	};
 }) {
 	const { isMobile } = useSidebar();
+	const displayName = user.name[0]?.toUpperCase() + user.name.slice(1);
+	const nameParts = user.name.trim().split(/\s+/);
+	const initials =
+		nameParts.length >= 2
+			? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+			: nameParts[0][0]?.toUpperCase() || "U";
 
 	return (
 		<SidebarMenu>
@@ -31,17 +37,19 @@ export function NavUser({
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton
 							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+							className="data-[state=open]:bg-navy-frame hover:bg-navy-frame"
 						>
-							<Avatar className="h-8 w-8 rounded-lg">
-								<AvatarImage src={user.avatar} alt={user.name} />
-								<AvatarFallback className="rounded-lg">{user.name[0].toUpperCase() || "U"}</AvatarFallback>
+							<Avatar className="h-8 w-8 rounded-full">
+								{user.avatar ? <AvatarImage src={user.avatar} alt={displayName} /> : null}
+								<AvatarFallback className="rounded-full bg-navy-frame text-navy-shade text-xs font-medium">
+									{initials}
+								</AvatarFallback>
 							</Avatar>
-							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-semibold">{user.name[0].toUpperCase() + user.name.slice(1)}</span>
-								<span className="truncate text-xs">{user.email}</span>
+							<div className="grid flex-1 text-left leading-tight">
+								<span className="truncate text-sm font-medium text-navy-shade">{displayName}</span>
+								<span className="truncate text-xs text-navy-tone">{user.email}</span>
 							</div>
-							<ChevronsUpDown className="ml-auto size-4" />
+							<ChevronsUpDown className="ml-auto size-3.5 text-navy-tone" />
 						</SidebarMenuButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
@@ -52,13 +60,15 @@ export function NavUser({
 					>
 						<DropdownMenuLabel className="p-0 font-normal">
 							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage src={user.avatar} alt={user.name} />
-									<AvatarFallback className="rounded-lg">{user.name[0].toUpperCase() || "U"}</AvatarFallback>
+								<Avatar className="h-8 w-8 rounded-full">
+									{user.avatar ? <AvatarImage src={user.avatar} alt={displayName} /> : null}
+									<AvatarFallback className="rounded-full bg-navy-frame text-navy-shade text-xs font-medium">
+										{initials}
+									</AvatarFallback>
 								</Avatar>
-								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-semibold">{user.name[0].toUpperCase() + user.name.slice(1)}</span>
-									<span className="truncate text-xs">{user.email}</span>
+								<div className="grid flex-1 text-left leading-tight">
+									<span className="truncate text-sm font-medium text-navy-shade">{displayName}</span>
+									<span className="truncate text-xs text-navy-tone">{user.email}</span>
 								</div>
 							</div>
 						</DropdownMenuLabel>

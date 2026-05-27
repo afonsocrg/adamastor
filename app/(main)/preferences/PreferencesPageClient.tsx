@@ -15,7 +15,8 @@ import { Button } from "@/components/tailwind/ui/button";
 import { Input } from "@/components/tailwind/ui/input";
 import { EVENT_CATEGORIES, type EventCategorySlug } from "@/lib/events/categories";
 import { clearSubscribed } from "@/lib/user-identity";
-import { ArrowRightIcon, Linkedin } from "lucide-react";
+import { LinkedInIcon } from "@/public/social";
+import { ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
@@ -174,7 +175,7 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 								rel="noopener"
 								className="inline-flex items-center gap-1 font-medium text-navy hover:underline dark:text-cyan-lifted"
 							>
-								<Linkedin className="h-3.5 w-3.5" aria-hidden="true" />
+								<LinkedInIcon className="h-3.5 w-3.5" aria-hidden="true" />
 								LinkedIn
 							</a>
 						</p>

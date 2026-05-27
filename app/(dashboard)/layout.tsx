@@ -1,11 +1,11 @@
 import { AppSidebar } from "@/components/app-sidebar";
+import { DashboardTrigger } from "@/components/dashboard-trigger";
 import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs";
-import { Separator } from "@/components/tailwind/ui/separator";
 import { SidebarInset, SidebarProvider } from "@/components/tailwind/ui/sidebar";
-import { SidebarTrigger } from "@/components/tailwind/ui/sidebar";
 import { type UserWithProfile, assertAuthenticated } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type React from "react";
 import { PostHogIdentifier } from "../providers";
@@ -48,15 +48,17 @@ export default async function DashboardLayout({
 
 	const pendingSubmissionsCount = await getPendingSubmissionsCount();
 
+	const cookieStore = await cookies();
+	const sidebarOpen = cookieStore.get("sidebar_state")?.value !== "false";
+
 	return (
 		<div className="min-h-screen flex">
 			<PostHogIdentifier userId={profile.id} userEmail={profile.email} />
-			<SidebarProvider>
+			<SidebarProvider defaultOpen={sidebarOpen}>
 				<AppSidebar profile={profile} pendingSubmissionsCount={pendingSubmissionsCount} />
 				<SidebarInset className="flex-1">
-					<div className="flex items-center gap-2 px-4 py-3">
-						<SidebarTrigger className="-ml-1" />
-						<Separator orientation="vertical" className="mr-2 h-4" />
+					<div className="flex items-center gap-2 px-4 py-5">
+						<DashboardTrigger placement="topbar" className="-ml-1" />
 						<DynamicBreadcrumbs />
 					</div>
 					{children}

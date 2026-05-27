@@ -2,10 +2,13 @@ import { createPublicClient } from "@/lib/supabase/public";
 
 interface Author {
 	name?: string | null;
+	bio?: string | null;
+	image_url?: string | null;
 }
 
 export interface HomePost {
 	id: string | number;
+	slug: string | null;
 	title: string;
 	content: unknown;
 	created_at: string;
@@ -30,7 +33,9 @@ export async function getPaginatedHomePosts(page: number, pageSize = HOME_POSTS_
 			`
 				*,
 				authors (
-					name
+					name,
+					bio,
+					image_url
 				)
 			`,
 			{ count: "exact" },

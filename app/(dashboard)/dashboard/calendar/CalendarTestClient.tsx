@@ -48,6 +48,26 @@ const formats = {
 
 const localizer = momentLocalizer(moment);
 
+// Persisted view preference. We only ever render this component in the browser
+// (parent uses a dynamic import inside useEffect), so reading localStorage in
+// the lazy useState initializer is safe and avoids a post-mount "snap to the
+// user's preferred view" flash.
+const VIEW_STORAGE_KEY = "calendar-view";
+const ALLOWED_VIEWS: readonly View[] = ["month", "week", "day", "agenda"] as const;
+
+function readStoredView(): View | null {
+	if (typeof window === "undefined") return null;
+	try {
+		const stored = window.localStorage.getItem(VIEW_STORAGE_KEY);
+		if (stored && (ALLOWED_VIEWS as readonly string[]).includes(stored)) {
+			return stored as View;
+		}
+	} catch {
+		// localStorage can throw in private-mode Safari etc. — ignore.
+	}
+	return null;
+}
+
 // Define the event type based on your database schema
 interface CalendarEvent {
 	id: number | string;
@@ -259,7 +279,7 @@ function CalendarToolbar({ view, date, onNavigate, onView }: CalendarToolbarProp
 export default function CalendarTestClient({ initialEvents = [], user, initialDate }: CalendarTestClientProps) {
 	// Initialize state with the events from the server
 	const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
-	const [view, setView] = useState<View>("month");
+	const [view, setView] = useState<View>(() => readStoredView() ?? "month");
 	const [date, setDate] = useState(() => initialDate ?? new Date());
 
 	const handleNavigate = useCallback((newDate: Date) => {
@@ -268,6 +288,11 @@ export default function CalendarTestClient({ initialEvents = [], user, initialDa
 
 	const handleViewChange = useCallback((newView: View) => {
 		setView(newView);
+		try {
+			window.localStorage.setItem(VIEW_STORAGE_KEY, newView);
+		} catch {
+			// ignore quota / private-mode errors
+		}
 	}, []);
 
 	// Used by our own toolbar (we render outside react-big-calendar so we

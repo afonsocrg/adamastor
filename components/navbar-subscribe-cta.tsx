@@ -26,6 +26,7 @@ export default function NavbarSubscribeCta() {
 	return (
 		<Link
 			href="/subscribe"
+			data-navbar-subscribe-cta
 			className="inline-flex items-center rounded-full bg-gold-hue px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gold-shade"
 		>
 			Subscribe

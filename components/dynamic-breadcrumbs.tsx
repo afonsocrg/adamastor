@@ -175,7 +175,7 @@ export function DynamicBreadcrumbs() {
 
 	return (
 		<Breadcrumb>
-			<BreadcrumbList>
+			<BreadcrumbList className="text-navy-tone">
 				{breadcrumbs.map((crumb, index) => {
 					const isLast = index === breadcrumbs.length - 1;
 					return (
@@ -183,9 +183,11 @@ export function DynamicBreadcrumbs() {
 							{index > 0 && <BreadcrumbSeparator />}
 							<BreadcrumbItem>
 								{isLast ? (
-									<BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+									<BreadcrumbPage className="font-medium text-navy-shade">{crumb.label}</BreadcrumbPage>
 								) : (
-									<BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
+									<BreadcrumbLink href={crumb.href} className="hover:text-navy-shade">
+										{crumb.label}
+									</BreadcrumbLink>
 								)}
 							</BreadcrumbItem>
 						</React.Fragment>

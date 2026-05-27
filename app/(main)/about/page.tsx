@@ -1,5 +1,6 @@
 import { buildBreadcrumbListJsonLd } from "@/lib/events/seo";
-import { ArrowRightIcon, Globe, Linkedin, Moon, Twitter } from "lucide-react";
+import { LinkedInIcon, TwitterIcon } from "@/public/social";
+import { ArrowRightIcon, Globe, Moon } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -156,8 +157,8 @@ type MastheadEntry = {
 // engineers, Mastodon) is a one-line addition here + a new kind in the
 // union type above.
 const linkIconMap = {
-	linkedin: Linkedin,
-	twitter: Twitter,
+	linkedin: LinkedInIcon,
+	twitter: TwitterIcon,
 	site: Globe,
 	moon: Moon,
 };
