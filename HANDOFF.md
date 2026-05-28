@@ -1,161 +1,142 @@
-# Hand-off — 2026-05-27 (late evening): homepage redesign + cross-route consistency + SEO sweep
+# Hand-off — 2026-05-28 (evening): typography deep-audit, paused mid-list
 
-Two sessions of work landed in this branch: the prior session's `/posts/[id]` editorial redesign (already documented in the previous handoff and now committed in the same sweep) and this session's homepage redesign + cross-route consistency + SEO sweep + icon migration + UTM decoration on outbound article links.
+A long, deliberate session walking through the post page's typography element by element, with live measurements via the browser preview tools. We paused mid-audit (7 of ~15 items shipped); tomorrow's session resumes the list from where we stopped.
 
-Touched files:
-
-**New components / surfaces:**
-
-- `app/(main)/page.tsx` — full restructure
-- `app/(main)/page/[page]/page.tsx` — paginated archive route, reusing the same composition without the hero
-- `components/home/Masthead.tsx` — Lora-quiet editorial nameplate (text-xl/2xl)
-- `components/home/FeaturedHero.tsx` — kind-aware hero card (currently rendered hidden — held back for revisit)
-- `components/home/PostRiver.tsx` — uniform card pattern + pagination
-- `components/home/HomeSidebar.tsx` — sticky 2-module sidebar (Opinion stack + Upcoming events teaser)
-- `lib/home/upcoming-events.ts` — thin wrapper around `fetchPublicEvents` for the sidebar
-- `app/(main)/posts/[id]/ArticleLinkDecorator.tsx` — MutationObserver-based UTM decoration for outbound article-body links
-
-**Lifted / migrated:**
-
-- `components/SubscribeForm.tsx` — was `app/(main)/posts/[id]/SubscribeForm.tsx`, now shared between the post page and the homepage subscribe coda
-- `public/social/index.tsx` — added `WhatsAppIcon`; the existing `BlueskyIcon` / `LinkedInIcon` / `TwitterIcon` (X glyph) are now used everywhere lucide's `Linkedin` / `Twitter` used to live
-
-**Modified for cross-route consistency:**
-
-- `app/(main)/posts/[id]/page.tsx` — metadata rewrite (clean title via `getDisplayTitle`, canonical, `og:type=article`, `article:published_time`, `article:modified_time`, `article:author`, twitter card, dropped legacy `keywords`); JSON-LD breadcrumb + article schema now use the cleaned title; mounts `<ArticleLinkDecorator postSlug={…}/>` sibling-of `<PostPreview>`
-- `app/(main)/posts/[id]/ShareRow.tsx` — added WhatsApp share button, explicit `className="h-4 w-4"` per icon so the inner shape centers in the 36px button
-- `app/(main)/posts/[id]/AuthorStrap.tsx` — switched to branded `BlueskyIcon`/`LinkedInIcon`/`TwitterIcon`; deleted the duplicated inline Bluesky path; replaced the `typeof Linkedin` type hack with a clean `IconComponent = (props: SVGProps) => JSX.Element` type
-- `app/(main)/posts/[id]/PostHero.tsx` + `Byline.tsx` — accept `publishedAtIso` prop, visible date wrapped in `<time datetime="…">`
-- `app/(main)/posts/[id]/ReadNext.tsx` — orange Opinion kicker (cross-route consistency), small duotone author avatar per item, hover-bg normalized to `navy-veil/40`
-- `app/(main)/about/page.tsx` — `linkIconMap` uses branded `LinkedInIcon`/`TwitterIcon`
-- `app/(main)/layout.tsx` — footer "Follow Us" column uses branded icons
-- `app/(main)/preferences/PreferencesPageClient.tsx` + `subscribe/SubscribePageClient.tsx` — branded LinkedIn icon
-- `app/layout.tsx` — RSS `<link rel="alternate">` title normalized to `"The Adamastor Weekly"` (was `"Adamastor — Weekly Digest"`)
-- `lib/home-posts.ts` — fetches `bio`, `image_url`, `slug` so the hero byline + sidebar have what they need
-- `lib/posts/kind.ts` — `getFeedCardLabel` returns `"The Adamastor Weekly" | "Opinion"` (was `"Weekly Digest" | "Guest Article"`)
-- `lib/posts/related.ts` — adds `image_url` to the select + the `RelatedPost` type
-
-**Deleted:**
-
-- `components/home-posts-feed.tsx` — replaced by `components/home/PostRiver.tsx`
-- `components/authorCard.tsx`, `components/nav-projects.tsx`, `components/nav-secondary.tsx`, `components/shareWidget.tsx` — orphaned by the prior session's `/posts/[id]` redesign
-
-**Docs updated:**
-
-- `docs/design-system.md` — added the Editorial homepage template, Cross-route consistency rules (lexicon canon, photo treatment policy, hover-bg token, hairlines, kicker geometry, navbar left-edge alignment), article-body UTM decoration pattern, plus six new entries under Known limitations / open questions
-- `.agents/product-marketing.md` — added the lexicon canon section; retired "Weekly Digest" / "Guest Article" with a row in the banned-words table
+The canonical typography reference now lives in [`docs/typography.md`](docs/typography.md) — written this session as the authoritative anchor going forward. **`docs/design-system.md`'s typography section is now legacy** and must be migrated or replaced (see "Open follow-ups" below).
 
 ---
 
-## What landed — design and editorial decisions worth remembering
+## What landed this session
 
-### Cross-route geometry is locked
+### New documentation
 
-The homepage now mirrors `/events`' 8-column grid exactly: `lg:grid-cols-8 gap-8 lg:gap-20`, with `lg:col-span-5` for the main column and `lg:col-span-3` for the sidebar. Same gap, same gutter, same content-left edge. A reader switching between `/` and `/events` lands on the same grid every time. Inside the main column the H1+dek live above the river so the sidebar top aligns with the H1 baseline — the same composition rule `/events` uses for its calendar + subscribe sidebar.
+- **`docs/typography.md`** — canonical type system, decisions, rationale. Replaces the typography section of design-system.md as the authoritative source. Includes the open follow-ups from the audit so tomorrow can pick up cleanly.
 
-Left-edge alignment with the navbar wordmark is fixed via a second `md:p-4` on the grid wrapper (so 16px main padding + 16px page padding = 32px at md+, matching `navbar md:px-8`). The earlier-session misalignment is gone. Interactive cards inside the grid extend their hover surfaces outward via `-mx-4 px-4` so the surface hover bleeds 16px past the content edge without shifting content.
+- **Cross-references** added to key files pointing at the new doc:
+  - `styles/prosemirror.css` (top of file)
+  - `styles/fonts.ts` (in the existing JSDoc block)
+  - `components/tailwind/post-preview.tsx`
+  - `app/(main)/posts/[id]/PostHero.tsx`
+  - `components/tailwind/extensions.ts`
+  - `components/tailwind/slash-command.tsx`
 
-### Lora gradient is hierarchical
+### Typography changes shipped
 
-- Masthead H1 (`text-xl md:text-2xl`, 20/24px Lora Bold): the publication nameplate. Quiet. Doesn't compete with the river below.
-- Hero title when rendered (`text-[1.75rem] md:text-[2.25rem]`, 28/36px Lora Bold): clearly larger than the masthead, but smaller than the post-page H1 (31/48px) — preview never out-shouts the destination.
-- Sidebar module headings (`text-lg` Lora Bold): tertiary anchors. Lora earns its place by being structural.
-- River card titles, sidebar item titles: Inter. Catalog mode.
+| # | Change | Files |
+|---|---|---|
+| 1 | **Body H1 collapsed to H2 styling** (graceful degradation for editor accidents) | `styles/prosemirror.css` |
+| 2 | **Body H2 weight 600 → 700**, then **size bumped 22/24px → 24/28px** | `styles/prosemirror.css` |
+| 3 | **Body H3 size bumped 17/18px → 19/20px** (weight stays 600) | `styles/prosemirror.css` |
+| 4 | **Strong weight 600 → 575** (variable font; lands between Medium and SemiBold) | `styles/prosemirror.css` |
+| 5 | **Heading > strong inherit guard** — strong inside an h1/h2/h3 inherits the heading's weight, preventing visible weight downshifts from editor-bolded single characters | `styles/prosemirror.css` |
+| 6 | **Lora 400 italic** loaded as a separate `--font-lora-italic` (was missing; blockquote pull-outs were rendering Lora Bold Italic 700 instead of intended 400 italic) | `styles/fonts.ts`, `app/layout.tsx`, `styles/prosemirror.css` |
+| 7 | **Explicit `font-bold` on the three Lora-italic strap surfaces** (navbar strapline, footer tagline, /about hero strapline) — closes the weight-pooling regression caused by adding the 400 italic | `components/navbar.tsx`, `app/(main)/layout.tsx`, `app/(main)/about/page.tsx` |
+| 8 | **Kicker tracking unified at `tracking-[0.14em]`** (was a mix of 0.12/0.14/0.18em) across the post page, homepage, and `/about` | 9 component files |
+| 9 | **Apostrophe sweep** — curly U+2019 in all user-facing strings on `/` and `/posts/[id]` | `Masthead.tsx`, `SubscribeForm.tsx`, `feedbackForm.tsx`, `ShareRow.tsx`, homepage JSON-LD |
+| 10 | **Prose measure narrowed 68ch → 66ch → 60ch** (final: 60ch ≈ 681px at Inter 18px) | `components/tailwind/post-preview.tsx` |
+| 11 | **Header ↔ prose alignment** — `PostHero` constrained to `max-w-[60ch] mx-auto text-lg` so the kicker, H1, and byline share the prose's left edge | `app/(main)/posts/[id]/PostHero.tsx` |
+| 12 | **H1 length-responsive sizing** — desktop tiering 48/40/32px at 45/70-char thresholds, mobile stays 31px | `app/(main)/posts/[id]/PostHero.tsx` |
+| 13 | **Editor schema restriction** — `heading: { levels: [2, 3] }` prevents new H1 nodes from any source | `components/tailwind/extensions.ts` |
+| 14 | **Slash menu + bubble selector** — H1 option removed; remaining options relabeled "Heading 1" → `<h2>`, "Heading 2" → `<h3>` so Carlos's mental model maps to real elements | `components/tailwind/slash-command.tsx`, `components/tailwind/selectors/node-selector.tsx` |
+| 15 | **Paste-time H1 → H2 transform** in `transformPastedHTML` so pastes from rendered blogs / Google Docs / Notion don't bring a body `<h1>` along | `components/tailwind/rich-text-editor.tsx` |
+| 16 | **Navbar masthead row padding** — `pb-3 md:pb-8` (was `pb-3`) for editorial breathing room above the ARTICLES/EVENTS section nav on desktop | `components/navbar.tsx` |
+| 17 | **/about kicker tracking** unified to 0.14em via the `sectionLabel` constant | `app/(main)/about/page.tsx` |
 
-The earlier dissonance (masthead at 36px Lora directly above a hero at 44px Lora) was resolved by dropping the masthead to its quiet nameplate size + keeping the hero text-anchor at a 12px scale gap. The post-page H1 is still the destination-emphasis moment.
+### Infrastructure also shipped this session (typography-adjacent)
 
-### Lexicon canon
-
-Single source of truth in `lib/posts/kind.ts` → `getFeedCardLabel`:
-
-- Weekly → `"The Adamastor Weekly"` (card kicker), `"The Adamastor Weekly · Week N"` (hero / post-page kicker)
-- Opinion → `"Opinion"` everywhere
-
-`"Weekly Digest"` and `"Guest Article"` are retired. JSON-LD `Blog.name` and the RSS feed title also normalized to `"The Adamastor Weekly"`. The strapline `"A weekly read on Portugal's startup scene."` is the canonical line used verbatim on `/about`, the homepage Masthead dek, `/subscribe`, `/preferences`, and the SubscribeForm coda — same publication voice on every surface that describes the Weekly.
-
-### Color carries meaning
-
-- `text-orange-hue` on every Opinion kicker (river card, hero kicker if re-enabled, sidebar Opinion module heading, sidebar Opinion item kicker, ReadNext "More opinion" + per-item "Opinion"). Orange = named voice / personal take.
-- Weekly kickers stay `text-navy-tone` (institutional editorial backbone).
-- Arrow-tip icons stay `text-orange-hue` — the same warm accent used for outbound-action affordances (`More from Carlos →`, `Browse all events →`, `Read →`).
-- One hover-background token (`hover:bg-navy-veil/40`) across hero, river card, ReadNext, "Browse all events", pagination buttons.
-- Hairlines = `border-navy-frame` everywhere editorial. Shadcn's `<Separator/>` (grey `--border` token) is reserved for admin/form contexts.
-
-### Photo treatment policy
-
-Duotone (`url(#duotone-navy-portrait)`) is reserved for the earned editorial moments where a single face anchors a piece: `/about` Masthead cards, `/posts/[id]` AuthorStrap, and `/posts/[id]` ReadNext. Homepage portraits (the future hero, the sidebar Opinion stack) use clean `rounded-full` circles with no filter — duotone's contrast is too strong at sub-48px scale and the filter's calibration doesn't degrade gracefully there. The `DuotonePortraitFilter` SVG def ships only on pages that actually consume it; the homepage no longer mounts it.
-
-### SEO scaffolding strengthened
-
-Manual rubric scored both surfaces before and after (Lighthouse CLI was blocked by the sandbox classifier — see Open threads below):
-
-- `/`: 14/20 → 16/20 (+10%). Added canonical, `<time datetime>` on all dates, enriched the Blog JSON-LD with `blogPost[]` of 10 BlogPostings (gives Google + AI engines explicit "/ is the canonical hub" relationships).
-- `/posts/[id]`: 15/20 → 18.5/20 (+17.5%). Title cleaned via `getDisplayTitle`, canonical, `og:type=article`, `article:published_time`, `article:modified_time`, `article:author`, twitter card, dropped legacy `keywords`, BreadcrumbList + JSON-LD `headline` now use cleaned title, `<time datetime>` semantic in Byline.
-
-The post-page title artefact (`"Founder vs. Reality Fit  | Week 21"` with double space, leaking into SERP titles + OG cards + breadcrumbs + JSON-LD headline simultaneously) was a single-fix cleanup that landed on all four surfaces at once.
-
-`/page/[page]` carries `robots: { index: false, follow: true }` — archive pages shouldn't compete with `/` for entry-page ranking but should still pass crawl signals through to individual posts.
-
-### UTM on outbound article links
-
-`app/(main)/posts/[id]/ArticleLinkDecorator.tsx` decorates every external link inside `.article-prose` with `?utm_source=adamastor.blog&utm_medium=post&utm_campaign=<post-slug>`. Required a MutationObserver (TipTap renders article body AFTER mount, so a naive on-mount sweep finds zero anchors). Skips internal links, non-http(s) protocols, and anything already carrying `utm_*`. Also ensures `target="_blank"` and `rel` includes `noopener noreferrer`. Crawlers + AI bots reading SSR HTML see the original un-tagged destination — desired for SEO/AI canonical links; click attribution is via runtime decoration only.
-
-### Icon system
-
-Branded SVG icons from `/public/social/index.tsx` replace lucide's stroke-based icons in every editorial surface (footer, /about masthead, AuthorStrap, preferences, subscribe). `WhatsAppIcon` added there, plus a Share-on-WhatsApp button in `ShareRow`. Lucide still owns the line icons that aren't social-brand glyphs (`ArrowRightIcon`, `Globe`, `Github`, `Rss`, etc.).
+| Change | Files |
+|---|---|
+| **`/posts/preview/[id]` route** — fixes the draft-preview 404 bug (the public `/posts/[id]` route uses `createPublicClient()` which RLS-filters drafts). The new preview route uses cookie-auth + service-role bypass + `force-dynamic` + noindex, and renders the same component tree as the public page. Dashboard "Preview" link updated to use it. | `app/(main)/posts/preview/[id]/page.tsx`, `app/(dashboard)/dashboard/posts/PostAction.tsx` |
+| **Typography specimen post** — created (and lives in the DB under slug `what-76-weeks-of-writing-taught-me-about-portuguese-founders`). Authored to exercise every typographic element naturally; used throughout the session as the canonical lens for typography decisions. | DB only — content lives in `posts.content` |
 
 ---
 
-## Open threads carried over
+## Where the audit stopped
 
-These didn't ship in this sweep. Priority order:
+This is the resumption list for tomorrow's session. Items ticked are shipped; un-ticked items are still pending.
 
-### From this session
+```
+✓ Body H1 → H2 collapse
+✓ Body H2 (24/28px, weight 700)
+✓ Body H3 (19/20px, weight 600)
+✓ Strong (weight 575)
+✓ Strong-inside-heading guard
+✓ Editor: H1 hidden + paste transform
+✓ Prose width (60ch)
+✓ Header ↔ prose alignment
+✓ H1 length-responsive sizing (48/40/32px tiers)
+□ Bulleted list + nested list rendering
+□ Ordered list with multi-sentence items
+□ Inline emphasis adjacency (bold + italic in adjacent paragraphs)
+□ Blockquote — pick a winner from A/D/E/F variants and lock it in
+□ Inline `code` styling (Inconsolata against navy prose)
+□ Multi-line code block styling (the dark `pre` block)
+□ Inline links + long URL wrap behavior
+□ Em-dashes, ellipses, curly quotes — character QA against the specimen
+□ Post-prose chrome alignment (AuthorStrap / SubscribeForm / ReadNext / FeedbackForm at full body-column width, not 60ch — needs per-component judgment)
+```
 
-1. **Lighthouse baseline.** Install `lighthouse` as a devDependency, run against `next build && next start` to get an objective production SEO/perf score. The manual rubric (above) is documented but a Lighthouse number is more defensible.
-2. **FeaturedHero decision.** Currently hidden — held back for revisit. Either re-enable (3-line restore in `app/(main)/page.tsx`) or delete the component. Don't leave it dangling.
-3. **`/llms.txt`** — surface `/`, `/events`, `/about` for AI agents. Adamastor meets the SEO fundamentals; this is the next layer up.
-4. **`robots.txt` AI bot allowlist check.** Verify `GPTBot`, `ChatGPT-User`, `PerplexityBot`, `ClaudeBot`/`anthropic-ai`, `Google-Extended` are not blocked. Blocking them prevents citation.
-5. **`orange-hue` text contrast** at small kicker sizes (10–11px) — likely passes AA Large Text but unverified at AA Normal. Measure once Lighthouse is in place; if it fails, introduce `orange-shade` for text use.
-6. **`SubscribeForm` sticky bar `max-w-screen-lg`** drifts from the site's `max-w-screen-xl` containers at xl+. Minor, fix in a polish pass.
+The specimen post at `/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders` exercises all of these. Use it as the audit canvas — change the CSS, refresh, re-inspect.
 
-### From the prior session (still open)
+---
 
-7. **Blockquote variant decision** — `QuoteVariantPicker` is currently mounted on every post page. Pick a variant (A Marginal Glyph, D Indent Margin, E Twin Apertures, F Tactile Broadside), promote it to unscoped `.article-prose blockquote`, delete the picker + the three unchosen variants. **Must remove before pushing to production.**
-8. **`authors.role` column.** Opinion byline role line is currently derived from `authors.bio`'s first sentence via JS regex — uneven length (Stuart Cerne's first sentence is 122 chars; NYT-Opinion convention is 60–80). A dedicated `authors.role` column with controlled headline-style credentials would replace the heuristic. Migration is one column add + dashboard UI for editing.
-9. **Reciprocity-flip feedback dek** ("You've just spent 7 minutes with Carlos. He'd like to hear back. Anonymous.") — held back from the copy refinements pass on the post page. Worth A/B-testing once analytics are in place.
-10. **White-on-gold contrast** — known a11y issue, Malik's call: keep white text site-wide.
+## Open follow-ups (carried forward)
 
-### Operations / not-yet-addressed
+### From the typography audit specifically
 
-- SSL 526 on `www.adamastor.blog` (P0, three handoffs ago)
-- JSON-LD validation against Rich Results Test
-- Sitemap submission (Google Search Console + Bing)
-- AI visibility baseline screenshots (manual citation check across ChatGPT / Perplexity / Google AI Overviews)
-- `social_links` DB rows for Carlos / Afonso / Malik
-- Public-facing calendar variant (perf plan documented two handoffs ago)
-- Newsletter cron + workers (deployment phase)
-- Email template tweaks (welcome / preferences-link / per-category)
-- "Unsubscribe from everything" destination page
-- Dynamic OG images per events route
-- PostHog event tracking schema
-- Existing image aspect-ratio warning on `adamastorLogotype.svg` in dev console (cosmetic, surfaced during this session's verification)
+1. **`docs/design-system.md` migration.** The typography section of design-system.md is now legacy. Pick one of:
+   - **A. Replace** the typography section in design-system.md with a pointer ("Typography lives in `docs/typography.md`") and delete the legacy content. Cleanest.
+   - **B. Keep both**, but add a banner at the top of design-system.md's typography section saying "OUTDATED — see `docs/typography.md`". Lower-risk if someone else is still consuming design-system.md.
+   - **C. Migrate** the still-relevant non-typography content out of design-system.md's typography section (color tokens, allocation rules), leaving only typography-specific stuff to delete.
+
+   Per Malik's preference (don't auto-update design-system.md to reconcile code/doc conflicts; surface options first), this is left for the next session to decide.
+
+2. **Threshold calibration for length-responsive H1.** 45 and 70 chars are best-guess thresholds. As more articles get written, watch for titles that visually want a different tier and nudge the thresholds — don't add new tiers.
+
+3. **Kicker tracking sweep on `/events` and `/subscribe`.** Those two pages still use `tracking-[0.18em]` for kickers. Publication-wide convention is now 0.14em; sweeping them brings consistency. Out of scope for the typography audit (which is post-page-scoped) but worth doing.
+
+4. **Body H1 content cleanup.** The specimen post has a stored `<h1>` in its TipTap JSON (Carlos's "title in body" paste artifact). CSS collapses it visually but the HTML stays semantically wrong. A one-time migration pass — find every post whose `content` JSON contains an h1 node, rewrite to h2 — would clean up the semantics. Worth doing once design-system.md migration is decided, since both touch stored content.
+
+5. **Editor styling matches rendered styling.** The TipTap editor renders body content with default `.prose prose-lg`, not `.article-prose`. Carlos sees one thing while writing and a different thing when published. Applying a subset of `.article-prose` rules to the editor's content area would close the gap — important UX once the publication has more authors than Carlos.
+
+### Older threads still open (carried from prior handoffs)
+
+- **Blockquote variant decision** — `QuoteVariantPicker` is mounted on every post page. Pick a variant (A / D / E / F), promote it to unscoped `.article-prose blockquote`, delete the picker + the three unchosen variants. **Must remove before pushing to production.** This is also item 4 on the audit resumption list.
+
+- **`authors.role` column.** Opinion byline role is derived from `authors.bio` first sentence via regex — uneven length. Dedicated column would replace the heuristic.
+
+- **Lighthouse baseline.** Run against `next build && next start` for objective SEO/perf score.
+
+- **`/llms.txt`** + `robots.txt` AI bot allowlist check + JSON-LD validation against Rich Results Test + sitemap submission.
+
+- **`orange-hue` text contrast** at small kicker sizes (10–11px) — unverified at AA Normal.
+
+- **SSL 526 on `www.adamastor.blog`** (P0, four handoffs ago).
+
+- **Other operations items** carried from prior handoff: `social_links` DB rows, public calendar variant, newsletter cron + workers, email template tweaks, "unsubscribe from everything" page, dynamic OG images, PostHog event schema, white-on-gold contrast.
+
+---
+
+## How to resume
+
+1. **Read this doc + `docs/typography.md`** to load context.
+2. **Open the specimen post**: `http://localhost:3000/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders`. It exercises every remaining audit element.
+3. **Pick the next item** from the un-ticked list above. Suggested order is roughly visual-impact-descending: lists → blockquote variant → code → inline links. Em-dash/ellipsis/curly-quote QA can be last (mostly a verification pass).
+4. **Use `mcp__Claude_Preview__preview_inspect`** to read computed styles live — cheaper and more accurate than screenshots for typography work.
+5. **Update `docs/typography.md`** alongside each code change. Don't let the doc drift again.
 
 ---
 
 ## Push reminder
 
-Two sessions of unpushed work consolidate in the next commit:
+This session's changes are unpushed. Before pushing:
 
-- **Prior session**: `/posts/[id]` editorial redesign (PostHero, Byline, ShareRow, PostTOC, AuthorStrap, ReadNext, QuoteVariantPicker, DuotonePortraitFilter, kind/content/headings/related libs, prosemirror.css updates).
-- **This session**: homepage redesign + cross-route consistency + SEO sweep + icon migration + UTM decoration.
-
-Before pushing:
-
-- `npm run build` — verify the new components + metadata changes compile cleanly under production.
-- `npm test` — node:test cleaners.
-- `npx tsc --noEmit` — typecheck (the `IconComponent` cast in AuthorStrap is intentional; lucide's icon component type isn't quite `(SVGProps) => JSX.Element`).
-- Manual smoke on `/` (10 cards rendering, kicker `"THE ADAMASTOR WEEKLY"`, sidebar circles, no duotone), `/posts/175` (Weekly — clean title, ShareRow with 4 buttons including WhatsApp, ReadNext doesn't render), `/posts/165` (Opinion — orange kicker, ReadNext with duotone avatars), `/page/2` (paginated archive, no hero, `robots: noindex,follow`).
-- Lighthouse on the post page once pushed to Vercel preview.
-
-The `QuoteVariantPicker` should be removed before pushing to production. Pick a blockquote variant first.
+- `pnpm typecheck` — the pre-existing error in `lib/posts/related.ts:38` is unrelated; everything from this session is type-clean.
+- `pnpm build` — verify the new preview route, the editor restrictions, and the PostHero conditional className all compile cleanly.
+- **Manual smoke**:
+  - `/posts/preview/[any-draft-slug]` should render the draft with the "Preview mode" banner (logged in only; anonymous = redirect to /login).
+  - `/posts/[any-published-slug]` should render exactly as before with the new typography stack.
+  - `/posts/founder-vs-reality-fit-week-21` — the article that surfaced the H2/strong hierarchy issue. Should now read with clear H2 dominance over bold news-item lead-ins.
+  - Editor `/`: type `/` in the body, confirm only "Heading 1" and "Heading 2" appear (no Heading 3 option — that's `<h3>`; no H1 option at all).
+  - Paste `# Some Title` from a markdown source into the editor — should land as `<h2>`, not `<h1>`.
+- **Still don't push to prod until `QuoteVariantPicker` is removed** — see open threads.

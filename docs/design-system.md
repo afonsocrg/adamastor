@@ -43,44 +43,11 @@ References that shape the voice:
 
 ## Typography
 
-Three families, all loaded in [`app/layout.tsx`](../app/layout.tsx) via [`styles/fonts.ts`](../styles/fonts.ts). No new font loads needed for the brand.
+**Typography lives in [`docs/typography.md`](./typography.md).** That doc is the canonical reference for the type system, decisions, and rationale — fonts, sizes, weights, line lengths, kicker tracking, editor heading policy, the Lora weight-pooling trap, length-responsive H1 sizing, and the open follow-ups.
 
-| Family | Variable | Use |
-|---|---|---|
-| **Lora Bold** (serif display) | `--font-lora-bold` | Page titles, headlines, module headings, headline numbers. Max weight is 700 — pair with Tailwind `font-bold` so the weight resolves. Both `normal` and `italic` styles are loaded; italic is reserved for editorial straplines (masthead tagline). |
-| **Inter** (sans body) | `--font-inter` | UI labels, table content, body copy, form controls. The default body font (see `globals.css`). |
-| **Inconsolata** (mono) | `--font-inconsolata` (400) and `--font-inconsolata-bold` (700) | Code blocks, technical content, env var names. |
+This section previously held a typography table; it was migrated out wholesale on 2026-05-28 after a deep audit established several changes (body H2 at weight 700 + 24/28px, body H3 at 19/20px, strong at 575, kicker tracking unified at 0.14em, prose narrowed to 60ch, header-prose alignment, length-responsive H1) that the legacy table no longer reflected. Keeping two sources of truth was the bigger risk than the migration.
 
-Reference fonts via Tailwind arbitrary value:
-```tsx
-<h1 className="font-bold [font-family:var(--font-lora-bold)]">Newsletter Subscribers</h1>
-<p className="[font-family:var(--font-inter)]">42 subscribers</p>
-```
-
-### Type allocation — Lora is rare
-
-A display serif earns its power by being rare. When every heading on the page is in Lora, the contrast collapses — the reader's eye does the editorial-register work everywhere, and Lora stops feeling special. Per the brand's "editorial publication, not SaaS" register, Lora is **reserved for two surfaces**:
-
-1. **Page H1** — the one editorial moment per page. The named title.
-2. **Blockquote / pull-quote** — Lora italic, a structurally different role (italic + body-scale, not heading hierarchy). The "second voice" pull-out.
-
-**Everything else uses Inter**, with hierarchy carried by weight + size + color + structural rules (hairlines, kickers, spacing):
-
-| Role | Family | Weight | Mobile / Desktop |
-|---|---|---|---|
-| **Page H1** | Lora Bold | 700 | 30px (text-3xl) → 31px (text-[1.9375rem]) / 48px (text-5xl) |
-| **Page-section H2** (Subscribe, Feedback, Read next, About) | Inter | 600 | 24px (text-2xl) / 30px (text-3xl) |
-| **Body H2** (in prose, w/ navy-frame top hairline rule) | Inter | 600 | 22px (text-[1.375rem]) / 24px (text-2xl) |
-| **Body H3** | Inter | 600 | 17px / 18px |
-| **Section kickers** (uppercase tracked labels) | Inter | 600 | 11px / 12px (text-xs) |
-| **Blockquote** | Lora | 400 italic | 22px |
-| **Body text** | Inter (prose-lg default) | 400 | 17px (mobile) / 18px (prose-lg) |
-
-**Why Lora and not CalSans or Crimson Text?** CalSans (modern startup display font) and Crimson Text (classical book serif) were both dropped because neither matched Adamastor's "contemporary digital publication" voice. CalSans read too "SaaS product"; Crimson read too "Victorian literary magazine." Lora Bold is designed for screen reading, sits between them in feel, and pairs cleanly with Inter for body.
-
-**Why the body H2 hairline rule and the smaller-than-page-section size**: body H2 (24px) and page-section H2 (30px) are both Inter SemiBold navy — they need a discriminator. The hairline above body H2 signals "section break IN the article body" vs page-section H2 which is structural chrome around the article. The size differential reinforces hierarchy (body sections are nested inside the article).
-
-**Why Inter for kickers (not Lora small caps)**: Inter at 10–12px holds its geometry crisply. Lora at the same size loses serif definition and reads fuzzy. Kickers also appear MANY times per page (one per section), and any Lora occurrence beyond H1 + blockquote dilutes Lora's editorial power.
+> Scattered typography references still appear elsewhere in this file (page-specific patterns, page-section H2 rules, the editorial-homepage template, the events page, etc.). Those are page-layout-bound and stay here for now — they reference the typography primitives but are about *where* and *when* to use them, not about the type system itself. As page sections get touched, migrate their type-specific bits over.
 
 ## Color
 
