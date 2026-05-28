@@ -9,7 +9,7 @@ const DEFAULT_HEADING = "Latest from Adamastor";
 // the SubscribeForm coda — one publication voice across every surface that
 // describes the Weekly. The second sentence names the offering mix.
 const DEFAULT_DEK =
-	"A weekly read on Portugal's startup scene. The Adamastor Weekly every Tuesday, plus occasional opinion from named voices in the ecosystem.";
+	"A weekly read on Portugal’s startup scene. The Adamastor Weekly every Tuesday, plus occasional opinion from named voices in the ecosystem.";
 
 /**
  * Editorial masthead for the homepage and the paginated archive pages.

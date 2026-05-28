@@ -111,7 +111,7 @@ export const metadata: Metadata = {
 	},
 };
 
-const sectionLabel = "text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone";
+const sectionLabel = "text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone";
 const sectionHeading =
 	"text-2xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] md:text-3xl [text-wrap:balance]";
 const editorialLink =
@@ -277,7 +277,7 @@ export default function About() {
 				<h1 className="text-4xl font-bold tracking-tight leading-tight text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] md:text-5xl [text-wrap:balance]">
 					About Adamastor
 				</h1>
-				<p className="max-w-[44ch] text-xl italic leading-snug text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] md:text-2xl">
+				<p className="max-w-[44ch] text-xl font-bold italic leading-snug text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] md:text-2xl">
 					A weekly read on Portugal’s startup scene.
 				</p>
 				<div className="space-y-5 pt-3 text-base leading-relaxed text-foreground md:text-lg [&_p]:max-w-[65ch]">

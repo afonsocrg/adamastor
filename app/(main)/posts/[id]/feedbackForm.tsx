@@ -44,7 +44,7 @@ export function FeedbackForm() {
 		// a subscribe escalation in the same beat — small ask after a larger
 		// one, framed conversationally rather than transactionally.
 		toast.success("Thanks for the note. Carlos reads every one.", {
-			description: "While you're here — get next Tuesday's edition in your inbox.",
+			description: "While you’re here — get next Tuesday’s edition in your inbox.",
 			action: {
 				label: "Subscribe",
 				onClick: scrollToSubscribe,
@@ -56,7 +56,7 @@ export function FeedbackForm() {
 
 	return (
 		<section className="border-t border-navy-frame pt-10">
-			<p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone dark:text-cyan-dim">
+			<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
 				Reader notes
 			</p>
 			<h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] md:text-3xl">

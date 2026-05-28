@@ -26,13 +26,13 @@ function copyForKind(kind: PostKind): { heading: string; dek: string; stickyLabe
 	if (kind === "weekly") {
 		return {
 			heading: "Subscribe to The Adamastor Weekly",
-			dek: "A weekly read on Portugal's startup scene. Every Tuesday by Carlos Resende.",
+			dek: "A weekly read on Portugal’s startup scene. Every Tuesday by Carlos Resende.",
 			stickyLabel: "The Adamastor Weekly · Every Tuesday",
 		};
 	}
 	return {
 		heading: "Subscribe to Adamastor",
-		dek: "A weekly read on Portugal's startup scene, plus occasional opinion from named voices in the ecosystem.",
+		dek: "A weekly read on Portugal’s startup scene, plus occasional opinion from named voices in the ecosystem.",
 		stickyLabel: "Adamastor",
 	};
 }
@@ -122,7 +122,7 @@ export function SubscribeForm({ kind }: SubscribeFormProps) {
 	return (
 		<>
 			<section className="border-t border-navy-frame pt-10" data-subscribe-region>
-				<p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone dark:text-cyan-dim">
+				<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
 					Subscribe
 				</p>
 				<h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] md:text-3xl">
@@ -133,7 +133,7 @@ export function SubscribeForm({ kind }: SubscribeFormProps) {
 				{done ? (
 					<div className="mt-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300">
 						<p className="text-base font-medium text-navy dark:text-cyan-lifted">
-							You're in. The next edition lands in your inbox.
+							You’re in. The next edition lands in your inbox.
 						</p>
 					</div>
 				) : (

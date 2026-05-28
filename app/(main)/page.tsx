@@ -72,7 +72,7 @@ function buildHomepageJsonLd(posts: BlogPostListing[]) {
 				"@id": `${SITE_URL}/#blog`,
 				url: SITE_URL,
 				name: "The Adamastor Weekly",
-				description: "A weekly read on Portugal's startup scene.",
+				description: "A weekly read on Portugal’s startup scene.",
 				publisher: { "@id": `${SITE_URL}/#organization` },
 				isPartOf: { "@id": `${SITE_URL}/#website` },
 				inLanguage: "en",

@@ -40,6 +40,16 @@ const RichTextEditor = (props: CoreEditorProps) => {
 						class:
 							"prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full",
 					},
+					// Paste-time HTML transform. We don't allow body H1 (the page-level
+					// title lives in the post title field, not the prose), but a user
+					// pasting from a rendered blog post / Google Doc / Notion typically
+					// brings an <h1> with them. Rewriting to <h2> at paste time means
+					// the paste lands as a clean heading inside the editor's "Heading 1"
+					// register (which is <h2> in the schema — see slash-command.tsx for
+					// the label-vs-element mapping rationale). Belt-and-suspenders with
+					// the heading.levels: [2, 3] restriction in extensions.ts.
+					transformPastedHTML: (html) =>
+						html.replace(/<h1(\s[^>]*)?>/gi, "<h2>").replace(/<\/h1>/gi, "</h2>"),
 					...props.editorProps,
 				}}
 				immediatelyRender={false}

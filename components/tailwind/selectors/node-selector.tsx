@@ -5,7 +5,6 @@ import {
   Code,
   Heading1,
   Heading2,
-  Heading3,
   ListOrdered,
   type LucideIcon,
   TextIcon,
@@ -33,21 +32,19 @@ const items: SelectorItem[] = [
     isActive: (editor) =>
       editor.isActive("paragraph") && !editor.isActive("bulletList") && !editor.isActive("orderedList"),
   },
+  // See slash-command.tsx for the label-vs-element mapping rationale.
+  // "Heading 1" here means <h2>, "Heading 2" means <h3>. The bubble menu
+  // matches the slash menu so Carlos's mental model is consistent across
+  // both entry points.
   {
     name: "Heading 1",
     icon: Heading1,
-    command: (editor) => editor.chain().focus().clearNodes().toggleHeading({ level: 1 }).run(),
-    isActive: (editor) => editor.isActive("heading", { level: 1 }),
-  },
-  {
-    name: "Heading 2",
-    icon: Heading2,
     command: (editor) => editor.chain().focus().clearNodes().toggleHeading({ level: 2 }).run(),
     isActive: (editor) => editor.isActive("heading", { level: 2 }),
   },
   {
-    name: "Heading 3",
-    icon: Heading3,
+    name: "Heading 2",
+    icon: Heading2,
     command: (editor) => editor.chain().focus().clearNodes().toggleHeading({ level: 3 }).run(),
     isActive: (editor) => editor.isActive("heading", { level: 3 }),
   },

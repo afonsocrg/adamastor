@@ -34,9 +34,9 @@ function formatCity(city: string): string {
 }
 
 const MODULE_HEADING =
-	"text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone dark:text-cyan-dim";
+	"text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim";
 const OPINION_MODULE_HEADING =
-	"text-xs font-semibold uppercase tracking-[0.18em] text-orange-hue";
+	"text-xs font-semibold uppercase tracking-[0.14em] text-orange-hue";
 const MODULE_TITLE =
 	"text-lg font-bold leading-tight text-navy [font-family:var(--font-lora-bold)] [text-wrap:balance] dark:text-cyan-lifted";
 
@@ -84,7 +84,7 @@ export default function HomeSidebar({ opinions, upcomingEvents }: HomeSidebarPro
 										/>
 									) : null}
 									<div className="min-w-0 flex-1">
-										<p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-hue">
+										<p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-orange-hue">
 											Opinion
 										</p>
 										<h3 className="mt-1 text-sm font-semibold leading-snug text-navy [text-wrap:balance] transition-colors group-hover:underline dark:text-cyan-lifted">

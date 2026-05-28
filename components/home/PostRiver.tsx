@@ -53,7 +53,7 @@ function RiverCard({ post }: RiverCardProps) {
 				<section className="space-y-2.5">
 					<div className="flex items-center justify-between gap-3">
 						<p
-							className={`text-[11px] font-semibold uppercase tracking-[0.18em] md:text-xs ${
+							className={`text-[11px] font-semibold uppercase tracking-[0.14em] md:text-xs ${
 								kind === "opinion" ? "text-orange-hue" : "text-navy-tone dark:text-cyan-dim"
 							}`}
 						>

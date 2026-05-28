@@ -227,7 +227,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 					<div className="max-w-screen-xl mx-auto px-4 py-6 md:px-8">
 						<Link
 							href="/about"
-							className="block text-center text-base italic text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] transition-colors hover:underline underline-offset-4 decoration-navy-tint decoration-2 dark:decoration-cyan-glow/[0.4]"
+							className="block text-center text-base font-bold italic text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] transition-colors hover:underline underline-offset-4 decoration-navy-tint decoration-2 dark:decoration-cyan-glow/[0.4]"
 						>
 							Only You Know Who You Can Be
 						</Link>

@@ -79,7 +79,7 @@ export default function AuthorStrap({ author, kind }: AuthorStrapProps) {
 	return (
 		<aside className="border-t border-navy-frame pt-10">
 			<DuotonePortraitFilter />
-			<p className="mb-6 text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone dark:text-cyan-dim">
+			<p className="mb-6 text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
 				About the author
 			</p>
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">

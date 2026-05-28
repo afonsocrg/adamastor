@@ -1,3 +1,7 @@
+// Editor extensions. For the canonical editor policy (heading levels
+// restricted to [2, 3], paste-time H1→H2 transform, label-vs-element mapping),
+// see `docs/typography.md` — "Editor policy" section.
+
 import type { Extension, Mark, Node } from "@tiptap/core";
 import {
   CharacterCount,
@@ -76,6 +80,19 @@ const horizontalRule = HorizontalRule.configure({
 });
 
 const starterKit = StarterKit.configure({
+  // Body H1 is disallowed: the page-level H1 lives in the post title field,
+  // not the body. Restricting the schema to levels 2 and 3 means:
+  //   - The slash menu and bubble menu (already filtered) can only emit h2/h3.
+  //   - Pasted H1 from outside is coerced — the editorProps.transformPastedHTML
+  //     in rich-text-editor.tsx rewrites <h1> → <h2> before TipTap parses,
+  //     so a Google Docs / rendered-blog paste lands as a clean H2.
+  //   - Any other code path that tries to set level 1 silently fails.
+  // Existing posts with level 1 in their stored JSON still load (schema
+  // enforces during transactions, not on initial document load), so this
+  // doesn't break our specimen or any historical content.
+  heading: {
+    levels: [2, 3],
+  },
   bulletList: {
     HTMLAttributes: {
       class: cx("list-disc list-outside leading-3 -mt-2"),

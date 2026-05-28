@@ -101,7 +101,10 @@ export function PostActions({ post }: PostActionsProps) {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
 				<DropdownMenuItem asChild className="flex items-center gap-2 cursor-pointer">
-					<Link href={`/posts/${post.slug}`} className="flex items-center gap-2 cursor-pointer">
+					<Link
+						href={`/posts/preview/${post.slug ?? post.id}`}
+						className="flex items-center gap-2 cursor-pointer"
+					>
 						<Eye className="w-4 h-4" /> Preview
 					</Link>
 				</DropdownMenuItem>

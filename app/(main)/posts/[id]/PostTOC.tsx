@@ -165,7 +165,7 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 	return (
 		<div ref={containerRef}>
 			<nav ref={navRef} className={cn(className)} aria-label="Article contents">
-				<p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-navy-tone dark:text-cyan-dim">
+				<p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
 					Contents
 				</p>
 				<ol className="space-y-2 border-l border-navy-frame">

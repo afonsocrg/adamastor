@@ -30,7 +30,7 @@ export default function ShareRow({ className }: ShareRowProps) {
 			toast.success("Link copied");
 			setTimeout(() => setCopied(false), 2000);
 		} catch {
-			toast.error("Couldn't copy the link");
+			toast.error("Couldn’t copy the link");
 		}
 	}
 

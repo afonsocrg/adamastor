@@ -14,7 +14,7 @@ export default function ReadNext({ posts }: ReadNextProps) {
 
 	return (
 		<section className="border-t border-navy-frame pt-10">
-			<p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-hue">
+			<p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-hue">
 				More opinion
 			</p>
 			<ul className="mt-6 divide-y divide-navy-frame">
@@ -35,7 +35,7 @@ export default function ReadNext({ posts }: ReadNextProps) {
 								/>
 							) : null}
 							<div className="min-w-0 flex-1 space-y-1.5">
-								<p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-orange-hue">Opinion</p>
+								<p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-orange-hue">Opinion</p>
 								<h3 className="text-lg font-semibold leading-snug tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] group-hover:underline md:text-xl">
 									{getDisplayTitle(post.title)}
 								</h3>

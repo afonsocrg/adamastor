@@ -1,9 +1,12 @@
+// Slash menu items. Heading 1 in this menu generates an <h2>, Heading 2
+// generates <h3>. The page-level H1 is the post title field, not the body.
+// See `docs/typography.md` — "Editor policy" for the rationale.
+
 import {
   CheckSquare,
   Code,
   Heading1,
   Heading2,
-  Heading3,
   ImageIcon,
   List,
   ListOrdered,
@@ -44,29 +47,27 @@ export const suggestionItems = createSuggestionItems([
       editor.chain().focus().deleteRange(range).toggleTaskList().run();
     },
   },
+  // Note on labels vs HTML elements: the page-level H1 lives in the post
+  // title field, not the body. Inside the editor, "Heading 1" creates an
+  // <h2> and "Heading 2" creates an <h3>. We deliberately don't expose a
+  // real <h1> here because (1) it'd be a second H1 on the page (bad for
+  // a11y/SEO) and (2) the body H1 styling collapses to H2 anyway, so
+  // letting authors pick "Heading 1" would mislead them about what
+  // renders. Labels match Carlos's mental model; HTML stays semantic.
   {
     title: "Heading 1",
     description: "Big section heading.",
-    searchTerms: ["title", "big", "large"],
+    searchTerms: ["title", "big", "large", "h1"],
     icon: <Heading1 size={18} />,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run();
-    },
-  },
-  {
-    title: "Heading 2",
-    description: "Medium section heading.",
-    searchTerms: ["subtitle", "medium"],
-    icon: <Heading2 size={18} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setNode("heading", { level: 2 }).run();
     },
   },
   {
-    title: "Heading 3",
-    description: "Small section heading.",
-    searchTerms: ["subtitle", "small"],
-    icon: <Heading3 size={18} />,
+    title: "Heading 2",
+    description: "Medium section heading.",
+    searchTerms: ["subtitle", "medium", "h2", "h3"],
+    icon: <Heading2 size={18} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setNode("heading", { level: 3 }).run();
     },
