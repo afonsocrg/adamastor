@@ -5,13 +5,17 @@
 // reasoning behind the 60ch measure and the prose-lg / leading-relaxed stack.
 
 import type { JSONContent } from "novel";
+import { normalizeEmojiLists } from "@/lib/posts/normalize-emoji-lists";
 import RichTextEditor from "./rich-text-editor";
 
 const PostPreview = ({ initialContent }: { initialContent: JSONContent }) => {
 	if (!initialContent) return null;
+	// Coerce emoji-prefixed paragraph runs into proper bulleted lists at render
+	// time. See lib/posts/normalize-emoji-lists.ts.
+	const content = normalizeEmojiLists(initialContent);
 	return (
 		<RichTextEditor
-			initialContent={initialContent}
+			initialContent={content}
 			editorProps={{
 				editable: () => false,
 				attributes: {

@@ -99,8 +99,11 @@ const config = {
   				DEFAULT: '#104357',  // alias → navy.shade (the 76+ `*-navy` usages)
   				deep: '#08293A',     // rare structural emphasis
   				shade: '#104357',    // typography anchor (body text, headlines)
+  				// Saturated zone — distinct higher chroma (link colour):
+  				'bright-deep': '#0F5091',  // L=0.41 C=0.15 h=253. Inline link colour on hover (two-axis: colour deepens + border thickens).
+  				bright: '#1C6EB4',         // L=0.51 C=0.15 h=252. Inline link colour at rest. Higher chroma than the rest of the navy ramp — reads as "interactive" without leaving the navy neighbourhood. Dark-mode analogue: cyan.glow.
   				tone: '#4D7689',     // secondary text, labels, dim hover
-  				tint: '#A7E1FC',     // soft blue fills — THE light-mode highlight color (selected chips, calendar selected day, underline decoration)
+  				tint: '#A7E1FC',     // soft blue fills — THE light-mode highlight accent (selected chips, calendar selected day, list bullets, blockquote hairline, focus outlines)
   				// Atmospheric / wash zone — three variants, ordered by pigment:
   				frame: '#E8F0F4',    // near-neutral (L=0.95 C=0.01). THE workhorse for borders, hairlines, structural framing. "Navy frames everything" — see color rule #5.
   				veil: '#E1F2F9',     // intermediate (L=0.95 C=0.02). For soft text-containing backgrounds — trust asides, "Reviewed by" banners, empty-state fills. Subtle enough not to compete with text, visible enough to register as a contained surface.

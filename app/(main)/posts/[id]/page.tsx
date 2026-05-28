@@ -14,7 +14,6 @@ import ArticleLinkDecorator from "./ArticleLinkDecorator";
 import AuthorStrap from "./AuthorStrap";
 import PostHero from "./PostHero";
 import PostTOC from "./PostTOC";
-import QuoteVariantPicker from "./QuoteVariantPicker";
 import ReadNext from "./ReadNext";
 import { SubscribeForm } from "@/components/SubscribeForm";
 import { FeedbackForm } from "./feedbackForm";
@@ -165,7 +164,6 @@ export default async function PostPage({ params }: PostPageProps) {
 						<FeedbackForm />
 					</div>
 				</article>
-				<QuoteVariantPicker />
 			</ContextMenuTrigger>
 		</ContextMenu>
 	);

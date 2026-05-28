@@ -14,7 +14,7 @@ Configured in [`styles/fonts.ts`](../styles/fonts.ts), wired into `<html>` via C
 |---|---|---|---|
 | **Inter** | Variable font, all weights 100–900, normal | `--font-inter` | Body, UI, all sans-serif type. The publication's default voice. |
 | **Lora Bold** | 700 normal + 700 italic | `--font-lora-bold` | Editorial display. Page H1, navbar strapline, footer tagline, module headings. |
-| **Lora Italic** | 400 italic only | `--font-lora-italic` | Blockquote pull-out body. Separate from Lora Bold to avoid weight-pool merging (see "Lora weight pooling" below). |
+| **Lora Italic** | Variable axis 400–700 italic | `--font-lora-italic` | Blockquote body (rendered at 475). Loaded as variable font so we can target weights between discrete steps. Separate from Lora Bold to avoid weight-pool merging (see "Lora weight pooling" below). |
 | **Inconsolata** | 400 + 700 (separate calls) | `--font-inconsolata`, `--font-inconsolata-bold` | Code blocks, inline `code`, technical content. |
 
 #### Lora weight pooling — the trap
@@ -30,7 +30,7 @@ Same principle for inline emphasis inside headings — see "Heading > strong inh
 Lora is reserved for **two surfaces only**:
 
 1. **Page H1** — the editorial moment per page. The named title.
-2. **Blockquote pull-out** — Lora 400 italic, structurally distinct from heading hierarchy.
+2. **Blockquote** — Lora italic 475 with a navy-tint hairline (see "Blockquote" section below), structurally distinct from heading hierarchy.
 
 Plus two brand-strap surfaces that count as "publication voice":
 - Navbar strapline ("A digital publication about all things startup in Portugal")
@@ -159,25 +159,143 @@ For any existing posts that still have body H1 in their stored content (the typo
 
 **The rule**: inline emphasis inside a heading should always inherit the heading's weight. Emphasis-inside-heading is structurally redundant (the heading IS the emphasis), and visually destructive when the styles diverge.
 
+### Lists (bulleted, ordered, nested)
+
+Two project overrides shape list rendering:
+1. TipTap node-class injections in [`components/tailwind/extensions.ts`](../components/tailwind/extensions.ts) — just `list-disc list-outside` / `list-decimal list-outside` (the disc/decimal style needs to be set because Tailwind's preflight resets `list-style: none` would otherwise win)
+2. An explicit list-spacing rule in [`styles/prosemirror.css`](../styles/prosemirror.css) that overrides prose-lg's defaults — see below
+
+| Property | Top-level `<ul>` / `<ol>` | Nested `<ul>` |
+|---|---|---|
+| Item gap | **~11px** (0.6em at 18px) | ~11px |
+| Gap above list (from `<p>`) | **24px** (body-paragraph register) | – |
+| Bullet / number color | `navy-tint` rgb(167, 225, 252) | inherits |
+| Indent (text → text into nested) | – | **36px** (28px padding + 8px li) |
+| Line-height per item | `leading-relaxed` (1.625) — same as body | same |
+| Bullet position | `list-outside` | `list-outside` |
+
+**The editorial rhythm rule** (per Butterick): list items sit **tighter** than body paragraphs because a list is a coordinated set, not a sequence of standalone thoughts. The asymmetry is the signal:
+
+- **24px above the list** — the list-as-a-whole is distinct from the paragraph above, matching body paragraph-to-paragraph rhythm.
+- **11px between items** — items breathe but visibly coordinate, signalling "these belong together."
+
+If items spaced at the same 24px as paragraphs, the list-ness signal collapses and items read as separate paragraphs. (We shipped that briefly during the audit and caught it on a screenshot — it looked wrong because it *was* wrong.)
+
+**Implementation gotcha — TipTap wraps li content in `<p>`**: each list item's content is a `<p>` inside the `<li>`. Without overriding `li > p { margin: 0 }`, the `<p>`'s 24px top/bottom margins stack on top of the li's margins and the list ends up at ~24px+ gaps. The rule lives in `prosemirror.css` and is documented inline there. Multi-paragraph items (rare) get `p + p { margin-top: 0.75em }` so inner-paragraph spacing returns inside the same item.
+
+**TipTap-injected classes**: only `list-disc list-outside` and `list-decimal list-outside`. The `<li>` extension injects no class. The `tight` marker class (emitted by `tiptap-markdown`'s library default) appears on every list wrapper but no CSS targets it — harmless metadata, kept to avoid overriding a library default for no reason.
+
+### The Adamastor Weekly — emoji-led sections
+
+The Weekly has four recurring sections that read as coordinated sets of items: **Highlights of the week** (🔷), **Congrats** (👏), **Read / Listen / Watch** (📚 / 🎧 / 🎥), and (sometimes) **Events / opportunities** (💡). Each item is written as a `<p>` prefixed with the section's emoji. **Carlos writes the same way he always has**; the renderer coerces these paragraph-runs into real bulleted lists at render time.
+
+**The render-time transform** ([`lib/posts/normalize-emoji-lists.ts`](../lib/posts/normalize-emoji-lists.ts), called by [`components/tailwind/post-preview.tsx`](../components/tailwind/post-preview.tsx)):
+
+1. Walks the TipTap JSON top-level
+2. Detects runs of consecutive `<p>` whose first text starts with `\p{Extended_Pictographic}` (the emoji range; geometric Unicode like ◆ doesn't match)
+3. Wraps each run in a `<ul>` tagged with `class="emoji-list"`
+4. **Keeps the leading emoji** as the first character of each item — the emoji IS the bullet
+
+Source content in the DB is never modified. The transform runs only inside `PostPreview` (used by both the public post route and the dashboard preview route). Carlos's editor view shows the original emoji-paragraphs; readers see the transformed lists.
+
+**Why keep the emoji as the bullet** (rather than strip it and use the standard navy-tint disc):
+- *Pre-attentive scanning*: 📚 vs 🎧 vs 🎥 is recognisable at a glance without reading. A text alternative ("READ —" / "LISTEN —" / "WATCH —") forces the reader to read each label and loses the scan affordance the icon was providing. Tested in-session and confirmed harder to scan.
+- *Author intent*: Carlos has used this pattern for years and the emoji is a deliberate signal, not a typo or chat-app artifact.
+- *No double-bullet*: with the emoji preserved, the default disc bullet would create a visible double marker (• 🔷 …). The CSS rule below suppresses the default for `ul.emoji-list`.
+
+**The trade-off vs Butterick's "no emoji in publications" rule**: full-color emoji glyphs don't inherit the navy palette and read more casually than the rest of the publication. Acknowledged. The scanning win outweighs the palette consistency cost in this specific format. Future move (if needed): swap to monochrome geometric Unicode characters (◆ ▶ ♥ etc.) that inherit text color and behave as text — and update the transform to do the swap.
+
+**Required schema extension**: TipTap's bulletList doesn't accept per-instance attributes by default. A small global-attributes extension ([`components/tailwind/extensions.ts`](../components/tailwind/extensions.ts) → `BulletListClassAttribute`) registers the `class` attribute on the bulletList schema so the transform's `attrs.class = "emoji-list"` actually renders into the DOM. Merges with StarterKit's default `list-disc list-outside` via TipTap's `mergeAttributes`, producing the final `class="list-disc list-outside emoji-list"`.
+
+**CSS treatment** (in [`styles/prosemirror.css`](../styles/prosemirror.css)):
+- `list-style: none` — suppresses the default disc bullet (emoji replaces it)
+- `padding-left: 0` on the `<ul>` (no extra column indent at the wrapper)
+- `padding-left: 1.75em; text-indent: -1.75em` on each `<li>` — hanging indent. First line (emoji + text) starts at column edge; wrap lines align to the padding-left position, hanging below the text, not below the emoji. 1.75em ≈ the visual width of an emoji glyph plus a single space at 18px body.
+
+**Detection edge cases** (already handled):
+- Single-emoji-paragraph runs (just one item) still become a one-item `<ul>`. Slightly redundant visually but consistent.
+- H2/H3 headings that start with an emoji (e.g. `✍ Quote of the week`) are not paragraphs and are left untouched.
+- Plain paragraphs without leading emoji never match and pass through unchanged.
+
+**Going forward**: if Carlos starts using new emoji as a section marker, they Just Work — `\p{Extended_Pictographic}` covers the whole range. No code change needed unless the indent (1.75em) becomes wrong for an unusually wide glyph.
+
+#### Recommended editorial direction — emoji on the H2, items as a clean list
+
+The current emoji-per-item pattern is **rendered well**, but the cleanest version of the Weekly's editorial intent is **one emoji per section, on the H2**, with items underneath as a plain bulleted list. The transform keeps supporting the old pattern indefinitely; this is a *recommendation*, not a forced migration.
+
+**Why this is better**:
+- *One signal, not many*: the emoji's job is to mark "this section is Highlights / Congrats / Reads." That's a section-scoped signal, not a per-item one. Repeating the same glyph on every item dilutes its meaning — the reader sees 🔷 once and knows what list they're in; seeing it six times in a row adds noise, not information.
+- *Editorial register*: section markers belong in section headings, the way newspaper standfirsts or magazine kickers carry the editorial cue. Per-item icons read as a chat-app thread (Slack, WhatsApp, email bullets). The Weekly is a publication, and publications mark sections at the section level.
+- *Readability*: a clean disc-bullet list at the publication's navy-tint colour reads quieter and more uniform than a wall of repeated full-colour glyphs. Long lists especially — the Highlights section with six 🔷s in a column visually pulls toward the left margin instead of toward the text.
+
+**Before / after** (for a future Weekly):
+
+```
+Old pattern (still supported by the transform):
+  ## Highlights of the week
+  🔷 NOVA Starters Academy DEMO Day, this Wednesday.
+  🔷 Sunset Fado Experience at Ando Living Rooftop w/ Fiona.
+  🔷 Productized Talks at Sixt this Thursday.
+
+Recommended pattern:
+  ## 🔷 Highlights of the week
+  - NOVA Starters Academy DEMO Day, this Wednesday.
+  - Sunset Fado Experience at Ando Living Rooftop w/ Fiona.
+  - Productized Talks at Sixt this Thursday.
+```
+
+**What it costs Carlos** (~10 seconds per section):
+1. Move the emoji to the H2 (cut + paste once per section, not per item).
+2. Convert the items to a bulleted list (in the editor: select the lines and pick "Bulleted list" from the slash menu, or type `- ` at the start of each line — TipTap's markdown shortcut handles it).
+
+The Read/Listen/Watch section is the one exception worth thinking about — different items in that list use *different* emoji (📚 / 🎧 / 🎥). The cleanest move is to split into three sub-sections (`## 📚 Read`, `## 🎧 Listen`, `## 🎥 Watch`), each with its own clean bulleted list. The H2 carries the type-cue per section; the items underneath stay quiet.
+
 ### Inline links inside prose
 
-- **Color**: navy (same as body), dark mode: cyan-lifted
-- **Decoration**: `underline`, `text-decoration-color: navy-tint`, `text-decoration-thickness: 2px`, `text-underline-offset: 4px`
-- **Hover**: decoration-color deepens to navy
-- **Focus**: 2px navy-tint outline + 4px offset
-- **`font-weight: 500`** — slightly heavier than body 400 so the link is scannable without screaming
+The link colour itself is the primary affordance — a distinct saturated mid-blue (candidate name **navy.bright**, currently inlined as `rgb(28, 110, 180)`) lifts the link out of the body navy register so the colour alone reads as "interactive." Border-bottom is secondary. This follows the [Guardian doc](inspiration-guardian.md) principle that *"link colour is pillar-coloured"* — even on a single-pillar publication like Adamastor, the link colour shouldn't equal the body colour, or the affordance signal collapses.
 
-One canonical inline-link treatment across the publication. The body color and the link color are both navy (the typography anchor), so the underline carries 100% of the affordance signal.
+**Design** (defined in [`styles/prosemirror.css`](../styles/prosemirror.css)):
 
-### Blockquote — Lora 400 italic pull-out
+| Property | Light mode | Dark mode |
+|---|---|---|
+| Link colour | `navy.bright` rgb(28, 110, 180) | `cyan-glow` rgb(76, 228, 240) |
+| Underline | `border-bottom: 1.6px solid navy.bright` | `border-bottom: 1.6px solid cyan-glow` |
+| Hover colour | `rgb(15, 80, 145)` — navy.bright deepened | `rgb(120, 240, 245)` — cyan-glow lifted |
+| Hover underline | `border-bottom-width: 2px` (in hover colour) | same |
+| Focus outline | `2px navy-tint`, 4px offset | same (navy-tint reads on dark too) |
+| Weight | 500 (slight bump vs body 400 — scannable, not screaming) | 500 |
+| Wrap | `overflow-wrap: anywhere` (raw URLs wrap inside the 60ch column) | same |
 
-Currently A/B/C/D-tested via `QuoteVariantPicker` (Marginal Glyph, Indent Margin, Twin Apertures, Tactile Broadside). Once a variant is picked, the chosen rule promotes to unscoped `.article-prose blockquote` and the picker + unchosen variants get deleted.
+**Why `border-bottom` instead of `text-decoration`**: Guardian's pixel-precise approach — the line is always uniform thickness, never clipped by browser-specific underline rendering. The trade-off is no skip-ink (the line is solid through descenders); accepted as a Guardian-authentic choice.
 
-- **Font**: Lora 400 italic (via `--font-lora-italic`, not `--font-lora-bold`)
-- **Color**: navy
-- **Size**: varies by variant (20–26px)
+**Why 1.6px specifically**: 1.5px reads too thin against the saturated link colour; 2px competes with body weight. 1.6px lands in between as the visible-but-not-loud sweet spot. Browser subpixel rounding may render this as 1.5px at 2× DPI; the source value preserves intent.
 
-**Why the dedicated `--font-lora-italic` variable**: see "Lora weight pooling" — Lora Bold loads only weight 700; an italic 400 declaration against that variable would silently substitute up to 700 ("Lora Bold Italic" instead of the intended "Lora Regular Italic"). The dedicated 400-italic font lives under its own variable so the declared weight is the rendered weight.
+**Why the two-axis hover**: colour deepens AND border thickens. Two simultaneous visual changes register pre-attentively as "I'm hovering this" without needing a heavy state change. Guardian's principle.
+
+**Palette token TODO**: `navy.bright` is currently inlined as `rgb(28, 110, 180)`. Should be promoted to a named token in the design system (CSS custom property + Tailwind config) once the colour is settled — sibling to `navy`, `navy-tone`, `navy-tint`, `navy-frame`, `navy-veil`. See "Palette token for navy.bright" in `docs/design-system.md` once added.
+
+### Blockquote — Lora italic 475 with navy-tint hairline
+
+Single styling for both inline citations (rare, inside Carlos's essay prose) AND the recurring "Quote of the Week" block in the Weekly digest. If/when those diverge structurally (a custom TipTap pull-quote node), they can split into separate treatments.
+
+**Design** (defined in [`styles/prosemirror.css`](../styles/prosemirror.css)):
+
+- **Font**: Lora italic at variable-axis **weight 475** (via `--font-lora-italic`, loaded as a variable font so we can target weights between the discrete 400 and 500). 475 is slightly heavier than the default 400 — more refined, more present, without becoming bold.
+- **Color**: navy (`rgb(16, 67, 87)`)
+- **Size**: 22px mobile / 24px desktop
+- **Line-height**: 1.45
+- **Letter-spacing**: -0.005em
+
+**Chrome**: a **4px navy-tint vertical rule** at the left edge of the prose column. The rule spans the **full height** of the citation (from the top of the first quote paragraph to the bottom of the attribution) — quote + attribution read as one bracketed unit. No quote glyph, no panel; the rule is the affordance, in the publication's own accent register (same colour as list bullets and link underlines).
+
+**Why this design** (vs explored alternatives):
+- *Restrained, architectural* — reads as a marginal annotation in a long essay, the Guardian "BlockquoteBlockComponent" pattern from the [Guardian inspiration doc](inspiration-guardian.md).
+- *No gutter escape* — the rule sits flush with the prose column edge at every viewport. Earlier designs that pulled the rule or a quote glyph into the left gutter collided with the article TOC on Weekly posts.
+- *Quote glyph alternatives ruled out* — large display glyphs (tested with Lora 400 italic, Lora 400 normal, and Lora 700 normal at 26–32px) all felt loud against the otherwise quiet body register, and the gutter-positioned variants collided with the TOC.
+
+**Attribution paragraph** (last child of a multi-paragraph blockquote): source content carries its own leading em-dash (Carlos's convention) — the renderer does **not** inject one via `::before`, otherwise it would double up. Rendered as small-caps Inter SemiBold 11px, `tracking-[0.14em]` (publication kicker tracking), navy-tone.
+
+**Why the dedicated `--font-lora-italic` variable**: see "Lora weight pooling" above. Loaded as a variable font (weight omitted in `next/font/google`) so we can request any weight in the 400–700 axis — 475 is what we use; could tune up or down without loading new files.
 
 ---
 
@@ -263,9 +381,11 @@ A previous sweep cleaned every straight apostrophe in hardcoded user-facing stri
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| Body text | `navy` rgb(16, 67, 87) | `cyan-lifted` rgb(227, 242, 247) | All body type, headings, links |
+| Body text | `navy` rgb(16, 67, 87) | `cyan-lifted` rgb(227, 242, 247) | All body type, headings |
 | Muted body | `navy-tone` rgb(77, 118, 137) | `cyan-dim` rgb(158, 210, 225) | Kickers, secondary copy, byline tag |
-| Underline accent | `navy-tint` rgb(167, 225, 252) | `cyan-glow @ 40%` | Inline link decoration at rest |
+| Link colour | `navy.bright` rgb(28, 110, 180) | `cyan-glow` rgb(76, 228, 240) | Inline link colour + border-bottom at rest |
+| Link hover | `rgb(15, 80, 145)` (navy.bright deepened) | `rgb(120, 240, 245)` (cyan-glow lifted) | Inline link colour + border-bottom on hover |
+| Accent (rules, bullets) | `navy-tint` rgb(167, 225, 252) | `cyan-glow @ 40%` | List bullets, blockquote hairline, focus outline |
 | Hairline | `navy-frame` rgb(232, 240, 244) | `cyan-glow @ 12%` | H2 top rule, section dividers |
 | Opinion accent | `orange-hue` rgb(224, 94, 0) | same | Opinion kickers, arrow-tip icons |
 
@@ -287,15 +407,15 @@ Things that came out of the typography audit but weren't shipped yet:
 
 5. **Kicker tracking sweep on `/events` and `/subscribe`.** These two pages still use `tracking-[0.18em]` for kickers. The publication-wide convention is now 0.14em; sweeping them brings consistency.
 
-6. **Remaining typography audit items** (paused mid-session):
-   - Bulleted list + nested list rendering
-   - Ordered list with multi-sentence items
-   - Inline emphasis adjacency (bold + italic in adjacent paragraphs)
-   - Blockquote variant pick (A/D/E/F)
-   - Inline `code` styling
-   - Multi-line code block styling
-   - Inline link long-URL wrap behavior
-   - Em-dash / ellipsis / curly-quote character QA against the specimen
+6. **Typography audit progress** (started 2026-05-28, in progress):
+   - ~~Bulleted list + nested list rendering~~ — shipped 2026-05-28 (item gap tightened to 0.6em per Butterick)
+   - ~~Ordered list with multi-sentence items~~ — covered by the same list-rhythm rule
+   - ~~Blockquote variant pick~~ — shipped 2026-05-28 (Lora italic 475 + 4px navy-tint full-height hairline)
+   - ~~Inline link long-URL wrap behavior~~ — shipped 2026-05-28 (`overflow-wrap: anywhere`, navy.bright link colour, 1.6px border-bottom)
+   - ~~Emoji-led section transform~~ — shipped 2026-05-28 (Weekly emoji-paragraph runs auto-coerce to `<ul class="emoji-list">` at render time; see "The Adamastor Weekly — emoji-led sections")
+   - Inline emphasis adjacency (bold + italic in adjacent paragraphs) — **not yet started**
+   - Em-dash / ellipsis / curly-quote character QA — **not yet started; render-time + editor normalisation planned**
+   - **Code styling (inline `code` + multi-line `<pre>`) — deferred.** Carlos doesn't currently use code samples in published articles, so the existing `@tailwindcss/typography` defaults are acceptable. Revisit when an article needs code (likely a technical-deep-dive piece, or anything in LisboaJS). At that point: Inconsolata against navy prose, navy-tint background, padding, scroll behaviour for `<pre>`.
 
 7. **`docs/design-system.md` migration.** The design-system.md typography section is the legacy spec. It still references the pre-audit values (H2 at 600, strong at 600, tracking 0.18em, H3 at body size, no length-responsive H1, etc.). Either replace it with a pointer to this doc, or copy the relevant sections back into design-system.md and delete from here. **Don't let both coexist as authoritative sources** — pick one home.
 

@@ -322,16 +322,6 @@ mark[style] > strong {
 }
 
 /*
- * Editorial blockquote — currently being chosen between three directions
- * (A: Marginal Glyph, B: Front-Page Strap, C: Cape Drop). The QuoteVariantPicker
- * client component toggles `.quote-a` / `.quote-b` / `.quote-c` on <html>; the
- * rules are scoped to those parents so we can A/B/C-compare on /posts/175.
- *
- * Once a direction is picked, the picker + the two unchosen rules get deleted
- * and the chosen rule promotes to unscoped `.article-prose blockquote`.
- */
-
-/*
  * Body prose color. @tailwindcss/typography drives body color via CSS
  * variables; setting them on .article-prose shifts paragraphs, lists, and
  * `<strong>` from the default gray-900 to navy.shade — the typography anchor
@@ -397,282 +387,183 @@ mark[style] > strong {
   --tw-prose-captions: rgb(158, 210, 225);
 }
 
-/* Shared baseline — applies to every variant before each refines it. Resets
- * the @tailwindcss/typography defaults (left border, quotes, italic) so the
- * variants have a clean canvas. */
-.article-prose blockquote {
-  quotes: none;
-  padding: 0;
-  border-left: none;
+/*
+ * List item rhythm — tighter than body paragraphs.
+ *
+ * Per Butterick (Practical Typography): list items are a coordinated set, not
+ * a sequence of standalone paragraphs. If item spacing matches body paragraph
+ * spacing, the visual signal "this is a list" collapses and items read as
+ * separate thoughts. The remedy is to set li spacing TIGHTER than p spacing.
+ *
+ * Our body paragraphs sit at ~18-22px gaps (prose-lg's 1.25em default at the
+ * 18px desktop body size). List items target ~11px (0.6em at 18px), which
+ * keeps the items breathing but visibly more coordinated than paragraph-to-
+ * paragraph rhythm.
+ *
+ * The `> p` reset zeroes the inner-paragraph margins TipTap inserts when each
+ * list-item content is wrapped in <p>. Without this, p's own 24px top/bottom
+ * margins stack on top of the li's margins and the list reads as 24px+ gaps
+ * (what the screenshot caught).
+ */
+.article-prose :where(ul, ol) > li {
+  margin-top: 0.6em;
+  margin-bottom: 0.6em;
 }
 
-.article-prose blockquote p {
+.article-prose :where(ul, ol) > li > p {
   margin-top: 0;
   margin-bottom: 0;
 }
 
-/* === Direction A — The Marginal Glyph =================================== */
-.quote-a .article-prose blockquote {
-  position: relative;
-  max-width: none;
-  margin: 3.5rem 0;
-  color: rgb(16, 67, 87); /* navy */
-  font-family: var(--font-lora-italic);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.625rem; /* 26px */
-  line-height: 1.4;
-  letter-spacing: -0.005em;
+/* Multi-paragraph list items (rare): restore margin between paragraphs inside
+ * the same li. The first/last paragraph keeps the reset above; only middle
+ * paragraphs get spacing back. */
+.article-prose :where(ul, ol) > li > p + p {
+  margin-top: 0.75em;
 }
 
-.quote-a .article-prose blockquote::before {
-  content: "\201C";
-  position: absolute;
-  left: -3rem;
-  top: -2rem;
-  font-family: var(--font-lora-italic);
-  font-style: italic;
-  font-size: 7rem;
-  line-height: 1;
-  color: rgb(167, 225, 252); /* navy-tint */
-  pointer-events: none;
-  user-select: none;
-}
-
-@media (min-width: 1024px) {
-  .quote-a .article-prose blockquote::before {
-    left: -4.5rem;
-    top: -2.5rem;
-    font-size: 9rem;
-  }
-}
-
-.quote-a .article-prose blockquote p {
-  margin-bottom: 0.5rem;
-}
-
-.quote-a .article-prose blockquote p:last-child:not(:only-child) {
-  margin-top: 1.25rem;
-  font-family: var(--font-inter);
-  font-style: normal;
-  font-weight: 600;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgb(77, 118, 137); /* navy-tone */
-}
-
-.quote-a .article-prose blockquote p:last-child:not(:only-child)::before {
-  content: "— ";
-  color: rgb(224, 94, 0); /* orange-hue */
-}
-
-/* === Direction D — Indent Margin (Guardian Long Read) =================== *
- * Thin vertical hairline in the LEFT margin, just outside the column. Quote
- * indents to clear the rule. No glyph, no display scale — the rule is the
- * affordance. Restrained, architectural. Reads like a marginal annotation
- * in a long essay.
+/*
+ * Emoji-led lists — Adamastor Weekly pattern.
+ *
+ * The Weekly historically uses emoji-prefixed paragraphs (🔷 Highlights, 👏
+ * Congrats, 📚🎧🎥 Read/Listen/Watch, 💡 Events) as visual lists. The
+ * render-time transform in lib/posts/normalize-emoji-lists.ts coerces those
+ * paragraph runs into a `<ul class="emoji-list">` so they pick up real list
+ * typography (item rhythm, hanging indent, semantic markup) — but the
+ * emoji stays in place as the visible bullet, since the icon is a stronger
+ * pre-attentive scan marker than a generic disc.
+ *
+ * Rules:
+ *   - Suppress the default disc bullet (the emoji IS the bullet).
+ *   - text-indent + padding-left = hanging indent. First line (emoji + text)
+ *     starts at the column edge; wrap lines align to padding-left, which
+ *     sits one "marker column" inside.
+ *
+ * 1.75em ≈ the visual width of an emoji glyph + a single space at 18px body.
+ * Tune if Carlos starts using narrower or wider emoji.
  */
-.quote-d .article-prose blockquote {
+.article-prose ul.emoji-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.article-prose ul.emoji-list > li {
+  padding-left: 1.75em;
+  text-indent: -1.75em;
+}
+
+/*
+ * Editorial blockquote — Guardian-style indent margin with navy-tint hairline.
+ *
+ * Single styling serves both uses: occasional inline citations inside Carlos's
+ * essay prose, AND the recurring "Quote of the Week" block in the Weekly
+ * digest. If/when those diverge structurally (e.g. a custom TipTap pull-quote
+ * node for the Weekly block), they can get separate treatments.
+ *
+ * Design: Lora italic at variable-axis weight 475 (slightly heavier than the
+ * default 400, more refined than 500), navy color. A 4px navy-tint vertical
+ * rule at the left edge spans the full height of the citation (including the
+ * attribution line) — the rule brackets the quote+attribution as one unit.
+ * No quote glyph, no panel. The rule IS the affordance.
+ *
+ * Resets @tailwindcss/typography's defaults (left border, quotes, italic) so
+ * this design has a clean canvas. The hairline stays flush with the prose
+ * column edge at every viewport — no gutter escape (the gutter contains the
+ * TOC on Weekly posts).
+ *
+ * Attribution paragraph (last child of a multi-paragraph blockquote): source
+ * content carries its own leading em-dash (Carlos's convention); we don't
+ * inject one via ::before, otherwise it doubles. Rendered as small-caps
+ * Inter SemiBold at 11px in navy-tone.
+ *
+ * Chosen 2026-05-28 after picker exploration through 6 directions; see git
+ * history if revisiting.
+ */
+.article-prose blockquote {
   position: relative;
-  max-width: none;
-  margin: 3rem 0;
+  margin: 3.5rem 0;
   padding-left: 1.5rem;
+  border-left: none; /* override prose-lg's left rule */
+  quotes: none;
   color: rgb(16, 67, 87); /* navy */
   font-family: var(--font-lora-italic);
   font-style: italic;
-  font-weight: 400;
+  font-weight: 475;
   font-size: 1.375rem; /* 22px */
   line-height: 1.45;
   letter-spacing: -0.005em;
 }
 
-.quote-d .article-prose blockquote::before {
+@media (min-width: 1024px) {
+  .article-prose blockquote {
+    font-size: 1.5rem; /* 24px — slight elevation for Quote-of-the-Week use */
+  }
+}
+
+.article-prose blockquote::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 1px;
-  background-color: rgb(77, 118, 137); /* navy-tone */
+  top: 0;
+  bottom: 0;
+  width: 4px; /* matches optical weight of the Lora italic strokes */
+  background-color: rgb(167, 225, 252); /* navy-tint */
 }
 
-@media (min-width: 1024px) {
-  .quote-d .article-prose blockquote {
-    padding-left: 0;
-    margin-left: -2rem;
-    padding-left: 2rem;
-  }
-  .quote-d .article-prose blockquote::before {
-    left: 0;
-  }
-}
-
-.quote-d .article-prose blockquote p {
+.article-prose blockquote p {
+  margin-top: 0;
   margin-bottom: 0.5rem;
 }
 
-.quote-d .article-prose blockquote p:last-child:not(:only-child) {
+.article-prose blockquote p:last-child:not(:only-child) {
   margin-top: 1rem;
+  margin-bottom: 0;
   font-family: var(--font-inter);
   font-style: normal;
   font-weight: 600;
   font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: rgb(77, 118, 137);
-}
-
-.quote-d .article-prose blockquote p:last-child:not(:only-child)::before {
-  content: "— ";
-  color: rgb(224, 94, 0); /* orange-hue */
-}
-
-/* === Direction E — Twin Apertures (book-print classical) ================ *
- * Tiny inline open + close quote glyphs in orange-hue, sized like punctuation,
- * not decoration. The quote text sits at editorial body scale, Lora italic
- * navy. Treats the quote as SYNTAX (this is being quoted) rather than as a
- * pulled-out moment. Most subtle of the directions — print-book classical.
- */
-.quote-e .article-prose blockquote {
-  position: relative;
-  max-width: 62ch;
-  margin: 2.5rem 0;
-  color: rgb(16, 67, 87); /* navy */
-  font-family: var(--font-lora-italic);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.25rem; /* 20px */
-  line-height: 1.5;
-  letter-spacing: -0.005em;
-}
-
-.quote-e .article-prose blockquote p:first-child::before {
-  content: "\201C"; /* left double quote */
-  font-family: var(--font-lora-italic);
-  font-style: italic;
-  font-size: 1.6em;
-  line-height: 0;
-  vertical-align: -0.18em;
-  margin-right: 0.18em;
-  color: rgb(224, 94, 0); /* orange-hue */
-}
-
-.quote-e .article-prose blockquote p:last-of-type:not(:only-of-type)::after,
-.quote-e .article-prose blockquote p:only-child::after {
-  content: "\201D"; /* right double quote */
-  font-family: var(--font-lora-italic);
-  font-style: italic;
-  font-size: 1.6em;
-  line-height: 0;
-  vertical-align: -0.18em;
-  margin-left: 0.12em;
-  color: rgb(224, 94, 0); /* orange-hue */
-}
-
-.quote-e .article-prose blockquote p {
-  margin-bottom: 0.75rem;
-}
-
-.quote-e .article-prose blockquote p:last-child:not(:only-child) {
-  margin-top: 1rem;
-  font-family: var(--font-inter);
-  font-style: normal;
-  font-weight: 600;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: rgb(77, 118, 137);
-}
-
-.quote-e .article-prose blockquote p:last-child:not(:only-child)::after {
-  content: ""; /* attribution paragraph doesn't get a close-quote */
-}
-
-.quote-e .article-prose blockquote p:last-child:not(:only-child)::before {
-  content: "— ";
-  font-family: var(--font-inter);
-  font-style: normal;
-  font-size: 1em;
-  vertical-align: baseline;
-  line-height: inherit;
-  margin: 0;
-  color: rgb(224, 94, 0); /* orange-hue */
-}
-
-/* === Direction F — Tactile Broadside (soft surface) ===================== *
- * Quote rests on a soft navy-veil panel, generous padding, no border or rules.
- * Reads like a printed broadside lifted onto the page. Tactile, calm — the
- * surface tone IS the chrome. Different from a Bootstrap-y "callout box"
- * because there's no border and the inside type is editorial display italic,
- * not body-scale info.
- */
-.quote-f .article-prose blockquote {
-  position: relative;
-  max-width: none;
-  margin: 3rem 0;
-  padding: 2rem 2rem;
-  background-color: rgb(225, 242, 249); /* navy-veil */
-  border-radius: 6px;
-  color: rgb(16, 67, 87); /* navy */
-  font-family: var(--font-lora-italic);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.375rem; /* 22px */
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-}
-
-@media (min-width: 768px) {
-  .quote-f .article-prose blockquote {
-    padding: 2.5rem 2.75rem;
-    font-size: 1.5rem; /* 24px */
-  }
-}
-
-.quote-f .article-prose blockquote p {
-  margin-bottom: 0.75rem;
-}
-
-.quote-f .article-prose blockquote p:last-child:not(:only-child) {
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(16, 67, 87, 0.12); /* navy @ 12% */
-  font-family: var(--font-inter);
-  font-style: normal;
-  font-weight: 600;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: rgb(77, 118, 137);
-}
-
-.quote-f .article-prose blockquote p:last-child:not(:only-child)::before {
-  content: "— ";
-  color: rgb(224, 94, 0); /* orange-hue */
+  letter-spacing: 0.14em; /* unified publication kicker tracking */
+  color: rgb(77, 118, 137); /* navy-tone */
 }
 
 /*
- * Inline prose link — matches the /about page's editorialLink pattern
- * (font-medium text-navy underline underline-offset-4 decoration-navy-tint
- * decoration-2 hover:decoration-navy). One canonical link treatment across
- * the publication: navy text, 2px navy-tint underline at 4px offset,
- * hover deepens to navy.
+ * Inline prose link — pillar-coloured (Guardian-true approach).
+ *
+ * The link colour itself is the primary affordance. A distinct saturated
+ * mid-blue (candidate name "navy.bright") shifts the link out of the body
+ * navy register, so the colour reads as "interactive" without relying on
+ * underline weight alone. Border-bottom is secondary.
+ *
+ * Earlier explorations of subtle line-only treatments (1px navy-tint border,
+ * background highlight) failed the "doesn't look like a clickable URL" test
+ * because they kept link colour = body colour. The Guardian doc is explicit:
+ * "Link colour is pillar-coloured" — that principle applies here too.
+ *
+ * Hover: colour deepens to a darker shade AND border thickens 1.6px → 2px
+ * (two-axis change per Guardian principle).
+ *
+ * `navy.bright` is currently inlined as rgb(28, 110, 180) — should get
+ * promoted to a named palette token once the colour is settled. See
+ * `docs/typography.md` → "Inline links inside prose" for context.
+ *
+ * Chosen 2026-05-28 after picker exploration through multiple directions;
+ * see git history if revisiting.
  */
 .article-prose a {
-  color: rgb(16, 67, 87); /* navy */
+  color: rgb(28, 110, 180); /* navy.bright — saturated mid-blue link */
   font-weight: 500;
-  text-decoration: underline;
-  text-decoration-color: rgb(167, 225, 252); /* navy-tint */
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
-  text-decoration-skip-ink: auto;
-  transition: text-decoration-color 180ms ease-out;
+  text-decoration: none;
+  border-bottom: 1.6px solid rgb(28, 110, 180);
+  overflow-wrap: anywhere; /* raw URLs wrap inside the 60ch column */
+  transition: color 180ms ease-out, border-bottom-color 180ms ease-out, border-bottom-width 180ms ease-out;
 }
 
 .article-prose a:hover,
 .article-prose a:focus-visible {
-  text-decoration-color: rgb(16, 67, 87); /* navy */
+  color: rgb(15, 80, 145); /* navy.bright deepened */
+  border-bottom-color: rgb(15, 80, 145);
+  border-bottom-width: 2px;
 }
 
 .article-prose a:focus-visible {
@@ -687,33 +578,24 @@ mark[style] > strong {
   }
 }
 
-/* Dark-mode counterparts. cyan-lifted is the navy.shade analogue; cyan-glow
- * at 40% mimics navy-tint as the underline accent in dark mode. */
+/* Dark-mode counterpart. cyan-glow stands in as the navy.bright analogue
+ * — a bright cyan reads as "interactive" against the dark background the
+ * same way navy.bright reads as a link against white. */
 .dark .article-prose a {
-  color: rgb(227, 242, 247); /* cyan-lifted */
-  text-decoration-color: rgba(76, 228, 240, 0.4); /* cyan-glow @ 40% */
+  color: rgb(76, 228, 240); /* cyan-glow */
+  border-bottom-color: rgb(76, 228, 240);
 }
 
 .dark .article-prose a:hover,
 .dark .article-prose a:focus-visible {
-  text-decoration-color: rgb(227, 242, 247); /* cyan-lifted */
+  color: rgb(120, 240, 245); /* cyan-glow lifted further */
+  border-bottom-color: rgb(120, 240, 245);
 }
 
-.dark .quote-a .article-prose blockquote,
-.dark .quote-d .article-prose blockquote,
-.dark .quote-e .article-prose blockquote,
-.dark .quote-f .article-prose blockquote {
-  color: rgb(227, 242, 247);
+.dark .article-prose blockquote {
+  color: rgb(227, 242, 247); /* cyan-lifted */
 }
 
-.dark .quote-a .article-prose blockquote::before {
-  color: rgba(76, 228, 240, 0.25);
-}
-
-.dark .quote-d .article-prose blockquote::before {
-  background-color: rgba(158, 210, 225, 0.5); /* cyan-dim @ 50% */
-}
-
-.dark .quote-f .article-prose blockquote {
-  background-color: rgba(76, 228, 240, 0.06);
+.dark .article-prose blockquote::before {
+  background-color: rgba(76, 228, 240, 0.4); /* cyan-glow @ 40% — navy-tint analogue */
 }

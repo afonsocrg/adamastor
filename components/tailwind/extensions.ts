@@ -2,6 +2,7 @@
 // restricted to [2, 3], paste-time H1→H2 transform, label-vs-element mapping),
 // see `docs/typography.md` — "Editor policy" section.
 
+import { Extension as TiptapExtension } from "@tiptap/core";
 import type { Extension, Mark, Node } from "@tiptap/core";
 import {
   CharacterCount,
@@ -28,6 +29,30 @@ import { Markdown } from "tiptap-markdown";
 
 import { cx } from "class-variance-authority";
 import { common, createLowlight } from "lowlight";
+
+// Allow per-instance class attribute on bulletList so the emoji-list
+// render-time transform (lib/posts/normalize-emoji-lists.ts) can tag the
+// `<ul>` it emits with `class="emoji-list"`. Without this, TipTap's schema
+// strips unknown attrs and the class never reaches the DOM. Merges with
+// StarterKit's default `list-disc list-outside` via mergeAttributes.
+const BulletListClassAttribute = TiptapExtension.create({
+  name: "bulletListClassAttribute",
+  addGlobalAttributes() {
+    return [
+      {
+        types: ["bulletList"],
+        attributes: {
+          class: {
+            default: null,
+            parseHTML: (el) => el.getAttribute("class"),
+            renderHTML: (attrs) =>
+              attrs.class ? { class: attrs.class } : {},
+          },
+        },
+      },
+    ];
+  },
+});
 
 //TODO I am using cx here to get tailwind autocomplete working, idk if someone else can write a regex to just capture the class key in objects
 //You can overwrite the placeholder with your own configuration
@@ -95,17 +120,12 @@ const starterKit = StarterKit.configure({
   },
   bulletList: {
     HTMLAttributes: {
-      class: cx("list-disc list-outside leading-3 -mt-2"),
+      class: cx("list-disc list-outside"),
     },
   },
   orderedList: {
     HTMLAttributes: {
-      class: cx("list-decimal list-outside leading-3 -mt-2"),
-    },
-  },
-  listItem: {
-    HTMLAttributes: {
-      class: cx("leading-normal -mb-2"),
+      class: cx("list-decimal list-outside"),
     },
   },
   blockquote: {
@@ -157,7 +177,6 @@ const characterCount = CharacterCount.configure();
 const markdownExtension = Markdown.configure({
   html: true,
   tightLists: true,
-  tightListClass: "tight",
   bulletListMarker: "-",
   linkify: false,
   breaks: false,
@@ -167,6 +186,7 @@ const markdownExtension = Markdown.configure({
 
 export const defaultExtensions: (Extension | Node | Mark)[] = [
   starterKit,
+  BulletListClassAttribute,
   placeholder,
   tiptapLink,
   // tiptapImage,

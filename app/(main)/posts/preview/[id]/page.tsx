@@ -18,7 +18,6 @@ import AuthorStrap from "../../[id]/AuthorStrap";
 import { FeedbackForm } from "../../[id]/feedbackForm";
 import PostHero from "../../[id]/PostHero";
 import PostTOC from "../../[id]/PostTOC";
-import QuoteVariantPicker from "../../[id]/QuoteVariantPicker";
 import ReadNext from "../../[id]/ReadNext";
 
 // Preview route: render any post (draft or published) by id or slug. Used by
@@ -128,7 +127,6 @@ export default async function PostPreviewPage({ params }: PreviewPageProps) {
 						<FeedbackForm />
 					</div>
 				</article>
-				<QuoteVariantPicker />
 			</ContextMenuTrigger>
 		</ContextMenu>
 	);

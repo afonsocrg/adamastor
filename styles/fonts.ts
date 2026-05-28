@@ -10,20 +10,16 @@ import { Inconsolata, Inter, Lora } from "next/font/google";
  * stylesheet rather than the intended one.
  *
  * Use the explicit variable names in code:
- *   [font-family:var(--font-lora-bold)]        — Lora Bold 700 (editorial display + headlines)
- *   [font-family:var(--font-lora-italic)]      — Lora Regular 400 italic (blockquote pull-out)
+ *   [font-family:var(--font-lora-bold)]        — Lora Bold 700 (normal + italic, editorial display + headlines)
+ *   [font-family:var(--font-lora-italic)]      — Lora italic (variable axis 400–700, used at 475 for blockquote)
  *   [font-family:var(--font-inter)]            — Inter (body / UI)
  *   [font-family:var(--font-inconsolata)]      — Inconsolata (mono body)
  *   [font-family:var(--font-inconsolata-bold)] — Inconsolata 700 (mono emphasis)
  *
- * Headlines use Lora at weight 700 (its max); pair Tailwind's `font-bold`
- * with the font-family so the weight resolves.
- *
- * Blockquote pull-outs use Lora Regular 400 italic via a separate variable.
- * The two faces are loaded independently so each weight only ships the file
- * it needs — and so a `font-weight: 400` rule against `--font-lora-italic`
- * isn't silently substituted with the 700 weight (the previous shape, when
- * the 400 italic was missing and the browser picked the closest available).
+ * Each weight × style combination loads as its own face so the @font-face
+ * pooling never silently substitutes a different weight. Any element using
+ * any of the Lora variables MUST declare `font-weight` and `font-style`
+ * explicitly — see the "Lora weight pooling" section in docs/typography.md.
  *
  * CalSans and Crimson Text were both removed when Lora Bold became the
  * canonical display serif (see docs/design-system.md).
@@ -41,8 +37,10 @@ export const loraBold = Lora({
 	subsets: ["latin"],
 });
 
+// Loaded as variable font (weight omitted) so we can fine-tune the italic
+// weight per-element — e.g. blockquote uses 475, between the default 400 and
+// 500. Lora's variable axis is 400–700.
 export const loraItalic = Lora({
-	weight: ["400"],
 	style: ["italic"],
 	variable: "--font-lora-italic",
 	subsets: ["latin"],

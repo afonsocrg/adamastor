@@ -45,7 +45,7 @@ References that shape the voice:
 
 **Typography lives in [`docs/typography.md`](./typography.md).** That doc is the canonical reference for the type system, decisions, and rationale — fonts, sizes, weights, line lengths, kicker tracking, editor heading policy, the Lora weight-pooling trap, length-responsive H1 sizing, and the open follow-ups.
 
-This section previously held a typography table; it was migrated out wholesale on 2026-05-28 after a deep audit established several changes (body H2 at weight 700 + 24/28px, body H3 at 19/20px, strong at 575, kicker tracking unified at 0.14em, prose narrowed to 60ch, header-prose alignment, length-responsive H1) that the legacy table no longer reflected. Keeping two sources of truth was the bigger risk than the migration.
+This section previously held a typography table; it was migrated out wholesale on 2026-05-28 after a deep audit. A second pass the same day added: list-item rhythm tightened to 0.6em (per Butterick), bulleted/ordered/nested lists set to `<ul class="emoji-list">` for the Weekly's emoji-prefixed paragraphs (via a render-time transform — see `lib/posts/normalize-emoji-lists.ts`), blockquote shipped as Lora italic weight 475 with a 4px navy-tint full-height hairline, inline-link colour shifted out of body navy to **`navy.bright`** (saturated mid-blue, see Navy family below) with a 1.6px border-bottom, and the `--font-lora-italic` family loaded as a variable font so we can target weights between discrete steps. Code styling (inline `<code>` + `<pre>`) is deferred until an article needs it. Keeping two sources of truth was the bigger risk than the migration.
 
 > Scattered typography references still appear elsewhere in this file (page-specific patterns, page-section H2 rules, the editorial-homepage template, the events page, etc.). Those are page-layout-bound and stay here for now — they reference the typography primitives but are about *where* and *when* to use them, not about the type system itself. As page sections get touched, migrate their type-specific bits over.
 
@@ -96,14 +96,17 @@ Per the three-tool stimulation framework (intensity × hue distance × value con
 
 #### Navy — architectural + the light-mode highlight color
 
-Adamastor's primary color. Typography, structural framing, brand strip. **And** — as `navy.tint` — every light-mode interactive highlight (selected states, active chips, underline decorations). This last role was previously cyan's; the migration happened mid-redesign as the cyan family became too visually heavy.
+Adamastor's primary color. Typography, structural framing, brand strip. **And** — as `navy.tint` — every light-mode interactive highlight (selected states, active chips, list bullets, blockquote hairline, focus outlines). This role was previously cyan's; the migration happened mid-redesign as the cyan family became too visually heavy.
 
 | Token | Hex | OKLCH (approx) | Role |
 |---|---|---|---|
 | `navy-deep` | `#08293A` | L=0.27 C=0.05 h=236 | Rare structural emphasis. |
-| `navy` *(DEFAULT = shade)* | `#104357` | L=0.36 C=0.06 h=229 | Typography anchor. Headlines, body text, brand strip, links. |
+| `navy` *(DEFAULT = shade)* | `#104357` | L=0.36 C=0.06 h=229 | Typography anchor. Headlines, body text, brand strip. |
+| **Saturated zone — distinct higher chroma (link colour):** | | | |
+| `navy-bright-deep` | `#0F5091` | L=0.41 C=0.15 h=253 | Inline link colour on hover. Two-axis hover (colour deepens + border thickens). |
+| `navy-bright` | `#1C6EB4` | L=0.51 C=0.15 h=252 | **Inline link colour at rest** (border-bottom in same colour, 1.6px). Higher chroma than the rest of the navy ramp — reads as "interactive" without leaving the navy neighbourhood. Dark-mode analogue is `cyan-glow`. |
 | `navy-tone` | `#4D7689` | L=0.54 C=0.05 h=229 | Secondary text — inactive tabs, weekday headers, dim hover. |
-| `navy-tint` | `#A7E1FC` | L=0.88 C=0.07 h=228 | **The default light-mode highlight.** Selected calendar day, active chip fill, underline decoration. |
+| `navy-tint` | `#A7E1FC` | L=0.88 C=0.07 h=228 | **The default light-mode highlight accent.** Selected calendar day, active chip fill, list bullets, blockquote hairline, focus outlines. (No longer carries inline link underline — that role moved to `navy-bright`.) |
 | **Atmospheric / wash zone — three pigment tiers:** | | | |
 | `navy-frame` | `#E8F0F4` | L=0.95 C=0.01 h=229 | **Near-neutral. THE workhorse for borders, hairlines, structural framing.** "Navy frames everything" — see color rule #5. |
 | `navy-veil` | `#E1F2F9` | L=0.95 C=0.02 h=228 | Intermediate. For soft text-containing backgrounds — trust asides ("Reviewed by"), empty-state fills, banners. Subtle enough not to compete with text, visible enough to register as a contained surface. |
@@ -172,7 +175,7 @@ Use Tailwind's built-in `gray-*` scale and the shadcn theme tokens (`bg-backgrou
 ### Color usage rules
 
 1. **TINTS for interactive accents.** Selected states, active chips, hover backgrounds — always `*-tint` or `*-wash`. Never `*-shade` or `*-hue` for interactive fills.
-2. **`navy-tint` is the light-mode highlight color.** Selected calendar days, active filter chips, underline decorations, "this is the current item" fills. Cyan does NOT do this anymore.
+2. **`navy-tint` is the light-mode highlight accent.** Selected calendar days, active filter chips, list bullets, blockquote hairline, focus outlines, "this is the current item" fills. Cyan does NOT do this anymore. (Inline link colour moved to `navy-bright` after the 2026-05-28 audit — see Navy family table.)
 3. **Gold is THE action color.** Primary CTAs use `bg-gold-hue` with `hover:bg-gold-shade`. One gold pill per page, max.
 4. **Orange is an inline accent, never a button fill.** Arrow-tip icons (`text-orange-hue`), opinion kickers (`text-orange-shade`). Don't use `bg-orange-hue` as a button.
 5. **Navy frames everything.** All page-level borders use `border-navy-frame`. Single border tone per page.
