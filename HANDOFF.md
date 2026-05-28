@@ -1,82 +1,98 @@
-# Hand-off — 2026-05-28 (evening): typography deep-audit, paused mid-list
+# Hand-off — 2026-05-29: typography audit pass 2 (lists, blockquote, links, emoji-list transform)
 
-A long, deliberate session walking through the post page's typography element by element, with live measurements via the browser preview tools. We paused mid-audit (7 of ~15 items shipped); tomorrow's session resumes the list from where we stopped.
+Continuation of the typography deep-audit from 2026-05-28. Resumed from the un-ticked items in the prior handoff's list and closed five of them (lists, blockquote variant, links, emoji-list section transform, font-stack cleanup). Three audit items remain pending; one was deferred until needed.
 
-The canonical typography reference now lives in [`docs/typography.md`](docs/typography.md) — written this session as the authoritative anchor going forward. **`docs/design-system.md`'s typography section is now legacy** and must be migrated or replaced (see "Open follow-ups" below).
+Everything in this session lives in commit `5039496` (single squash-able commit for the whole pass). Branch is **63 commits ahead of `origin/main`**; nothing pushed.
+
+The canonical typography reference is still [`docs/typography.md`](docs/typography.md) — extended this session for everything shipped + deferred. [`docs/design-system.md`](docs/design-system.md) was already migrated to a pointer in the prior session; the typography pointer paragraph was extended to mention this session's additions. [`docs/inspiration-guardian.md`](docs/inspiration-guardian.md) was added (the Guardian inspiration doc that informed the blockquote + link decisions).
 
 ---
 
 ## What landed this session
 
-### New documentation
+### 1. List rhythm — tightened to 0.6em (per Butterick)
 
-- **`docs/typography.md`** — canonical type system, decisions, rationale. Replaces the typography section of design-system.md as the authoritative source. Includes the open follow-ups from the audit so tomorrow can pick up cleanly.
+Walked through the bulleted/ordered list audit. Found three stale TipTap-injected classes (`leading-3` on `<ul>`/`<ol>`, `leading-normal` on `<li>`, `tight` marker) and the `-mt-2` / `-mb-2` negative-margin compression that was producing 16px item gaps.
 
-- **Cross-references** added to key files pointing at the new doc:
-  - `styles/prosemirror.css` (top of file)
-  - `styles/fonts.ts` (in the existing JSDoc block)
-  - `components/tailwind/post-preview.tsx`
-  - `app/(main)/posts/[id]/PostHero.tsx`
-  - `components/tailwind/extensions.ts`
-  - `components/tailwind/slash-command.tsx`
+Diagnosis (Butterick): list items are a coordinated set, not a sequence of standalone paragraphs. If item spacing equals body paragraph spacing, the "list-ness" signal collapses. The fix: items should sit **tighter** than body paragraphs.
 
-### Typography changes shipped
+Shipped: `0.6em` (~11px) between items, vs body paragraphs at ~22-24px. Asymmetric and intentional. Implementation via explicit CSS rule in [`styles/prosemirror.css`](styles/prosemirror.css), `li > p` margin reset to suppress TipTap's paragraph-in-listItem wrapping. Stale classes removed from [`components/tailwind/extensions.ts`](components/tailwind/extensions.ts).
 
-| # | Change | Files |
-|---|---|---|
-| 1 | **Body H1 collapsed to H2 styling** (graceful degradation for editor accidents) | `styles/prosemirror.css` |
-| 2 | **Body H2 weight 600 → 700**, then **size bumped 22/24px → 24/28px** | `styles/prosemirror.css` |
-| 3 | **Body H3 size bumped 17/18px → 19/20px** (weight stays 600) | `styles/prosemirror.css` |
-| 4 | **Strong weight 600 → 575** (variable font; lands between Medium and SemiBold) | `styles/prosemirror.css` |
-| 5 | **Heading > strong inherit guard** — strong inside an h1/h2/h3 inherits the heading's weight, preventing visible weight downshifts from editor-bolded single characters | `styles/prosemirror.css` |
-| 6 | **Lora 400 italic** loaded as a separate `--font-lora-italic` (was missing; blockquote pull-outs were rendering Lora Bold Italic 700 instead of intended 400 italic) | `styles/fonts.ts`, `app/layout.tsx`, `styles/prosemirror.css` |
-| 7 | **Explicit `font-bold` on the three Lora-italic strap surfaces** (navbar strapline, footer tagline, /about hero strapline) — closes the weight-pooling regression caused by adding the 400 italic | `components/navbar.tsx`, `app/(main)/layout.tsx`, `app/(main)/about/page.tsx` |
-| 8 | **Kicker tracking unified at `tracking-[0.14em]`** (was a mix of 0.12/0.14/0.18em) across the post page, homepage, and `/about` | 9 component files |
-| 9 | **Apostrophe sweep** — curly U+2019 in all user-facing strings on `/` and `/posts/[id]` | `Masthead.tsx`, `SubscribeForm.tsx`, `feedbackForm.tsx`, `ShareRow.tsx`, homepage JSON-LD |
-| 10 | **Prose measure narrowed 68ch → 66ch → 60ch** (final: 60ch ≈ 681px at Inter 18px) | `components/tailwind/post-preview.tsx` |
-| 11 | **Header ↔ prose alignment** — `PostHero` constrained to `max-w-[60ch] mx-auto text-lg` so the kicker, H1, and byline share the prose's left edge | `app/(main)/posts/[id]/PostHero.tsx` |
-| 12 | **H1 length-responsive sizing** — desktop tiering 48/40/32px at 45/70-char thresholds, mobile stays 31px | `app/(main)/posts/[id]/PostHero.tsx` |
-| 13 | **Editor schema restriction** — `heading: { levels: [2, 3] }` prevents new H1 nodes from any source | `components/tailwind/extensions.ts` |
-| 14 | **Slash menu + bubble selector** — H1 option removed; remaining options relabeled "Heading 1" → `<h2>`, "Heading 2" → `<h3>` so Carlos's mental model maps to real elements | `components/tailwind/slash-command.tsx`, `components/tailwind/selectors/node-selector.tsx` |
-| 15 | **Paste-time H1 → H2 transform** in `transformPastedHTML` so pastes from rendered blogs / Google Docs / Notion don't bring a body `<h1>` along | `components/tailwind/rich-text-editor.tsx` |
-| 16 | **Navbar masthead row padding** — `pb-3 md:pb-8` (was `pb-3`) for editorial breathing room above the ARTICLES/EVENTS section nav on desktop | `components/navbar.tsx` |
-| 17 | **/about kicker tracking** unified to 0.14em via the `sectionLabel` constant | `app/(main)/about/page.tsx` |
+### 2. Weekly emoji-led sections — render-time transform
 
-### Infrastructure also shipped this session (typography-adjacent)
+The Adamastor Weekly has four recurring sections written as emoji-prefixed paragraphs (`🔷 Highlights`, `👏 Congrats`, `📚🎧🎥 Read/Listen/Watch`, `💡 Events`). They were rendering as standalone paragraphs at body-paragraph rhythm, missing list semantics and the new list typography.
 
-| Change | Files |
-|---|---|
-| **`/posts/preview/[id]` route** — fixes the draft-preview 404 bug (the public `/posts/[id]` route uses `createPublicClient()` which RLS-filters drafts). The new preview route uses cookie-auth + service-role bypass + `force-dynamic` + noindex, and renders the same component tree as the public page. Dashboard "Preview" link updated to use it. | `app/(main)/posts/preview/[id]/page.tsx`, `app/(dashboard)/dashboard/posts/PostAction.tsx` |
-| **Typography specimen post** — created (and lives in the DB under slug `what-76-weeks-of-writing-taught-me-about-portuguese-founders`). Authored to exercise every typographic element naturally; used throughout the session as the canonical lens for typography decisions. | DB only — content lives in `posts.content` |
+**Decision arc** (worth re-reading if revisiting):
+- First considered: rewrite source content to be real lists. Rejected — Carlos has been writing the same pattern for ~10 years; behaviour change is hard, historical content already shipped.
+- First built: strip emoji + inject text kickers ("READ —" / "LISTEN —" / "WATCH —"). Rejected by Malik — text kickers don't scan pre-attentively the way emoji icons do.
+- Final design: wrap consecutive emoji-paragraphs into `<ul class="emoji-list">` at render time, **preserve the emoji** as the visible bullet, suppress the default disc via CSS. Carlos keeps writing his pattern; readers get proper lists with emoji-as-bullet plus all the list typography.
+
+Implementation:
+- [`lib/posts/normalize-emoji-lists.ts`](lib/posts/normalize-emoji-lists.ts) — pure JSON transform walks `doc.content`, groups consecutive emoji-paragraphs into a `bulletList` node tagged `attrs.class = "emoji-list"`.
+- [`components/tailwind/extensions.ts`](components/tailwind/extensions.ts) — new `BulletListClassAttribute` global-attributes extension lets the `class` attr reach the DOM through TipTap's strict schema.
+- [`components/tailwind/post-preview.tsx`](components/tailwind/post-preview.tsx) — calls the normaliser before passing initialContent to RichTextEditor.
+- [`styles/prosemirror.css`](styles/prosemirror.css) — `.article-prose ul.emoji-list` rules: `list-style: none`, hanging indent via `padding-left: 1.75em; text-indent: -1.75em` so the emoji sits at the column edge and wrap lines align below the text.
+
+Source content in the DB is **never modified**. Transform runs only in `PostPreview` (both public route and preview route).
+
+There's also a recommended-pattern note in `docs/typography.md` for Carlos's future writing: move the emoji to the H2 and use a clean bulleted list underneath (one section emoji vs per-item emoji). The transform keeps supporting the old pattern indefinitely.
+
+### 3. Blockquote — final design picked
+
+A long picker exploration through 6 variants (A/D/E/F shipped from prior session + G/H added this session). Key reframing: per the Guardian inspiration doc, pull-quote ≠ blockquote — different elements, different patterns. The "Quote of the Week" in the Weekly digest is structurally a pull-quote, but our font stack only has Lora italic (variable) + Lora 700 normal/italic. A "pure Guardian pull-quote" (Lora 400 regular, non-italic) would need a new font load.
+
+Built G (Guardian-pure Lora 400 normal + glyph above) and H (Lora 700 bold + glyph above) alongside the existing variants. **Malik picked D** — Lora italic with a navy-tint hairline — and tweaked it twice:
+- Italic weight bumped to **475** (variable axis, between default 400 and 500).
+- Hairline thickness **4px**, color `navy-tint`, extended to **full height** of the citation (covers attribution paragraph too, brackets the whole block as one unit).
+
+Removed: `QuoteVariantPicker.tsx`, all `.quote-a` / `.quote-d` / `.quote-e` / `.quote-f` / `.quote-g` / `.quote-h` scoped CSS, the `--font-lora-regular` load (G's only consumer).
+
+`loraItalic` in [`styles/fonts.ts`](styles/fonts.ts) was changed from a discrete weight-400 load to a **variable font load** (weight omitted), so the 475 weight is interpolated on the variable axis. Smaller bundle than loading 400 + 500 as discrete files.
+
+One content-side wrinkle fixed: the attribution rule (`::before { content: "— " }`) was injecting an em-dash before Carlos's source `— Catarina M.` line, producing `— — Catarina M.`. Removed the CSS injection — Carlos's source convention (leading em-dash in attribution) is authoritative. Cost: the orange-hue accent on the em-dash is gone; can be restored later with a render-time wrap if it matters.
+
+### 4. Inline links — pillar-coloured (Guardian-true)
+
+Started with a comparison picker (A: text-decoration with skip-ink, B: border-bottom Guardian-style). Both shipped at 1px navy-tint with two-axis hover.
+
+Malik's feedback: *"B is the winner but it doesn't look like a clickable URL. A also doesn't."* The diagnosis: both variants kept link colour = body colour (navy), so the only affordance was the line. Per the Guardian doc principle: *"Link colour is pillar-coloured. News links red, Sport blue, Culture brown. Even a one-word link reinforces section identity."*
+
+Built a second comparison: **distinct link colour (Guardian-true)** vs **stay navy + louder underline (closer to original)**. Malik picked the distinct-colour variant.
+
+Final shipped:
+- New palette token **`navy.bright`** = `#1C6EB4` (saturated mid-blue, higher chroma than the rest of the navy ramp, but stays in the navy neighbourhood)
+- Hover token **`navy.bright-deep`** = `#0F5091` (deepened)
+- `border-bottom: 1.6px solid navy.bright` at rest (browser subpixel-rounds to 1.5px at 2× DPI; the source value preserves intent)
+- Hover: colour deepens to `navy.bright-deep` AND border thickens to 2px (two-axis)
+- Dark mode: link colour shifts to `cyan-glow` (the navy.bright analogue)
+- `overflow-wrap: anywhere` so raw URLs wrap inside the 60ch column
+
+Palette tokens are wired into [`tailwind.config.ts`](tailwind.config.ts) (sortable as `navy.bright` / `navy.bright-deep`) and described in [`docs/design-system.md`](docs/design-system.md) under the Navy family with their OKLCH approximations and roles. The link colour was also added to the typography color table in `typography.md`.
+
+`QuoteVariantPicker` deleted; `LinkVariantPicker` also created mid-session and deleted at the end.
+
+### 5. Other things shipped
+
+- [`docs/design-system.md`](docs/design-system.md) typography pointer paragraph extended to mention this session's additions; navy table updated with `navy.bright` + `navy.bright-deep` rows in a new "Saturated zone — distinct higher chroma (link colour)" sub-section; navy intro + navy-tint role refined; color usage rule #2 updated to remove "underline decorations" from navy-tint's role list.
+- [`docs/typography.md`](docs/typography.md) — entire doc reviewed and updated. Color table refreshed. Audit progress section reflects what shipped + what's deferred. Code styling deferred until needed.
+- [`docs/inspiration-guardian.md`](docs/inspiration-guardian.md) committed (was untracked).
 
 ---
 
-## Where the audit stopped
-
-This is the resumption list for tomorrow's session. Items ticked are shipped; un-ticked items are still pending.
+## Where the audit stands now
 
 ```
-✓ Body H1 → H2 collapse
-✓ Body H2 (24/28px, weight 700)
-✓ Body H3 (19/20px, weight 600)
-✓ Strong (weight 575)
-✓ Strong-inside-heading guard
-✓ Editor: H1 hidden + paste transform
-✓ Prose width (60ch)
-✓ Header ↔ prose alignment
-✓ H1 length-responsive sizing (48/40/32px tiers)
-□ Bulleted list + nested list rendering
-□ Ordered list with multi-sentence items
-□ Inline emphasis adjacency (bold + italic in adjacent paragraphs)
-□ Blockquote — pick a winner from A/D/E/F variants and lock it in
-□ Inline `code` styling (Inconsolata against navy prose)
-□ Multi-line code block styling (the dark `pre` block)
-□ Inline links + long URL wrap behavior
-□ Em-dashes, ellipses, curly quotes — character QA against the specimen
-□ Post-prose chrome alignment (AuthorStrap / SubscribeForm / ReadNext / FeedbackForm at full body-column width, not 60ch — needs per-component judgment)
+✓ Bulleted list + nested list rendering
+✓ Ordered list with multi-sentence items
+✓ Blockquote variant pick + cleanup
+✓ Inline link refresh (navy.bright)
+✓ Emoji-led Weekly section transform (bonus)
+□ Inline emphasis adjacency (bold + italic in adjacent paragraphs) — not yet started
+□ Em-dash / ellipsis / curly-quote character QA — planned as renderer pass + editor Typography extension
+□ Post-prose chrome alignment (AuthorStrap / SubscribeForm / ReadNext / FeedbackForm at 60ch) — not yet started
+□ navy.bright literal cleanup in prosemirror.css — define CSS custom property, swap two rgb literals
+~ Inline `<code>` and `<pre>` block styling — DEFERRED, not yet used in published articles
 ```
-
-The specimen post at `/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders` exercises all of these. Use it as the audit canvas — change the CSS, refresh, re-inspect.
 
 ---
 
@@ -84,59 +100,54 @@ The specimen post at `/posts/preview/what-76-weeks-of-writing-taught-me-about-po
 
 ### From the typography audit specifically
 
-1. **`docs/design-system.md` migration.** The typography section of design-system.md is now legacy. Pick one of:
-   - **A. Replace** the typography section in design-system.md with a pointer ("Typography lives in `docs/typography.md`") and delete the legacy content. Cleanest.
-   - **B. Keep both**, but add a banner at the top of design-system.md's typography section saying "OUTDATED — see `docs/typography.md`". Lower-risk if someone else is still consuming design-system.md.
-   - **C. Migrate** the still-relevant non-typography content out of design-system.md's typography section (color tokens, allocation rules), leaving only typography-specific stuff to delete.
+1. **Inline emphasis adjacency.** Audit how `<strong>` (575 weight) and `<em>` (Lora italic? or Inter italic?) read when stacked in adjacent paragraphs. Likely a small visual pass on the specimen post or a new test paragraph.
 
-   Per Malik's preference (don't auto-update design-system.md to reconcile code/doc conflicts; surface options first), this is left for the next session to decide.
+2. **Em-dash / ellipsis / curly-quote character normalisation.** Two-layer:
+   - **Renderer pass** (~40 lines, mirrors `lib/posts/normalize-emoji-lists.ts`): walks TipTap JSON in `PostPreview`, applies safe substitutions (straight quotes → curly, `--` → em-dash, `...` → ellipsis). Fixes *all historical content* immediately. Safe substitutions only — defer ` - ` → em-dash (ambiguous with compound words) and `1-10` → en-dash (needs number-range detection).
+   - **Editor pass**: wire TipTap's `@tiptap/extension-typography` (~5 lines) so Carlos sees smart characters as he types in the editor.
 
-2. **Threshold calibration for length-responsive H1.** 45 and 70 chars are best-guess thresholds. As more articles get written, watch for titles that visually want a different tier and nudge the thresholds — don't add new tiers.
+3. **Post-prose chrome alignment (60ch).** AuthorStrap / SubscribeForm / ReadNext / FeedbackForm currently sit at the full body column width (768px), not the 60ch reading column the prose body uses. Each has its own internal layout (AuthorStrap = photo+text flex, SubscribeForm = form fields, etc.), so a blanket 60ch constraint isn't safe — per-component judgment needed. Biggest remaining audit chunk.
 
-3. **Kicker tracking sweep on `/events` and `/subscribe`.** Those two pages still use `tracking-[0.18em]` for kickers. Publication-wide convention is now 0.14em; sweeping them brings consistency. Out of scope for the typography audit (which is post-page-scoped) but worth doing.
+4. **navy.bright literal cleanup in prosemirror.css.** The link colour `rgb(28, 110, 180)` and hover `rgb(15, 80, 145)` are inlined twice in `.article-prose a`. Now that the Tailwind tokens exist, define matching CSS custom properties in `styles/globals.css` (or similar) and swap. Single source of truth.
 
-4. **Body H1 content cleanup.** The specimen post has a stored `<h1>` in its TipTap JSON (Carlos's "title in body" paste artifact). CSS collapses it visually but the HTML stays semantically wrong. A one-time migration pass — find every post whose `content` JSON contains an h1 node, rewrite to h2 — would clean up the semantics. Worth doing once design-system.md migration is decided, since both touch stored content.
+5. **Code styling (deferred).** Inline `<code>` and `<pre>` blocks. Carlos doesn't use code samples in published articles today. Revisit when an article needs it (likely a technical-deep-dive piece or anything in LisboaJS). At that point: Inconsolata against navy prose, navy-tint background, padding, scroll behaviour for `<pre>`.
 
-5. **Editor styling matches rendered styling.** The TipTap editor renders body content with default `.prose prose-lg`, not `.article-prose`. Carlos sees one thing while writing and a different thing when published. Applying a subset of `.article-prose` rules to the editor's content area would close the gap — important UX once the publication has more authors than Carlos.
-
-### Older threads still open (carried from prior handoffs)
-
-- **Blockquote variant decision** — `QuoteVariantPicker` is mounted on every post page. Pick a variant (A / D / E / F), promote it to unscoped `.article-prose blockquote`, delete the picker + the three unchosen variants. **Must remove before pushing to production.** This is also item 4 on the audit resumption list.
+### From the previous handoff (still open)
 
 - **`authors.role` column.** Opinion byline role is derived from `authors.bio` first sentence via regex — uneven length. Dedicated column would replace the heuristic.
-
 - **Lighthouse baseline.** Run against `next build && next start` for objective SEO/perf score.
-
 - **`/llms.txt`** + `robots.txt` AI bot allowlist check + JSON-LD validation against Rich Results Test + sitemap submission.
-
 - **`orange-hue` text contrast** at small kicker sizes (10–11px) — unverified at AA Normal.
-
-- **SSL 526 on `www.adamastor.blog`** (P0, four handoffs ago).
-
-- **Other operations items** carried from prior handoff: `social_links` DB rows, public calendar variant, newsletter cron + workers, email template tweaks, "unsubscribe from everything" page, dynamic OG images, PostHog event schema, white-on-gold contrast.
+- **SSL 526 on `www.adamastor.blog`** (P0, carried for several handoffs).
+- **Threshold calibration for length-responsive H1** — 45 and 70 chars are best-guess; tune as more titles appear.
+- **Kicker tracking sweep on `/events` and `/subscribe`** — both still use `tracking-[0.18em]`; publication-wide convention is now 0.14em.
+- **Body H1 content cleanup in stored content** — specimen has stored `<h1>` from a paste artifact; CSS collapses visually but HTML is semantically wrong. One-time TipTap JSON migration.
+- **Editor styling matches rendered styling** — TipTap editor uses default `.prose prose-lg`, not `.article-prose`. Carlos sees one thing while writing, another when published.
+- **Other operations items carried** — `social_links` DB rows, public calendar variant, newsletter cron + workers, email template tweaks, "unsubscribe from everything" page, dynamic OG images, PostHog event schema, white-on-gold contrast.
 
 ---
 
 ## How to resume
 
-1. **Read this doc + `docs/typography.md`** to load context.
-2. **Open the specimen post**: `http://localhost:3000/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders`. It exercises every remaining audit element.
-3. **Pick the next item** from the un-ticked list above. Suggested order is roughly visual-impact-descending: lists → blockquote variant → code → inline links. Em-dash/ellipsis/curly-quote QA can be last (mostly a verification pass).
-4. **Use `mcp__Claude_Preview__preview_inspect`** to read computed styles live — cheaper and more accurate than screenshots for typography work.
-5. **Update `docs/typography.md`** alongside each code change. Don't let the doc drift again.
+1. **Read this doc + `docs/typography.md`** to load context. The typography doc covers fonts, type stack, lists, blockquote, links, character QA conventions, the Weekly emoji-led sections, palette, and open follow-ups. Most decisions have inline justification.
+2. **Open the canvas**: the specimen post lives at `/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders`. The Weekly digest test post at `/posts/growing-up-week-20` exercises the emoji-led sections + multi-paragraph blockquote.
+3. **Pick the next item** from "Where the audit stands now" above. Suggested order: **#2 (character QA renderer pass)** is the highest-impact remaining item — fixes a publication-wide quality issue with ~40 lines. Then **#1 (emphasis adjacency)** as a quick visual pass. Then **#3 (post-prose chrome)** as the biggest chunk. **#4 (navy.bright literal cleanup)** can slot in anywhere as a 5-minute tidy.
+4. **Use `mcp__Claude_Preview__preview_inspect`** to read computed styles live — cheaper and more accurate than screenshots for typography work. Malik prefers live preview over screenshots (`feedback_no_screenshots.md` memory).
+5. **Update `docs/typography.md`** alongside each code change. Don't let the doc drift.
 
 ---
 
 ## Push reminder
 
-This session's changes are unpushed. Before pushing:
+Branch is **63 commits ahead of `origin/main`**. Before pushing:
 
 - `pnpm typecheck` — the pre-existing error in `lib/posts/related.ts:38` is unrelated; everything from this session is type-clean.
-- `pnpm build` — verify the new preview route, the editor restrictions, and the PostHero conditional className all compile cleanly.
+- `pnpm build` — verify the new normaliser route, the link styling, the BulletListClassAttribute extension, and the variable Lora font load all compile cleanly.
 - **Manual smoke**:
-  - `/posts/preview/[any-draft-slug]` should render the draft with the "Preview mode" banner (logged in only; anonymous = redirect to /login).
-  - `/posts/[any-published-slug]` should render exactly as before with the new typography stack.
-  - `/posts/founder-vs-reality-fit-week-21` — the article that surfaced the H2/strong hierarchy issue. Should now read with clear H2 dominance over bold news-item lead-ins.
-  - Editor `/`: type `/` in the body, confirm only "Heading 1" and "Heading 2" appear (no Heading 3 option — that's `<h3>`; no H1 option at all).
-  - Paste `# Some Title` from a markdown source into the editor — should land as `<h2>`, not `<h1>`.
-- **Still don't push to prod until `QuoteVariantPicker` is removed** — see open threads.
+  - `/posts/preview/[any-draft-slug]` should render the draft with the "Preview mode" banner.
+  - `/posts/[any-published-slug]` should render with the new typography (italic 475 blockquote, navy.bright links, emoji-led lists).
+  - **`/posts/growing-up-week-20`** — the Weekly digest that exercises the emoji-list transform and the blockquote. Should see proper `<ul>` with emoji-as-bullet across all four sections.
+  - **`/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders`** — specimen for the blockquote (single em-dash on attribution) and the link colour.
+  - Editor `/` slash menu: confirm only "Heading 1" and "Heading 2" appear (mapping to `<h2>` and `<h3>` respectively, no `<h1>` option).
+  - Paste `# Some Title` from a markdown source into the editor — should land as `<h2>`, not `<h1>` (paste transform from prior session).
+- **Source content with straight quotes still renders as straight quotes** — character QA renderer pass is not yet shipped. Don't be surprised by `"`, `'`, `--` on rendered articles until #2 above is done.

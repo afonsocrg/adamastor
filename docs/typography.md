@@ -417,7 +417,11 @@ Things that came out of the typography audit but weren't shipped yet:
    - Em-dash / ellipsis / curly-quote character QA — **not yet started; render-time + editor normalisation planned**
    - **Code styling (inline `code` + multi-line `<pre>`) — deferred.** Carlos doesn't currently use code samples in published articles, so the existing `@tailwindcss/typography` defaults are acceptable. Revisit when an article needs code (likely a technical-deep-dive piece, or anything in LisboaJS). At that point: Inconsolata against navy prose, navy-tint background, padding, scroll behaviour for `<pre>`.
 
-7. **`docs/design-system.md` migration.** The design-system.md typography section is the legacy spec. It still references the pre-audit values (H2 at 600, strong at 600, tracking 0.18em, H3 at body size, no length-responsive H1, etc.). Either replace it with a pointer to this doc, or copy the relevant sections back into design-system.md and delete from here. **Don't let both coexist as authoritative sources** — pick one home.
+7. **navy.bright literal cleanup in `prosemirror.css`.** The link colour `rgb(28, 110, 180)` and hover `rgb(15, 80, 145)` are inlined twice in the `.article-prose a` ruleset. Now that `navy.bright` + `navy.bright-deep` exist as Tailwind tokens, define matching CSS custom properties in `styles/globals.css` (or similar) and swap the prosemirror.css literals to `var(--color-navy-bright)` / `var(--color-navy-bright-deep)`. Single source of truth.
+
+8. **Render-time + editor typographic character normalisation.** Straight ASCII characters in source content (`'`, `"`, `--`, `...`) render as the literal ASCII rather than typographic equivalents (`'`, `"…"`, `—`, `…`). Two-layer fix planned:
+   - *Renderer pass* (~40 lines, mirrors `lib/posts/normalize-emoji-lists.ts`): walks TipTap JSON in `PostPreview`, applies context-aware curly-quote substitution + em-dash + ellipsis conversion. Fixes *all historical content* immediately.
+   - *Editor extension* (~5 lines): wire TipTap's `@tiptap/extension-typography` so Carlos sees smart characters as he types.
 
 ---
 
