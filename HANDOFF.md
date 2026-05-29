@@ -5,7 +5,7 @@ Continuation of the editorial-design "road to release" sweep. This session did t
 1. **Brand rename** — dropped the leading "The" from the publication name everywhere it's a *display* string: **"The Adamastor Weekly" → "Weekly Adamastor"**. (The referential "the" in flowing prose — "*The* Weekly Adamastor every Tuesday" — is grammar, not the brand name, and is kept.)
 2. **Article-page refinements** — byline strap redesign (two-zone), ShareRow moved back to the top byline, PostTOC microcopy + active-weight, coda 60ch/681px alignment, `<em>` inline-italic decision, character-QA renderer pass, and a `prosemirror.css` link-token cleanup. **These are what Malik said he still wants to tweak next.**
 
-⚠️ **Everything in this session is uncommitted.** Working tree = **22 modified + 2 untracked** files. Branch is **64 commits ahead of `origin/main`**; nothing pushed. The last commit (`313117c`) is the *previous* session's handoff. See "Commit + push" at the bottom.
+**Committed** as `ea912c8` (single grouped commit for the whole session). Branch is **65 commits ahead of `origin/main`**; **nothing pushed yet**. See "Push" at the bottom.
 
 Canonical references, both extended this session:
 - [`docs/typography.md`](docs/typography.md) — fonts, type stack, **byline strap**, **ShareRow placement**, kicker labels, **em (inline italic)**, **PostTOC**, **post-prose chrome alignment**, **character-QA renderer**, links, blockquote, open follow-ups.
@@ -140,11 +140,11 @@ H1 sizing in `PostHero` is **length-responsive**: ≤45 chars → `text-5xl`, �
 
 ---
 
-## Commit + push
+## Push
 
-⚠️ **Nothing this session is committed.** Working tree: **22 modified + 2 untracked** (`lib/posts/normalize-typography.ts`, `lib/posts/normalize-typography.test.ts`). Branch is **64 commits ahead of `origin/main`**.
+This session is committed as `ea912c8`. Branch is **65 commits ahead of `origin/main`**; **not yet pushed**.
 
-Before committing / pushing:
+Before pushing:
 
 - `pnpm test` — covers `normalize-typography.test.ts` (rules + marks/code-skip).
 - `pnpm typecheck` — pre-existing error in `lib/posts/related.ts:38` is unrelated; this session is type-clean.
