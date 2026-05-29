@@ -54,7 +54,7 @@ function RiverCard({ post }: RiverCardProps) {
 					<div className="flex items-center justify-between gap-3">
 						<p
 							className={`text-[11px] font-semibold uppercase tracking-[0.14em] md:text-xs ${
-								kind === "opinion" ? "text-orange-hue" : "text-navy-tone dark:text-cyan-dim"
+								kind === "opinion" ? "text-orange-hue" : "text-navy-bright dark:text-cyan-glow"
 							}`}
 						>
 							{label}

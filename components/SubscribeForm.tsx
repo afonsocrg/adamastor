@@ -25,9 +25,9 @@ interface SubscribeFormProps {
 function copyForKind(kind: PostKind): { heading: string; dek: string; stickyLabel: string } {
 	if (kind === "weekly") {
 		return {
-			heading: "Subscribe to The Adamastor Weekly",
+			heading: "Subscribe to Weekly Adamastor",
 			dek: "A weekly read on Portugal’s startup scene. Every Tuesday by Carlos Resende.",
-			stickyLabel: "The Adamastor Weekly · Every Tuesday",
+			stickyLabel: "Weekly Adamastor · Every Tuesday",
 		};
 	}
 	return {

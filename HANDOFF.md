@@ -1,153 +1,157 @@
-# Hand-off — 2026-05-29: typography audit pass 2 (lists, blockquote, links, emoji-list transform)
+# Hand-off — 2026-05-29: "Weekly Adamastor" rename + cross-route consistency + article-page strap/TOC/em pass
 
-Continuation of the typography deep-audit from 2026-05-28. Resumed from the un-ticked items in the prior handoff's list and closed five of them (lists, blockquote variant, links, emoji-list section transform, font-stack cleanup). Three audit items remain pending; one was deferred until needed.
+Continuation of the editorial-design "road to release" sweep. This session did two things:
 
-Everything in this session lives in commit `5039496` (single squash-able commit for the whole pass). Branch is **63 commits ahead of `origin/main`**; nothing pushed.
+1. **Brand rename** — dropped the leading "The" from the publication name everywhere it's a *display* string: **"The Adamastor Weekly" → "Weekly Adamastor"**. (The referential "the" in flowing prose — "*The* Weekly Adamastor every Tuesday" — is grammar, not the brand name, and is kept.)
+2. **Article-page refinements** — byline strap redesign (two-zone), ShareRow moved back to the top byline, PostTOC microcopy + active-weight, coda 60ch/681px alignment, `<em>` inline-italic decision, character-QA renderer pass, and a `prosemirror.css` link-token cleanup. **These are what Malik said he still wants to tweak next.**
 
-The canonical typography reference is still [`docs/typography.md`](docs/typography.md) — extended this session for everything shipped + deferred. [`docs/design-system.md`](docs/design-system.md) was already migrated to a pointer in the prior session; the typography pointer paragraph was extended to mention this session's additions. [`docs/inspiration-guardian.md`](docs/inspiration-guardian.md) was added (the Guardian inspiration doc that informed the blockquote + link decisions).
+⚠️ **Everything in this session is uncommitted.** Working tree = **22 modified + 2 untracked** files. Branch is **64 commits ahead of `origin/main`**; nothing pushed. The last commit (`313117c`) is the *previous* session's handoff. See "Commit + push" at the bottom.
+
+Canonical references, both extended this session:
+- [`docs/typography.md`](docs/typography.md) — fonts, type stack, **byline strap**, **ShareRow placement**, kicker labels, **em (inline italic)**, **PostTOC**, **post-prose chrome alignment**, **character-QA renderer**, links, blockquote, open follow-ups.
+- [`docs/design-system.md`](docs/design-system.md) — lexicon, two-pillar kicker accent, `getFeedCardLabel`, navy family incl. `navy.bright` / `navy.bright-deep`.
 
 ---
 
 ## What landed this session
 
-### 1. List rhythm — tightened to 0.6em (per Butterick)
+### A. "Weekly Adamastor" rename (display strings only)
 
-Walked through the bulleted/ordered list audit. Found three stale TipTap-injected classes (`leading-3` on `<ul>`/`<ol>`, `leading-normal` on `<li>`, `tight` marker) and the `-mt-2` / `-mb-2` negative-margin compression that was producing 16px item gaps.
+Dropped the leading "The" on every brand-display surface. Files touched:
 
-Diagnosis (Butterick): list items are a coordinated set, not a sequence of standalone paragraphs. If item spacing equals body paragraph spacing, the "list-ness" signal collapses. The fix: items should sit **tighter** than body paragraphs.
+- [`components/home/Masthead.tsx`](components/home/Masthead.tsx) — `DEFAULT_DEK` keeps the **referential** "The Weekly Adamastor every Tuesday" (this is *the newsletter*, lowercase-the grammar — Malik corrected this explicitly).
+- [`components/SubscribeForm.tsx`](components/SubscribeForm.tsx) — `heading: "Subscribe to Weekly Adamastor"`, `stickyLabel: "Weekly Adamastor · Every Tuesday"`.
+- [`app/(main)/preferences/PreferencesPageClient.tsx`](app/(main)/preferences/PreferencesPageClient.tsx) + [`app/(main)/subscribe/SubscribePageClient.tsx`](app/(main)/subscribe/SubscribePageClient.tsx) — checkbox labels + selection summary.
+- [`app/(main)/about/page.tsx`](app/(main)/about/page.tsx) — bio prose + the "Weekly Adamastor" stream heading.
+- [`app/layout.tsx`](app/layout.tsx) — RSS feed `<link>` title.
+- [`app/(main)/page.tsx`](app/(main)/page.tsx) + [`app/(main)/page/[page]/page.tsx`](app/(main)/page/[page]/page.tsx) — JSON-LD `name` + archive meta description.
+- [`lib/posts/kind.ts`](lib/posts/kind.ts) — `getFeedCardLabel(kind)` returns `"Weekly Adamastor"` / `"Opinion"`. **`getKickerLabel` was deleted** (the `Week N` marker is no longer concatenated into the label — it renders separately in the kicker-row right gutter).
+- [`lib/posts/normalize-emoji-lists.ts`](lib/posts/normalize-emoji-lists.ts) + [`docs/typography.md`](docs/typography.md) — comment + heading "Weekly Adamastor — emoji-led sections".
 
-Shipped: `0.6em` (~11px) between items, vs body paragraphs at ~22-24px. Asymmetric and intentional. Implementation via explicit CSS rule in [`styles/prosemirror.css`](styles/prosemirror.css), `li > p` margin reset to suppress TipTap's paragraph-in-listItem wrapping. Stale classes removed from [`components/tailwind/extensions.ts`](components/tailwind/extensions.ts).
+**Left verbatim on purpose** — the Resend segment/topic literal name **"Adamastor Weekly"** is an infrastructure identifier (targeted by ID via env vars, but the literal name must match what Resend stores). Occurrences in `README.md`, `app/api/emailSubscribers/route.ts`, `app/api/sendNewsletter/route.ts`, `docs/newsletter-subscriptions.md`, `lib/newsletter/segments.ts` were intentionally **not** renamed.
 
-### 2. Weekly emoji-led sections — render-time transform
+### B. Cross-route consistency (kicker system unified)
 
-The Adamastor Weekly has four recurring sections written as emoji-prefixed paragraphs (`🔷 Highlights`, `👏 Congrats`, `📚🎧🎥 Read/Listen/Watch`, `💡 Events`). They were rendering as standalone paragraphs at body-paragraph rhythm, missing list semantics and the new list typography.
+- **Two-pillar kicker accent** is now publication-wide: **Weekly = `text-navy-bright` / `dark:text-cyan-glow`** (cool brand-blue), **Opinion = `text-orange-hue`** (warm "named voice"). Applied on the river ([`PostRiver.tsx`](components/home/PostRiver.tsx)), featured hero ([`FeaturedHero.tsx`](components/home/FeaturedHero.tsx)), sidebar Opinion ([`HomeSidebar.tsx`](components/home/HomeSidebar.tsx)), and the article hero ([`PostHero.tsx`](app/(main)/posts/[id]/PostHero.tsx)). **The accent colour is the kind-signal across routes** — scan a kicker on `/`, meet the same colour on the article.
+- **Kicker-row layout unified**: `[pillar label] ←→ [Week N, right gutter]` via `flex justify-between`. Week marker is title-case "Week 21" (not uppercase), `text-muted-foreground/75` — quietest tier, deliberately neutral gray (not navy-tinted). On `FeaturedHero` the date + read-time moved *out* of the kicker row and *into* the byline cluster below.
+- **Hover-background canon**: `hover:bg-navy-veil/40` (+ `dark:hover:bg-cyan-glow/[0.04|0.06]`) — one interactive-surface register everywhere.
 
-**Decision arc** (worth re-reading if revisiting):
-- First considered: rewrite source content to be real lists. Rejected — Carlos has been writing the same pattern for ~10 years; behaviour change is hard, historical content already shipped.
-- First built: strip emoji + inject text kickers ("READ —" / "LISTEN —" / "WATCH —"). Rejected by Malik — text kickers don't scan pre-attentively the way emoji icons do.
-- Final design: wrap consecutive emoji-paragraphs into `<ul class="emoji-list">` at render time, **preserve the emoji** as the visible bullet, suppress the default disc via CSS. Carlos keeps writing his pattern; readers get proper lists with emoji-as-bullet plus all the list typography.
+### C. Colour audit — river stays gray (decision, no code change)
 
-Implementation:
-- [`lib/posts/normalize-emoji-lists.ts`](lib/posts/normalize-emoji-lists.ts) — pure JSON transform walks `doc.content`, groups consecutive emoji-paragraphs into a `bulletList` node tagged `attrs.class = "emoji-list"`.
-- [`components/tailwind/extensions.ts`](components/tailwind/extensions.ts) — new `BulletListClassAttribute` global-attributes extension lets the `class` attr reach the DOM through TipTap's strict schema.
-- [`components/tailwind/post-preview.tsx`](components/tailwind/post-preview.tsx) — calls the normaliser before passing initialContent to RichTextEditor.
-- [`styles/prosemirror.css`](styles/prosemirror.css) — `.article-prose ul.emoji-list` rules: `list-style: none`, hanging indent via `padding-left: 1.75em; text-indent: -1.75em` so the emoji sits at the column edge and wrap lines align below the text.
+Audited whether the homepage should adopt the article's navy-tone secondary register. Only divergence: **secondary/metadata text** (home river = neutral gray `muted-foreground` `#737373`; article = navy-tone `#4D7689`). **Malik chose "keep the river gray."** The river is "catalog / scan mode" (Inter titles); the article is "anchor moment" (Lora). Two secondary registers coexist by design — do **not** re-propose unifying. (Saved as memory `feedback_river_scan_register.md`.)
 
-Source content in the DB is **never modified**. Transform runs only in `PostPreview` (both public route and preview route).
+### D. Byline strap — redesigned to two zones
 
-There's also a recommended-pattern note in `docs/typography.md` for Carlos's future writing: move the emoji to the H2 and use a clean bulleted list underneath (one section emoji vs per-item emoji). The transform keeps supporting the old pattern indefinitely.
+[`app/(main)/posts/[id]/Byline.tsx`](app/(main)/posts/[id]/Byline.tsx). Below the H1, bracketed by two `navy-frame` hairlines. **No "By" prefix.** One concern per zone, split by an internal hairline:
 
-### 3. Blockquote — final design picked
+- **Zone A — author identity** (`flex items-start gap-4 py-5`): avatar 56×56 + name + credential. Name = Inter **15px / weight 575** `text-navy`, **no underline at rest** (hover adds `decoration-navy-tint decoration-2 underline-offset-4`). Credential = **Lora italic 14px** `text-navy-tone`, `max-w-[44ch]`, `hyphens-manual`.
+- **Zone B — utility bar** (`border-t border-navy-frame py-2.5`): date · read-time (Inter 13px navy-tone) on the left, **ShareRow** on the right at `sm:`+, stacks below on mobile.
 
-A long picker exploration through 6 variants (A/D/E/F shipped from prior session + G/H added this session). Key reframing: per the Guardian inspiration doc, pull-quote ≠ blockquote — different elements, different patterns. The "Quote of the Week" in the Weekly digest is structurally a pull-quote, but our font stack only has Lora italic (variable) + Lora 700 normal/italic. A "pure Guardian pull-quote" (Lora 400 regular, non-italic) would need a new font load.
+Rationale (in the doc): avatar+name+credential all answer *who's speaking* (editorial voice, full navy + Lora italic); date+read-time+share are all *reader tooling*. The internal hairline + quieter navy-tone on Zone B is what makes the eye parse identity vs. tooling instantly. Name weight **575 (not 600)** matches `.article-prose strong` + PostTOC active — one emphasis station across the publication.
 
-Built G (Guardian-pure Lora 400 normal + glyph above) and H (Lora 700 bold + glyph above) alongside the existing variants. **Malik picked D** — Lora italic with a navy-tint hairline — and tweaked it twice:
-- Italic weight bumped to **475** (variable axis, between default 400 and 500).
-- Hairline thickness **4px**, color `navy-tint`, extended to **full height** of the citation (covers attribution paragraph too, brackets the whole block as one unit).
+### E. ShareRow — back in the top byline, 44 → 36 targets
 
-Removed: `QuoteVariantPicker.tsx`, all `.quote-a` / `.quote-d` / `.quote-e` / `.quote-f` / `.quote-g` / `.quote-h` scoped CSS, the `--font-lora-regular` load (G's only consumer).
+[`app/(main)/posts/[id]/ShareRow.tsx`](app/(main)/posts/[id]/ShareRow.tsx). Placement bounced (byline → AuthorStrap below → **back to top byline**); deciding factor: share affordances must be in view *on entry*. Now lives in Zone B with the other reader-tooling. **`AuthorStrap` no longer carries a share block.** Hit targets **44×44 at mobile** (Apple HIG / WCAG 2.5.5 AAA), compress to **36×36 at `sm:`+** (icon stays 16×16). Hover uses the `bg-navy-veil/40` canon + dark-mode cyan tokens.
 
-`loraItalic` in [`styles/fonts.ts`](styles/fonts.ts) was changed from a discrete weight-400 load to a **variable font load** (weight omitted), so the 475 weight is interpolated on the variable axis. Smaller bundle than loading 400 + 500 as discrete files.
+### F. PostTOC — "In this article" + active weight 575
 
-One content-side wrinkle fixed: the attribution rule (`::before { content: "— " }`) was injecting an em-dash before Carlos's source `— Catarina M.` line, producing `— — Catarina M.`. Removed the CSS injection — Carlos's source convention (leading em-dash in attribution) is authoritative. Cost: the orange-hue accent on the em-dash is gone; can be restored later with a render-time wrap if it matters.
+[`app/(main)/posts/[id]/PostTOC.tsx`](app/(main)/posts/[id]/PostTOC.tsx). Kicker microcopy **"Contents" → "In this article"** (serious-editorial-web register; "Contents" read as wiki/Notion-clinical and was the odd one out against "About the author" / "More opinion" / "Reader notes"). Size `text-[10px]` → `text-xs` (12px publication kicker default). `aria-label` on the `<nav>` stays "Article contents" (terser landmark name). Active item `font-semibold` (600) → **`font-[575]`** to match `.article-prose strong`; active accent stays **`navy` (not `navy.bright`)** because the active state is *passive* (scroll-tracking, not clicked).
 
-### 4. Inline links — pillar-coloured (Guardian-true)
+### G. `<em>` inline italic — Inter italic 450 (stays in body family)
 
-Started with a comparison picker (A: text-decoration with skip-ink, B: border-bottom Guardian-style). Both shipped at 1px navy-tint with two-axis hover.
+[`styles/prosemirror.css`](styles/prosemirror.css): `.article-prose em { font-weight: 450; }`. **Decision: keep `<em>` in Inter, not Lora italic.** A serif italic against the sans body reads as ornament mid-paragraph; Butterick's "italic sans barely stands out" is print-era (10pt) and doesn't carry to 18px anti-aliased screens. The +50 weight bump lifts the italic to read as deliberate while staying a clear 125-weight gap below `strong` (575). Single-axis discipline: `<strong>` changes weight only, `<em>` changes style only (with the small nudge). Lora stays reserved for headlines + blockquote.
 
-Malik's feedback: *"B is the winner but it doesn't look like a clickable URL. A also doesn't."* The diagnosis: both variants kept link colour = body colour (navy), so the only affordance was the line. Per the Guardian doc principle: *"Link colour is pillar-coloured. News links red, Sport blue, Culture brown. Even a one-word link reinforces section identity."*
+### H. Character-QA renderer pass (NEW)
 
-Built a second comparison: **distinct link colour (Guardian-true)** vs **stay navy + louder underline (closer to original)**. Malik picked the distinct-colour variant.
+[`lib/posts/normalize-typography.ts`](lib/posts/normalize-typography.ts) + [`lib/posts/normalize-typography.test.ts`](lib/posts/normalize-typography.test.ts). Walks TipTap JSON in `PostPreview`, composed with `normalizeEmojiLists`: `const content = normalizeEmojiLists(normalizeTypography(initialContent));` ([`post-preview.tsx`](components/tailwind/post-preview.tsx)). Conservative ASCII→Unicode substitutions on every text node **except inside `codeBlock` or text with a `code` mark**:
 
-Final shipped:
-- New palette token **`navy.bright`** = `#1C6EB4` (saturated mid-blue, higher chroma than the rest of the navy ramp, but stays in the navy neighbourhood)
-- Hover token **`navy.bright-deep`** = `#0F5091` (deepened)
-- `border-bottom: 1.6px solid navy.bright` at rest (browser subpixel-rounds to 1.5px at 2× DPI; the source value preserves intent)
-- Hover: colour deepens to `navy.bright-deep` AND border thickens to 2px (two-axis)
-- Dark mode: link colour shifts to `cyan-glow` (the navy.bright analogue)
-- `overflow-wrap: anywhere` so raw URLs wrap inside the 60ch column
+- `--` (2+ hyphens) → `—` em-dash
+- `...` (exactly three, not surrounded by more dots) → `…`
+- `'` after a word char or before a digit → `’` (contractions, possessives, `'90s`)
+- `"` after whitespace / start / open-bracket → `“`; everything else → `”`
 
-Palette tokens are wired into [`tailwind.config.ts`](tailwind.config.ts) (sortable as `navy.bright` / `navy.bright-deep`) and described in [`docs/design-system.md`](docs/design-system.md) under the Navy family with their OKLCH approximations and roles. The link colour was also added to the typography color table in `typography.md`.
+DB content is never mutated; fixes all historical content at render time. **Deferred** (need smarter detection): ` - ` → em-dash (ambiguous with compounds), `1-10` → en-dash (number-range), opening single quote `'twas`/`'em`. The **editor-side `@tiptap/extension-typography`** pass (~5 lines, so Carlos sees smart chars as he types) is **still pending**.
 
-`QuoteVariantPicker` deleted; `LinkVariantPicker` also created mid-session and deleted at the end.
+### I. prosemirror.css link-token cleanup
 
-### 5. Other things shipped
+Defined `--prose-link: #1C6EB4` / `--prose-link-hover: #0F5091` custom properties on `.article-prose` (mirroring the `navy.bright` / `navy.bright-deep` Tailwind tokens), and swapped the four inlined `rgb()` literals in `.article-prose a` to `var(...)`. Scoped to `.article-prose` (only consumer); promote to `:root` if a non-prose surface ever needs the link colour.
 
-- [`docs/design-system.md`](docs/design-system.md) typography pointer paragraph extended to mention this session's additions; navy table updated with `navy.bright` + `navy.bright-deep` rows in a new "Saturated zone — distinct higher chroma (link colour)" sub-section; navy intro + navy-tint role refined; color usage rule #2 updated to remove "underline decorations" from navy-tint's role list.
-- [`docs/typography.md`](docs/typography.md) — entire doc reviewed and updated. Color table refreshed. Audit progress section reflects what shipped + what's deferred. Code styling deferred until needed.
-- [`docs/inspiration-guardian.md`](docs/inspiration-guardian.md) committed (was untracked).
+### J. Coda 60ch / 681px alignment (shipped — was a carried follow-up)
+
+[`app/(main)/posts/[id]/page.tsx`](app/(main)/posts/[id]/page.tsx) + [`app/(main)/posts/preview/[id]/page.tsx`](app/(main)/posts/preview/[id]/page.tsx): the four coda components (`AuthorStrap`, `SubscribeForm`, `ReadNext`, `FeedbackForm`) are wrapped in one `<div className="mx-auto w-full max-w-[681px] space-y-8 md:space-y-12">` so their hairlines align with the prose column above. **681px, not `60ch`**: prose computes `60ch` in the `prose-lg` (18px) context → 681.3px; the chrome wrapper has no prose context, so `60ch` would resolve against 16px and land ~75px narrower. One page-level wrapper = one source of truth for both routes.
 
 ---
 
-## Where the audit stands now
+## Article-page anatomy (current state — for the next tweak session)
+
+The reading column is **60ch / 681px**, centred. Top-to-bottom on `/posts/[id]`:
 
 ```
-✓ Bulleted list + nested list rendering
-✓ Ordered list with multi-sentence items
-✓ Blockquote variant pick + cleanup
-✓ Inline link refresh (navy.bright)
-✓ Emoji-led Weekly section transform (bonus)
-□ Inline emphasis adjacency (bold + italic in adjacent paragraphs) — not yet started
-□ Em-dash / ellipsis / curly-quote character QA — planned as renderer pass + editor Typography extension
-□ Post-prose chrome alignment (AuthorStrap / SubscribeForm / ReadNext / FeedbackForm at 60ch) — not yet started
-□ navy.bright literal cleanup in prosemirror.css — define CSS custom property, swap two rgb literals
-~ Inline `<code>` and `<pre>` block styling — DEFERRED, not yet used in published articles
+PostHero            kicker-row [pillar label ←→ Week N gutter] → length-responsive Lora H1
+  └─ Byline         Zone A: avatar + name(575) + Lora-italic credential
+                    ── navy-frame hairline ──
+                    Zone B: date · read-time (navy-tone 13px)  ←→  ShareRow (44→36)
+.article-prose      Inter 18px body; strong=575; em=Inter italic 450; links=navy.bright + 1.6px border
+  (left rail: PostTOC at lg+ — "In this article", active=navy/575)
+── coda wrapper (max-w-[681px]) ──
+  AuthorStrap       duotone-navy portrait 128px + bio (no share block anymore)
+  SubscribeForm     weekly copy: "Subscribe to Weekly Adamastor"
+  ReadNext          "More opinion" cards
+  FeedbackForm      "Reader notes"
 ```
+
+Key tokens in play (full table in `docs/typography.md`): `navy #104357` (titles/body/byline-name), `navy.bright #1C6EB4` (inline links + Weekly kicker), `navy.bright-deep #0F5091` (link hover), `navy.tone #4D7689` (article secondary/credential/dateline), `navy.tint #A7E1FC` (blockquote hairline, name-hover underline, focus), `navy.frame #E8F0F4` (hairlines), `navy.veil` (hover bg), `orange.hue #E05E00` (Opinion kicker). Dark: `cyan.glow` (bright analogue), `cyan.lifted` (body), `cyan.dim` (secondary).
+
+H1 sizing in `PostHero` is **length-responsive**: ≤45 chars → `text-5xl`, ≤70 → `2.5rem`, 71+ → `2rem` (thresholds are best-guess — tune as titles accrue).
 
 ---
 
 ## Open follow-ups (carried forward)
 
-### From the typography audit specifically
+### Article-typography (the active thread)
 
-1. **Inline emphasis adjacency.** Audit how `<strong>` (575 weight) and `<em>` (Lora italic? or Inter italic?) read when stacked in adjacent paragraphs. Likely a small visual pass on the specimen post or a new test paragraph.
+- **Editor `@tiptap/extension-typography` pass** (~5 lines) — so Carlos sees curly quotes / em-dash / ellipsis *as he types*. Renderer pass (H above) already covers historical content; this closes the editor/rendered gap for new writing.
+- **Editor vs rendered styling divergence** — the TipTap editor renders body with default `.prose prose-lg`, **not** `.article-prose`. Carlos writes against one style, publishes another. Closing it = apply a subset of `.article-prose` rules to the editor content area.
+- **Code styling (`<code>` + `<pre>`) — deferred.** Not used in published articles today. Revisit for a technical-deep-dive or LisboaJS piece: Inconsolata against navy prose, navy-tint bg, padding, `<pre>` scroll.
+- **Threshold calibration for length-responsive H1** — 45 / 70 chars are best-guess.
+- **Body H1 content cleanup** — specimen has a stored `<h1>` paste artifact; CSS collapses it visually but the HTML is semantically wrong. One-time TipTap JSON migration.
+- **`orange-hue` text contrast** at small kicker sizes — unverified at AA Normal (now mostly 12px, but sidebar chrome still 10–11px).
 
-2. **Em-dash / ellipsis / curly-quote character normalisation.** Two-layer:
-   - **Renderer pass** (~40 lines, mirrors `lib/posts/normalize-emoji-lists.ts`): walks TipTap JSON in `PostPreview`, applies safe substitutions (straight quotes → curly, `--` → em-dash, `...` → ellipsis). Fixes *all historical content* immediately. Safe substitutions only — defer ` - ` → em-dash (ambiguous with compound words) and `1-10` → en-dash (needs number-range detection).
-   - **Editor pass**: wire TipTap's `@tiptap/extension-typography` (~5 lines) so Carlos sees smart characters as he types in the editor.
+### Platform / operations (carried for several handoffs)
 
-3. **Post-prose chrome alignment (60ch).** AuthorStrap / SubscribeForm / ReadNext / FeedbackForm currently sit at the full body column width (768px), not the 60ch reading column the prose body uses. Each has its own internal layout (AuthorStrap = photo+text flex, SubscribeForm = form fields, etc.), so a blanket 60ch constraint isn't safe — per-component judgment needed. Biggest remaining audit chunk.
-
-4. **navy.bright literal cleanup in prosemirror.css.** The link colour `rgb(28, 110, 180)` and hover `rgb(15, 80, 145)` are inlined twice in `.article-prose a`. Now that the Tailwind tokens exist, define matching CSS custom properties in `styles/globals.css` (or similar) and swap. Single source of truth.
-
-5. **Code styling (deferred).** Inline `<code>` and `<pre>` blocks. Carlos doesn't use code samples in published articles today. Revisit when an article needs it (likely a technical-deep-dive piece or anything in LisboaJS). At that point: Inconsolata against navy prose, navy-tint background, padding, scroll behaviour for `<pre>`.
-
-### From the previous handoff (still open)
-
-- **`authors.role` column.** Opinion byline role is derived from `authors.bio` first sentence via regex — uneven length. Dedicated column would replace the heuristic.
-- **Lighthouse baseline.** Run against `next build && next start` for objective SEO/perf score.
-- **`/llms.txt`** + `robots.txt` AI bot allowlist check + JSON-LD validation against Rich Results Test + sitemap submission.
-- **`orange-hue` text contrast** at small kicker sizes (10–11px) — unverified at AA Normal.
-- **SSL 526 on `www.adamastor.blog`** (P0, carried for several handoffs).
-- **Threshold calibration for length-responsive H1** — 45 and 70 chars are best-guess; tune as more titles appear.
-- **Kicker tracking sweep on `/events` and `/subscribe`** — both still use `tracking-[0.18em]`; publication-wide convention is now 0.14em.
-- **Body H1 content cleanup in stored content** — specimen has stored `<h1>` from a paste artifact; CSS collapses visually but HTML is semantically wrong. One-time TipTap JSON migration.
-- **Editor styling matches rendered styling** — TipTap editor uses default `.prose prose-lg`, not `.article-prose`. Carlos sees one thing while writing, another when published.
-- **Other operations items carried** — `social_links` DB rows, public calendar variant, newsletter cron + workers, email template tweaks, "unsubscribe from everything" page, dynamic OG images, PostHog event schema, white-on-gold contrast.
+- **SSL 526 on `www.adamastor.blog`** (P0).
+- **`authors.role` column** — Opinion byline credential is derived from `authors.bio` first sentence via regex; a dedicated column would replace the heuristic.
+- **Lighthouse baseline** against `next build && next start`.
+- **`/llms.txt`** + `robots.txt` AI-bot allowlist + JSON-LD validation (Rich Results Test) + sitemap submission.
+- **Kicker tracking sweep on `/events` + `/subscribe`** — both still `tracking-[0.18em]`; publication convention is now `0.14em`.
+- **Other ops** — `social_links` DB rows, public calendar variant, newsletter cron + workers, email template tweaks, "unsubscribe from everything" page, dynamic OG images, PostHog event schema, white-on-gold contrast.
 
 ---
 
 ## How to resume
 
-1. **Read this doc + `docs/typography.md`** to load context. The typography doc covers fonts, type stack, lists, blockquote, links, character QA conventions, the Weekly emoji-led sections, palette, and open follow-ups. Most decisions have inline justification.
-2. **Open the canvas**: the specimen post lives at `/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders`. The Weekly digest test post at `/posts/growing-up-week-20` exercises the emoji-led sections + multi-paragraph blockquote.
-3. **Pick the next item** from "Where the audit stands now" above. Suggested order: **#2 (character QA renderer pass)** is the highest-impact remaining item — fixes a publication-wide quality issue with ~40 lines. Then **#1 (emphasis adjacency)** as a quick visual pass. Then **#3 (post-prose chrome)** as the biggest chunk. **#4 (navy.bright literal cleanup)** can slot in anywhere as a 5-minute tidy.
-4. **Use `mcp__Claude_Preview__preview_inspect`** to read computed styles live — cheaper and more accurate than screenshots for typography work. Malik prefers live preview over screenshots (`feedback_no_screenshots.md` memory).
-5. **Update `docs/typography.md`** alongside each code change. Don't let the doc drift.
+1. **Read this doc + [`docs/typography.md`](docs/typography.md)** — the typography doc now carries the byline strap, ShareRow, PostTOC, em, character-QA, and chrome-alignment sections with full inline rationale.
+2. **Canvas posts**:
+   - Specimen (Opinion register, blockquote, links, em/strong adjacency): `/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders`
+   - Weekly digest (emoji-led sections, two-pillar kicker, Carlos byline): `/posts/growing-up-week-20`
+3. **Verify live with `mcp__Claude_Preview__preview_inspect`** to read computed styles — Malik prefers live preview over screenshots (`feedback_no_screenshots.md`). **Do not call `preview_screenshot`.**
+4. **Update `docs/typography.md` alongside each code change** — don't let the doc drift. Don't auto-rewrite `docs/design-system.md` to reconcile conflicts; surface options and ask (`feedback_design_system_changes.md`) — though Malik approved this session's design-system edits explicitly.
+5. **Likely next tweaks** (Malik's words: "tweak some elements inside the article pages"): the byline strap zones, PostTOC, the coda wrapper, or the pending editor-side smart-typography extension are all live surfaces.
 
 ---
 
-## Push reminder
+## Commit + push
 
-Branch is **63 commits ahead of `origin/main`**. Before pushing:
+⚠️ **Nothing this session is committed.** Working tree: **22 modified + 2 untracked** (`lib/posts/normalize-typography.ts`, `lib/posts/normalize-typography.test.ts`). Branch is **64 commits ahead of `origin/main`**.
 
-- `pnpm typecheck` — the pre-existing error in `lib/posts/related.ts:38` is unrelated; everything from this session is type-clean.
-- `pnpm build` — verify the new normaliser route, the link styling, the BulletListClassAttribute extension, and the variable Lora font load all compile cleanly.
+Before committing / pushing:
+
+- `pnpm test` — covers `normalize-typography.test.ts` (rules + marks/code-skip).
+- `pnpm typecheck` — pre-existing error in `lib/posts/related.ts:38` is unrelated; this session is type-clean.
+- `pnpm build` — verify the new normaliser route + the `getFeedCardLabel` rename compile (confirm **no dangling `getKickerLabel`** references — there were none at handoff time).
 - **Manual smoke**:
-  - `/posts/preview/[any-draft-slug]` should render the draft with the "Preview mode" banner.
-  - `/posts/[any-published-slug]` should render with the new typography (italic 475 blockquote, navy.bright links, emoji-led lists).
-  - **`/posts/growing-up-week-20`** — the Weekly digest that exercises the emoji-list transform and the blockquote. Should see proper `<ul>` with emoji-as-bullet across all four sections.
-  - **`/posts/preview/what-76-weeks-of-writing-taught-me-about-portuguese-founders`** — specimen for the blockquote (single em-dash on attribution) and the link colour.
-  - Editor `/` slash menu: confirm only "Heading 1" and "Heading 2" appear (mapping to `<h2>` and `<h3>` respectively, no `<h1>` option).
-  - Paste `# Some Title` from a markdown source into the editor — should land as `<h2>`, not `<h1>` (paste transform from prior session).
-- **Source content with straight quotes still renders as straight quotes** — character QA renderer pass is not yet shipped. Don't be surprised by `"`, `'`, `--` on rendered articles until #2 above is done.
+  - `/posts/growing-up-week-20` — Weekly: navy.bright kicker + "Week N" right gutter, emoji-led `<ul>`, two-zone byline with share at top, character-QA (curly quotes / em-dash now rendered).
+  - `/posts/preview/what-76-weeks-...founders` — Opinion: orange kicker, byline credential in Lora italic, navy.bright links, em=Inter italic 450 vs strong=575.
+  - Coda hairlines (`AuthorStrap` / `SubscribeForm` / `ReadNext` / `FeedbackForm`) align edge-to-edge with the prose column (681px).
+  - PostTOC at `lg:`+ reads "In this article"; active item is navy/575 with the filled-in hairline.
+- **Reminder**: per Malik's global config, **no `Co-Authored-By: Claude` trailer** on commits and **no "Generated with Claude Code"** footer on any PR.

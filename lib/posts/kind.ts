@@ -45,28 +45,15 @@ export function getWeekLabel(title: string): string | null {
 }
 
 /**
- * Compact label used in the homepage feed card rows. Mirrors the
- * post-page kicker register exactly: a reader who scans "THE ADAMASTOR
- * WEEKLY" / "OPINION" on a card lands on the post page and meets the
- * same label, instead of being trained on a parallel "WEEKLY DIGEST" /
- * "GUEST ARTICLE" vocabulary that contradicts the publication name.
+ * The kicker / card label for a post, used publication-wide: homepage feed
+ * rows, the homepage featured hero, and the post-page hero all consume this,
+ * so a reader who scans "WEEKLY ADAMASTOR" / "OPINION" on a card lands on the
+ * post page and meets the same label.
  *
- * The week number is appended on the hero + post page only (where it's
- * the editorial differentiator), not on river cards (where it would
- * compete with the per-row week-label gutter on the right).
+ * The week number ("· Week N") is appended alongside this label on the heroes
+ * (where it's the editorial differentiator), not on river cards (where it
+ * would compete with the per-row week-label gutter on the right).
  */
-export function getFeedCardLabel(kind: PostKind): "The Adamastor Weekly" | "Opinion" {
-	return kind === "weekly" ? "The Adamastor Weekly" : "Opinion";
-}
-
-/**
- * Full kicker line for the post detail hero — uppercase + tracked, set on the
- * page in Lora at small caps. Weeklies merge the week number into the kicker
- * ("THE ADAMASTOR WEEKLY · WEEK 21"); Opinion is just "OPINION".
- */
-export function getKickerLabel(kind: PostKind, weekLabel: string | null): string {
-	if (kind === "weekly") {
-		return weekLabel ? `The Adamastor Weekly · ${weekLabel}` : "The Adamastor Weekly";
-	}
-	return "Opinion";
+export function getFeedCardLabel(kind: PostKind): "Weekly Adamastor" | "Opinion" {
+	return kind === "weekly" ? "Weekly Adamastor" : "Opinion";
 }

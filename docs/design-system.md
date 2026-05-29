@@ -676,7 +676,7 @@ A "section" is a meaningful grouping (Stats, By category, Recent activity). Each
 
 ### Author strap
 
-A horizontal byline for editorial content with a known author (e.g. the "Adamastor Weekly" card on `/preferences` and `/subscribe`). Lifts the author *out* of the card so the card stays clean while still surfacing credit + credentials + a way to reach them.
+A horizontal byline for editorial content with a known author (e.g. the "Weekly Adamastor" card on `/preferences` and `/subscribe`). Lifts the author *out* of the card so the card stays clean while still surfacing credit + credentials + a way to reach them.
 
 - Container: `flex items-start gap-3`
 - Avatar: `h-10 w-10 shrink-0 rounded-full object-cover` (~40px portrait)
@@ -701,7 +701,7 @@ Bottom-of-viewport fixed bar that surfaces a primary form action when (a) the us
 
 - Container: `fixed inset-x-0 bottom-0 z-40 border-t border-navy-frame bg-background/95 shadow-[0_-1px_4px_-2px_rgba(8,41,58,0.05)] backdrop-blur-sm`
 - Inner: `mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 md:px-8`
-- Left: tight selection summary (e.g. "Adamastor Weekly + 1 topic"), `text-xs font-medium text-navy`
+- Left: tight selection summary (e.g. "Weekly Adamastor + 1 topic"), `text-xs font-medium text-navy`
 - Right: primary action — same gold pill as the in-form submit, with the `form="<form-id>"` attribute so the button submits the offscreen form
 - Mount animation: `motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-300 motion-safe:ease-out`
 - Gating: visibility tracked via `IntersectionObserver` on the in-form submit row. Bar hides when submit re-enters the viewport. Also gated on `!leaving && !done` so it dismounts during the form fade-out and never lingers over the success state.
@@ -713,7 +713,7 @@ Subtle shadow only — never enough to compete with page content. Used on `/subs
 The shadcn `AlertDialog` defaults visually emphasize the action button. For dialogs that should encourage the user to *stay* (leave-page guards, discard-changes prompts), flip the hierarchy.
 
 - Title: Lora Bold, navy, `text-2xl font-bold leading-tight [font-family:var(--font-lora-bold)]`
-- Description: surface concrete state ("You're one click away from Adamastor Weekly + 1 topic.") so the user sees what they'd lose, not just an abstract warning
+- Description: surface concrete state ("You're one click away from Weekly Adamastor + 1 topic.") so the user sees what they'd lose, not just an abstract warning
 - Content border: override to `border-navy-frame` to match the page-level border tone
 - **Cancel button** (the wanted action — "Stay and subscribe"): gold pill, `rounded-full bg-gold-hue font-semibold text-white hover:bg-gold-shade`, includes the arrow icon (mirrors the in-form submit)
 - **Action button** (the unwanted action — "Leave anyway"): quiet text link, `bg-transparent text-sm text-muted-foreground hover:bg-transparent hover:text-navy hover:underline` — never destructive red (red signals an error or harm; this is just the less-preferred path, not a destructive one)
@@ -1061,7 +1061,7 @@ The canonical composition for a single-article reading surface (`/posts/[id]`). 
 
 **Kind-aware behavior** (`lib/posts/kind.ts`):
 - Posts are classified as `weekly` or `opinion`. Heuristic: Carlos Resende author OR title contains `Week N` → weekly; else opinion.
-- Kicker label: `getKickerLabel(kind, weekLabel)` returns "The Adamastor Weekly · Week 21" or "Opinion".
+- Kicker label: `getFeedCardLabel(kind)` returns "Weekly Adamastor" or "Opinion". The `Week N` marker (from `getWeekLabel()`) is **not** concatenated into the label — it renders separately in the kicker row's right gutter (see two-pillar kicker note under Cross-route consistency).
 - Title display: `getDisplayTitle()` strips the `| Week N` suffix from Weekly titles.
 - Read-next: shown only on Opinion (3 recent Opinions; the Subscribe coda is the natural exit ramp for Weeklies).
 - Author strap CTA: "More from Carlos →" appears on Weekly only.
@@ -1075,10 +1075,17 @@ Rules that span more than one editorial template (`/`, `/posts/[id]`, `/events`,
 
 | Kind | Card kicker (homepage river, sidebar) | Hero / post-page kicker | Subscribe coda heading | Sticky bar label |
 |---|---|---|---|---|
-| Weekly | `THE ADAMASTOR WEEKLY` | `THE ADAMASTOR WEEKLY · WEEK N` | `Subscribe to The Adamastor Weekly` | `The Adamastor Weekly · Every Tuesday` |
+| Weekly | `WEEKLY ADAMASTOR` | `WEEKLY ADAMASTOR` + `Week N` right gutter | `Subscribe to Weekly Adamastor` | `Weekly Adamastor · Every Tuesday` |
 | Opinion | `OPINION` | `OPINION` | `Subscribe to Adamastor` | `Adamastor` |
 
-`getFeedCardLabel(kind)` in `lib/posts/kind.ts` is the single source of truth for the card kicker. It used to return `"Weekly Digest" / "Guest Article"` — both retired in favour of the canonical publication-name vocabulary, so a reader sees the same noun on `/`, `/posts/[id]`, and the sidebar Opinion stack. Don't introduce a third short form. `"Adamastor Weekly"` without the article appears in list contexts (subscription preference checkboxes, JSON-LD entity names) where the leading "The" reads stilted — that's an intentional exception.
+`getFeedCardLabel(kind)` in `lib/posts/kind.ts` is the single source of truth for the card kicker. It used to return `"Weekly Digest" / "Guest Article"` — both retired in favour of the canonical publication-name vocabulary, so a reader sees the same noun on `/`, `/posts/[id]`, and the sidebar Opinion stack. Don't introduce a third short form. The publication name dropped its leading "The": the brand is **`Weekly Adamastor`** (bare) in every label, kicker, heading, and CTA. A referential "the" is still correct in flowing prose that points at *the* newsletter (e.g. the Masthead dek: "…The Weekly Adamastor every Tuesday…") — that's grammar, not the name. The old `getKickerLabel()` helper (which concatenated the week into the label string) was deleted; the week marker is now a separate gutter element.
+
+**Two-pillar kicker accent** (publication-wide — homepage river, featured hero, sidebar Opinion, and the `/posts/[id]` hero):
+
+- **Weekly** kicker is `text-navy-bright` (`#1C6EB4`, the cool brand-blue — same token as the inline-link rest colour) / `dark:text-cyan-glow`.
+- **Opinion** kicker is `text-orange-hue` (`#E05E00`, the warm "named voice" accent).
+- A reader who scans a kicker colour on `/` meets the same colour when they land on the article — the accent *is* the kind signal.
+- Kicker row layout is `[pillar-coloured label] ←→ [Week N, right gutter]` via `flex … justify-between`. The week marker is title-case ("Week 21", not uppercase), `text-muted-foreground/75` — quiet edition metadata, deliberately neutral gray rather than navy-tinted (it's the quietest tier).
 
 **Photo treatment policy** (when does the duotone filter apply?):
 
@@ -1394,7 +1401,7 @@ Side effect: ensures every decorated outbound link has `target="_blank"` and `re
 
   Open question: should "Subscribe to the Weekly" use the same hover-background pattern as "Submit your event" (consistent register for sub-CTAs that route to forms), or keep the underline-led editorial inline link? Currently leaning toward inline-action-with-hover-background for both, since they're parallel actions structurally. Resolve before any new sub-CTA lands so we don't pile up a third precedent.
 - **Blockquote variant pending decision.** `/posts/[id]` ships with a temporary `QuoteVariantPicker` that toggles between four variant rules in `styles/prosemirror.css` (`.quote-a` Marginal Glyph, `.quote-d` Indent Margin, `.quote-e` Twin Apertures, `.quote-f` Tactile Broadside). Once a direction is picked, delete the picker + the three unchosen rules + promote the chosen rule to an unscoped `.article-prose blockquote`.
-- **`authors.role` column** (DB schema). Opinion byline role line is currently derived from `authors.bio` first sentence — uneven length, mixes credentials with project pitches. Adding `authors.role` (short headline-style credential, NYT-style 60–80 chars) would replace the heuristic with a controlled string per contributor. Carlos's canonical row would store "Co-founder of Adamastor. Curates The Adamastor Weekly since 2017." or similar.
+- **`authors.role` column** (DB schema). Opinion byline role line is currently derived from `authors.bio` first sentence — uneven length, mixes credentials with project pitches. Adding `authors.role` (short headline-style credential, NYT-style 60–80 chars) would replace the heuristic with a controlled string per contributor. Carlos's canonical row would store "Co-founder of Adamastor. Curates Weekly Adamastor since 2017." or similar.
 - **White text on gold pills (a11y).** The gold pill (`bg-gold-hue #D4A657` + `text-white`) has a 2.23:1 contrast ratio — fails WCAG AA. Used on the navbar Subscribe pill, the form-page submits, and the post-page Subscribe coda + sticky bar. Per Malik's call (this session), the brand convention is white-on-gold across all pills. A future a11y pass may revisit (the previous proposal — navy-on-gold — was rejected). Workaround until then: ensure the gold pill text is large enough (text-sm + font-semibold satisfies AA Large Text at 4.5:1 minimum is still failed, but it's the lightest violation; flag as a known issue).
 - **`orange-hue` text contrast (a11y).** `text-orange-hue` (`rgb(224, 94, 0)`) on white at small text sizes (`text-[10px]` / `text-[11px]` kickers) has not been measured. Used on every Opinion kicker (river card, hero kicker if re-enabled, sidebar Opinion module, sidebar item, ReadNext). Likely passes AA Large Text but may fail AA Normal at these sizes. Worth measuring with axe / Lighthouse once a Lighthouse pass is possible against a production build. If it fails, the cleanest fix is darkening to an `orange-shade` variant for text use while keeping `orange-hue` for arrow-tip icons.
 - **FeaturedHero hidden, not deleted.** `components/home/FeaturedHero.tsx` is in source but unrendered by `app/(main)/page.tsx` (deliberate — held back for a future revisit). Re-enabling is a 3-line restore: re-add the import, the `const [heroPost, …riverPosts] = posts;` destructure, the conditional `{heroPost ? <FeaturedHero post={heroPost} /> : null}`, and pass `riverPosts` (not `posts`) to `<PostRiver/>`. Restore the `<DuotonePortraitFilter/>` mount too if the revisit brings back duotone portraits (current direction is clean circles, no filter).

@@ -12,8 +12,12 @@ interface ShareRowProps {
 	className?: string;
 }
 
+// 44×44 hit target at mobile (Apple HIG / Material / WCAG 2.5.5 AAA);
+// compresses to 36×36 at sm+ where mouse precision makes the larger target
+// feel like wasted chrome. Icon stays 16×16 in both; only the surrounding
+// hit-area scales.
 const iconButton =
-	"inline-flex h-9 w-9 items-center justify-center rounded-full text-navy-tone transition-colors hover:bg-navy-frame hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40";
+	"inline-flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-navy-tone transition-colors hover:bg-navy-veil/40 hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 dark:text-cyan-dim dark:hover:bg-cyan-glow/[0.06] dark:hover:text-cyan-lifted";
 
 export default function ShareRow({ className }: ShareRowProps) {
 	const [copied, setCopied] = useState(false);

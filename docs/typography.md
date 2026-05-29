@@ -14,7 +14,7 @@ Configured in [`styles/fonts.ts`](../styles/fonts.ts), wired into `<html>` via C
 |---|---|---|---|
 | **Inter** | Variable font, all weights 100–900, normal | `--font-inter` | Body, UI, all sans-serif type. The publication's default voice. |
 | **Lora Bold** | 700 normal + 700 italic | `--font-lora-bold` | Editorial display. Page H1, navbar strapline, footer tagline, module headings. |
-| **Lora Italic** | Variable axis 400–700 italic | `--font-lora-italic` | Blockquote body (rendered at 475). Loaded as variable font so we can target weights between discrete steps. Separate from Lora Bold to avoid weight-pool merging (see "Lora weight pooling" below). |
+| **Lora Italic** | Variable axis 400–700 italic | `--font-lora-italic` | Blockquote body (rendered at 475); byline credential line (rendered at 400 / 14px). Two "set-apart voice" cues: quotation, and writer-self-description. Loaded as variable font so we can target weights between discrete steps. Separate from Lora Bold to avoid weight-pool merging (see "Lora weight pooling" below). |
 | **Inconsolata** | 400 + 700 (separate calls) | `--font-inconsolata`, `--font-inconsolata-bold` | Code blocks, inline `code`, technical content. |
 
 #### Lora weight pooling — the trap
@@ -65,13 +65,57 @@ The tier is computed server-side from `displayTitle.length`. Short titles get fu
 - `leading-tight tracking-tight`
 - Lives inside the 60ch reading column (see "Header ↔ prose alignment" below)
 
+### Byline strap
+
+Defined in [`app/(main)/posts/[id]/Byline.tsx`](../app/(main)/posts/[id]/Byline.tsx). Sits below the H1, bracketed by two `navy-frame` hairlines. **No "By" prefix.**
+
+The strap is **two zones split by an internal hairline**, each zone holding one kind of concern. The split is the whole point: it keeps "who's speaking" from blurring into "reader tooling".
+
+| Zone | Element | Spec |
+|---|---|---|
+| Strap | container | `border-y border-navy-frame` (outer hairlines); no padding on the container itself — each zone pads independently |
+| **A — Author identity** | row | `flex items-start gap-4 py-5` |
+| | Avatar | 56×56 (`h-14 w-14`) with initials fallback |
+| | Name link | Inter **15px** (`text-[15px]`), weight **575**, `text-navy`. No underline at rest. Hover: `underline` + `decoration-navy-tint` + `decoration-2` + `underline-offset-4`. |
+| | Credential | **Lora italic** (`[font-family:var(--font-lora-italic)] italic font-normal`) **14px**, `text-navy-tone`, `max-w-[44ch]`, `hyphens-manual` |
+| **B — Utility bar** | row | `border-t border-navy-frame py-2.5`; `flex flex-col gap-2` → `sm:flex-row sm:items-center sm:justify-between sm:gap-0` |
+| | Metadata | Date + read time, Inter **13px**, `text-navy-tone`, bullet separator. Left side. |
+| | ShareRow | Right side at `sm:`+ (`-mr-2` optical pull); stacks under metadata on mobile (`-ml-2` left-aligns). |
+
+**Why two zones, not one stacked column** (the fix that landed 2026-05-29): the avatar, name, and credential all answer *who's speaking* — that's editorial voice, set in full navy + Lora italic. The date, read-time, and share buttons are all *reader tooling* — when, how long, and how to pass it on. Mixing the two (e.g. date·read-time stacked under the credential, sharing a text column with the author photo) reads as undifferentiated generic-CMS chrome. The internal hairline + the quieter navy-tone register on Zone B is what makes the eye parse identity-block vs. utility-bar instantly. Stratechery, NYT, Guardian, The Atlantic all give the meta/share row its own lane.
+
+**Why the credential is Lora italic, not Inter**: this is a deliberate second role for the Lora italic font, sibling to the blockquote. Both blockquote (Lora italic 475) and the byline credential (Lora italic 400) are "set-apart voice" cues — quotation and writer-self-description share a register because both are *not the body prose*. The italic at 14px also solves the previous "12px reads too small" problem: Inter 12px was the kicker register, used for prose. 14px Lora italic carries proper editorial weight.
+
+For Weekly posts the credential is a fixed string (Carlos's role); for Opinion posts it's pulled from the first sentence of the guest author's bio. Both feed the same line. See `Byline.tsx → authorTag()`.
+
+**Why the name weight is 575, not 600**: matches `.article-prose strong` and `PostTOC` active — same emphasis station across the publication. 600 would sit at H3 weight, which is overcommitted for a byline anchor.
+
+**Why the name link has no underline at rest** (per Guardian doc): byline links should carry "no underline at rest, subtle colour shift from surrounding text." The shift is produced by the surrounding metadata being `navy-tone` while the name is `navy`. Hover restores the underline as the two-axis affordance.
+
+**Distinct from body inline links** (`navy.bright` + 1.6px border-bottom): body links are pillar-coloured ("interactive register" inside prose). Byline links are chrome — quieter. Don't unify the two registers.
+
+### ShareRow — placement in the byline utility bar
+
+Defined in [`app/(main)/posts/[id]/ShareRow.tsx`](../app/(main)/posts/[id]/ShareRow.tsx), rendered in **Zone B of the byline strap** (top of the article), on the right of the date · read-time metadata.
+
+Placement history: started in the byline → moved into `AuthorStrap` below the article (2026-05-29, "read → meet → share" sequence) → moved **back to the top byline** (2026-05-29, same day). The deciding factor: share affordances need to be in view *on entry* — a reader who wants to pass an article on shouldn't have to scroll to the very bottom to find the buttons. They now live with the other reader-tooling (date, read-time) in the utility bar. `AuthorStrap` no longer carries a share block.
+
+| Element | Spec |
+|---|---|
+| Container | Right-aligned in Zone B at `sm:`+ via the parent's `justify-between`; stacks below metadata on mobile. |
+| Buttons | 44×44 hit area at mobile, `sm:` 36×36; 16×16 icon centred; `rounded-full`; `aria-label` on every button. Hover: `bg-navy-frame` + `text-navy`. Focus-visible: `ring-2 ring-navy/40`. |
+
+**Why share targets scale 44 → 36**: 44×44 at mobile satisfies Apple HIG / Material / WCAG 2.5.5 AAA touch standards. At `sm:`+ mouse precision makes the larger target read as wasted chrome, so it compresses to 36×36. The icon glyph stays 16×16 in both; only the surrounding hit-area scales.
+
+**Why the share row stacks on mobile**: five 44px targets (220px) plus the date string overflow a ~343px content column. Zone B is `flex-col` on mobile (metadata, then share row beneath) and only switches to the side-by-side `justify-between` bar at `sm:`+ where the width is there.
+
 ### Kicker labels (small-caps tracked labels)
 
-Used for: post-page kicker ("OPINION", "THE ADAMASTOR WEEKLY · WEEK 21"), section kickers in /about, Subscribe section labels, ReadNext "More opinion", AuthorStrap "About the author", Reader notes, PostTOC "Contents", masthead module headings, navbar sections (ARTICLES / EVENTS).
+Used for: post-page kicker ("OPINION", "THE ADAMASTOR WEEKLY · WEEK 21"), section kickers in /about, Subscribe section labels, ReadNext "More opinion", AuthorStrap "About the author", Reader notes, PostTOC "In this article", masthead module headings, navbar sections (ARTICLES / EVENTS).
 
 - **Font**: Inter SemiBold 600
 - **Case**: UPPERCASE via `uppercase` utility (source text stays sentence-cased)
-- **Size**: 10–12px depending on context (`text-[10px]` / `text-[11px]` / `text-xs`)
+- **Size**: **12px (`text-xs`) is the publication default** for editorial-context kickers (post-page, AuthorStrap, Subscribe, Reader notes, ReadNext, PostTOC). 10–11px (`text-[10px]` / `text-[11px]`) remains in sidebar chrome (home sidebar, dashboard nav) where the lower information density earns a quieter scale.
 - **Color**: `text-navy-tone` (Weekly + neutral kickers), `text-orange-hue` (Opinion kickers)
 - **Tracking**: `tracking-[0.14em]` — unified across the publication
 
@@ -113,6 +157,18 @@ Defined in [`styles/prosemirror.css`](../styles/prosemirror.css). Applied to:
 **Why 575**: at the default `prose strong` weight of 600, bold lead-ins (Carlos's "**Startup Grind Lisbon Pitch Awards 2026**" pattern) created per-line density that made every line of news-item lists feel bold-heavy. Each line was visually a wall. 575 keeps the "this is important" scan cue without dominating the line, and opens a clear 125-weight gap to H2's 700.
 
 If the brand register ever shifts toward heavier publication voice (NYT/Guardian's `strong` sits at 700), this is the dial.
+
+### Em (inline italic)
+
+- **Font**: Inter italic (stays in the body family — see "Why not Lora italic" below)
+- **Weight**: **450** — slight lift from body's 400, well below `strong`'s 575. Inter variable axis, no extra load.
+- Same colour, family, size, and line-height as body
+
+**Why a 450 bump**: at body 400, Inter italic is visible but quiet — the slant carries the whole emphasis signal. A small weight lift (+50) makes the italic feel deliberate without crowding toward `strong`. Sits in the "edge of still a tint" zone (Butterick: *smallest visible increment for emphasis*). Still a 125-weight gap to `strong`'s 575, so the bold/italic distinction stays unambiguous.
+
+**Why not Lora italic**: a serif italic against an Inter sans body would introduce a visible cross-family texture switch mid-paragraph — reads as ornament rather than emphasis on the web. Butterick's "italic sans barely stands out" rule is a print-era observation (10pt magazine bodies); at 18px on modern screens with anti-aliasing, Inter italic's slant is plenty visible. Most contemporary editorial web (Stratechery, The Verge, NYT digital, Guardian online) keeps `<em>` in the body family for the same reason. Lora is reserved for its established editorial-moment roles: headlines (Lora Bold) and blockquote (Lora italic 475).
+
+**Adjacency note**: the design intentionally keeps emphasis single-axis from body — `<strong>` changes only weight, `<em>` changes only style (with the small 450 nudge). When a strong-led paragraph sits next to an em-led paragraph (real in the specimen post), the shared family/size/colour preserve the texture; the eye picks up the changing axis without rebuilding the rhythm.
 
 ### Body H1 — collapsed to H2 styling
 
@@ -185,7 +241,7 @@ If items spaced at the same 24px as paragraphs, the list-ness signal collapses a
 
 **TipTap-injected classes**: only `list-disc list-outside` and `list-decimal list-outside`. The `<li>` extension injects no class. The `tight` marker class (emitted by `tiptap-markdown`'s library default) appears on every list wrapper but no CSS targets it — harmless metadata, kept to avoid overriding a library default for no reason.
 
-### The Adamastor Weekly — emoji-led sections
+### Weekly Adamastor — emoji-led sections
 
 The Weekly has four recurring sections that read as coordinated sets of items: **Highlights of the week** (🔷), **Congrats** (👏), **Read / Listen / Watch** (📚 / 🎧 / 🎥), and (sometimes) **Events / opportunities** (💡). Each item is written as a `<p>` prefixed with the section's emoji. **Carlos writes the same way he always has**; the renderer coerces these paragraph-runs into real bulleted lists at render time.
 
@@ -252,7 +308,7 @@ The Read/Listen/Watch section is the one exception worth thinking about — diff
 
 ### Inline links inside prose
 
-The link colour itself is the primary affordance — a distinct saturated mid-blue (candidate name **navy.bright**, currently inlined as `rgb(28, 110, 180)`) lifts the link out of the body navy register so the colour alone reads as "interactive." Border-bottom is secondary. This follows the [Guardian doc](inspiration-guardian.md) principle that *"link colour is pillar-coloured"* — even on a single-pillar publication like Adamastor, the link colour shouldn't equal the body colour, or the affordance signal collapses.
+The link colour itself is the primary affordance — a distinct saturated mid-blue (**navy.bright** = `#1C6EB4`) lifts the link out of the body navy register so the colour alone reads as "interactive." Border-bottom is secondary. This follows the [Guardian doc](inspiration-guardian.md) principle that *"link colour is pillar-coloured"* — even on a single-pillar publication like Adamastor, the link colour shouldn't equal the body colour, or the affordance signal collapses.
 
 **Design** (defined in [`styles/prosemirror.css`](../styles/prosemirror.css)):
 
@@ -272,7 +328,7 @@ The link colour itself is the primary affordance — a distinct saturated mid-bl
 
 **Why the two-axis hover**: colour deepens AND border thickens. Two simultaneous visual changes register pre-attentively as "I'm hovering this" without needing a heavy state change. Guardian's principle.
 
-**Palette token TODO**: `navy.bright` is currently inlined as `rgb(28, 110, 180)`. Should be promoted to a named token in the design system (CSS custom property + Tailwind config) once the colour is settled — sibling to `navy`, `navy-tone`, `navy-tint`, `navy-frame`, `navy-veil`. See "Palette token for navy.bright" in `docs/design-system.md` once added.
+**Palette tokens**: `navy.bright` (`#1C6EB4`) and `navy.bright-deep` (`#0F5091`) are defined in [`tailwind.config.ts`](../tailwind.config.ts) under the navy family, and mirrored as the `--prose-link` / `--prose-link-hover` CSS custom properties on `.article-prose` in [`styles/prosemirror.css`](../styles/prosemirror.css) (the only consumer today). Promote the custom properties to `:root` if a non-prose surface ever needs the link colour.
 
 ### Blockquote — Lora italic 475 with navy-tint hairline
 
@@ -320,13 +376,43 @@ Implementation: `PostHero`'s `<header>` is `max-w-[60ch] mx-auto text-lg`.
 
 **The `text-lg` is load-bearing**: the `ch` unit is computed from the element's own font-size. The header inherits the body default (16px), but the prose computes `ch` at 18px (prose-lg). Without setting the header's font context to 18px, `60ch` on the header would resolve ~60px narrower than on the prose — invisibly misaligned. `text-lg` (18px) pins the context. The kicker, H1, and Byline all have their own explicit `text-*` sizes that override the inherited 18px, so the only effect of `text-lg` is to standardize the `ch` calculation.
 
-### Post-prose chrome — currently unaligned
+### Post-prose chrome alignment
 
-`AuthorStrap`, `SubscribeForm`, `ReadNext`, `FeedbackForm` currently sit at the full body-column width (768px), not the 60ch reading column. **This is a known open follow-up** — see "Open follow-ups" below.
+`AuthorStrap`, `SubscribeForm`, `ReadNext`, and `FeedbackForm` are wrapped at the page level in a single 681px-cap container so their hairlines and content edges align exactly with the prose column above them. Without this, each section's `border-t border-navy-frame` would extend ~43px past each side of the prose (the article container holds the body column at 48rem / 768px; prose narrows itself to 60ch / 681px), producing a visible alignment break at the coda.
 
----
+**Why 681px and not `60ch`**: the `ch` unit resolves against the element's own font-size. Prose computes `60ch` inside the `prose-lg` (18px Inter) context → 681.3px. The chrome wrapper has no prose context — chrome owns its own type discipline — so `60ch` on the wrapper would resolve against the inherited 16px and land ~75px narrower than the prose. The literal 681px value pins the chrome to the prose's resolved width directly. If the prose font-size ever changes, recompute: 60 × ch-width of Inter at the new size.
 
-## Editor policy (TipTap / novel)
+**Why a single wrapper, not per-component**: the four coda components form one semantic group ("post coda") and all align to the same width. A page-level wrapper means one source of truth — if the reading column ever changes, one edit moves all four sections. Per-component widths would risk drift. The wrapper sits in [`app/(main)/posts/[id]/page.tsx`](../app/(main)/posts/[id]/page.tsx) and [`app/(main)/posts/preview/[id]/page.tsx`](../app/(main)/posts/preview/[id]/page.tsx) — both routes mirror each other so preview parity is preserved.
+
+**Internal layouts at 681px** (audited safe):
+- `AuthorStrap` — photo (128px) + 32px gap + text column (~520px). Bio already capped at 55ch internally.
+- `SubscribeForm` — 2-column input grid → each input ~340px (well above usable). Heading/dek already at 55ch.
+- `ReadNext` — row-based opinion cards; width-tolerant.
+- `FeedbackForm` — textarea reads as more inviting at 681px than at 768px.
+
+At tablet and below the article container is full-width anyway; the wrapper's `max-w-` doesn't apply and prose + chrome both fill the column naturally.
+
+### PostTOC — left-rail navigation
+
+Floats in the 12rem left column at `lg:` and above. Hidden below — small screens correctly let body lead.
+
+| Element | Spec |
+|---|---|
+| Kicker "In this article" | Inter 12px / 600, uppercase, `tracking-[0.14em]`, `navy-tone` — matches the publication kicker default |
+| Item (inactive) | Inter 14px / 400, `navy-tone`, line-height 1.375 (`leading-snug`) |
+| Item (active) | Inter 14px / **575**, `navy`, 1px `navy` left border |
+| Inactive rule | 1px `navy-frame` on the `<ol>` (the vertical hairline spanning all items) |
+| Active border | 1px `navy` on the active `<a>`, overlaid on the ol's frame border via `-ml-px` |
+| H3 indent | 8px (`pl-2`) — restrained per Butterick |
+| Item gap | `space-y-2` (8px) |
+
+**Why the label is "In this article" and not "Contents"**: "Contents" is the wiki/book/Notion-doc register — clinical, reference-flavored. The rest of the page's kickers ("About the author", "More opinion", "Reader notes", "Subscribe") are editorial noun-phrases addressed to the reader, matching the Guardian-inspired register. "Contents" was the odd one out. "In this article" is the serious-editorial-web convention (NYT, WaPo) and reads as the publication addressing the reader rather than describing structure to itself. Accessible name on the `<nav>` stays `aria-label="Article contents"` — terser, reads better as a landmark name to screen readers than the visible editorial label would.
+
+**Why active weight is 575, not 600**: matches `.article-prose strong` so the page maintains one consistent emphasis ladder (body strong = TOC active). At sidebar 14px, 575 is still pre-attentive against the 400 inactive items. Previously at 600 it sat at H3 weight — overcommitted for a passive scroll indicator.
+
+**Why the active accent stays `navy` (not `navy.bright`)**: the active state is *passive* — it tracks the reader's scroll position, the reader didn't click it. `navy` reads as "you are here" and matches the body anchor; `navy.bright` would read as "this is clickable" and pull the eye toward a discoverable link. `navy.bright` is reserved for prose inline links, where the colour is the affordance.
+
+**Why a single hairline + per-item overlay**: the ol's `border-l border-navy-frame` provides the always-on vertical rail. Each item's `border-l` is transparent by default; on the active item it switches to `border-navy`. Because the item has `-ml-px`, its border sits exactly on top of the ol's border at the same x-coordinate — so the active accent appears to "fill in" the existing hairline rather than introducing a new line. Visual logic = clean.
 
 ### Heading levels restricted to [2, 3]
 
@@ -397,7 +483,7 @@ For full color tokens (background tints, button fills, etc.), see `docs/design-s
 
 Things that came out of the typography audit but weren't shipped yet:
 
-1. **Post-prose chrome alignment.** `AuthorStrap`, `SubscribeForm`, `ReadNext`, `FeedbackForm` sit at the full body column width (768px), not the 60ch reading column. Same misalignment as the pre-fix `PostHero` had. Each component has its own internal layout (AuthorStrap has photo+text flex, SubscribeForm has form fields), so a blanket 60ch constraint isn't safe — each needs individual review.
+1. ~~**Post-prose chrome alignment.**~~ — shipped 2026-05-29. All four chrome components (`AuthorStrap`, `SubscribeForm`, `ReadNext`, `FeedbackForm`) are now wrapped in a single `<div className="mx-auto w-full max-w-[681px] space-y-8 md:space-y-12">` inside both [`app/(main)/posts/[id]/page.tsx`](../app/(main)/posts/[id]/page.tsx) and [`app/(main)/posts/preview/[id]/page.tsx`](../app/(main)/posts/preview/[id]/page.tsx). See [Post-prose chrome alignment](#post-prose-chrome-alignment) for the rationale and the 681px math.
 
 2. **Editor vs rendered styling divergence.** The TipTap editor renders body content with default `.prose prose-lg` styling, *not* `.article-prose` overrides. Carlos sees one thing while writing and a different thing when published. Closing this gap means applying a subset of `.article-prose` rules to the editor's content area.
 
@@ -412,16 +498,26 @@ Things that came out of the typography audit but weren't shipped yet:
    - ~~Ordered list with multi-sentence items~~ — covered by the same list-rhythm rule
    - ~~Blockquote variant pick~~ — shipped 2026-05-28 (Lora italic 475 + 4px navy-tint full-height hairline)
    - ~~Inline link long-URL wrap behavior~~ — shipped 2026-05-28 (`overflow-wrap: anywhere`, navy.bright link colour, 1.6px border-bottom)
-   - ~~Emoji-led section transform~~ — shipped 2026-05-28 (Weekly emoji-paragraph runs auto-coerce to `<ul class="emoji-list">` at render time; see "The Adamastor Weekly — emoji-led sections")
-   - Inline emphasis adjacency (bold + italic in adjacent paragraphs) — **not yet started**
-   - Em-dash / ellipsis / curly-quote character QA — **not yet started; render-time + editor normalisation planned**
+   - ~~Emoji-led section transform~~ — shipped 2026-05-28 (Weekly emoji-paragraph runs auto-coerce to `<ul class="emoji-list">` at render time; see "Weekly Adamastor — emoji-led sections")
+   - ~~Inline emphasis adjacency (bold + italic in adjacent paragraphs)~~ — shipped 2026-05-29. Verified single-axis emphasis is the right discipline: `<strong>` = Inter 575 (weight axis), `<em>` = Inter italic 450 (style axis + slight weight lift). Kept `<em>` in the body family rather than promoting to Lora italic — cross-family mid-paragraph reads as ornament on the web. See [Em (inline italic)](#em-inline-italic).
+   - ~~Em-dash / ellipsis / curly-quote character QA (renderer pass)~~ — shipped 2026-05-29; editor `@tiptap/extension-typography` pass still pending (see item #8 below)
    - **Code styling (inline `code` + multi-line `<pre>`) — deferred.** Carlos doesn't currently use code samples in published articles, so the existing `@tailwindcss/typography` defaults are acceptable. Revisit when an article needs code (likely a technical-deep-dive piece, or anything in LisboaJS). At that point: Inconsolata against navy prose, navy-tint background, padding, scroll behaviour for `<pre>`.
 
-7. **navy.bright literal cleanup in `prosemirror.css`.** The link colour `rgb(28, 110, 180)` and hover `rgb(15, 80, 145)` are inlined twice in the `.article-prose a` ruleset. Now that `navy.bright` + `navy.bright-deep` exist as Tailwind tokens, define matching CSS custom properties in `styles/globals.css` (or similar) and swap the prosemirror.css literals to `var(--color-navy-bright)` / `var(--color-navy-bright-deep)`. Single source of truth.
+7. ~~**navy.bright literal cleanup in `prosemirror.css`.**~~ — shipped 2026-05-29. Defined `--prose-link` / `--prose-link-hover` custom properties on `.article-prose`, mirroring the `navy.bright` / `navy.bright-deep` Tailwind tokens. The four `rgb()` literals in the `.article-prose a` ruleset now read `var(--prose-link)` / `var(--prose-link-hover)`. Scoped to `.article-prose` because prose is the only consumer; promote to `:root` if that changes.
 
-8. **Render-time + editor typographic character normalisation.** Straight ASCII characters in source content (`'`, `"`, `--`, `...`) render as the literal ASCII rather than typographic equivalents (`'`, `"…"`, `—`, `…`). Two-layer fix planned:
-   - *Renderer pass* (~40 lines, mirrors `lib/posts/normalize-emoji-lists.ts`): walks TipTap JSON in `PostPreview`, applies context-aware curly-quote substitution + em-dash + ellipsis conversion. Fixes *all historical content* immediately.
-   - *Editor extension* (~5 lines): wire TipTap's `@tiptap/extension-typography` so Carlos sees smart characters as he types.
+8. **Typographic character normalisation.** Two-layer plan; renderer pass shipped 2026-05-29, editor extension still pending.
+
+   - ~~*Renderer pass*~~ — shipped. [`lib/posts/normalize-typography.ts`](../lib/posts/normalize-typography.ts) walks TipTap JSON in `PostPreview` (composed with `normalizeEmojiLists`). Substitutions applied to every text node, except inside `codeBlock` or text carrying a `code` mark:
+       - `--` (and any 3+ run of hyphens) → `—` em-dash. Adamastor doesn't publish inline CLI snippets; revisit if LisboaJS articles need raw hyphens outside `<code>`.
+       - Exactly `...` (not surrounded by more dots) → `…` ellipsis. `....` is left alone so sentence-ending ellipsis stays intentional.
+       - `'` immediately after a word character OR before a digit → `’` (right single / curly apostrophe). Handles contractions (`don't`), possessives (`Carlos's`), decade abbreviations (`'90s`). Standalone `'` quotes (extremely rare in editorial prose) are not converted — defer until needed.
+       - `"` after whitespace, start-of-string, or open-bracket → `“`; everything else → `”`.
+
+       Unit tests in [`lib/posts/normalize-typography.test.ts`](../lib/posts/normalize-typography.test.ts) cover the rules and the marks/code-skip behaviour (`pnpm test`). Source content in the DB is never modified.
+
+       **Intentionally deferred** (would need smarter detection): ` - ` (space-hyphen-space) → em-dash is ambiguous with compound words; `1-10` → en-dash needs number-range detection; opening single quote at start-of-word (`'twas`, `'em`) is rare enough to skip.
+
+   - *Editor extension* — still pending. Wire TipTap's `@tiptap/extension-typography` (~5 lines) so Carlos sees smart characters as he types. Closes the editor/rendered gap for new writing; renderer pass already covers historical content.
 
 ---
 

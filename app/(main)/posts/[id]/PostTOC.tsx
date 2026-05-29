@@ -165,20 +165,35 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 	return (
 		<div ref={containerRef}>
 			<nav ref={navRef} className={cn(className)} aria-label="Article contents">
-				<p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
-					Contents
+				{/* Kicker matches the publication-wide kicker scale (text-xs 12px
+				    + tracking-0.14em + navy-tone), per docs/typography.md →
+				    "Kicker labels". Label is "In this article" rather than
+				    "Contents" — reader-addressed editorial register (NYT /
+				    WaPo convention), rhymes with the page's other editorial
+				    kickers (About the author, Reader notes). The nav's
+				    aria-label stays "Article contents" — terser and reads
+				    better as a landmark name to screen readers than the
+				    visible editorial label would. */}
+				<p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+					In this article
 				</p>
 				<ol className="space-y-2 border-l border-navy-frame">
 					{headings.map((heading) => {
 						const isActive = heading.slug === activeSlug;
 						return (
 							<li key={heading.slug} className={heading.level === 3 ? "pl-2" : ""}>
+								{/* Active item weight matches `.article-prose strong` (575)
+								    so the page has one consistent emphasis ladder. At
+								    sidebar 14px the perceptual jump from 400 → 575 is
+								    plenty pre-attentive; the previous 600 (font-semibold)
+								    matched H3 weight, which read as overcommitted for a
+								    passive scroll indicator. */}
 								<a
 									href={`#${heading.slug}`}
 									className={cn(
 										"-ml-px block border-l py-0.5 pl-3 text-sm leading-snug transition-colors",
 										isActive
-											? "border-navy font-semibold text-navy dark:border-cyan-lifted dark:text-cyan-lifted"
+											? "border-navy font-[575] text-navy dark:border-cyan-lifted dark:text-cyan-lifted"
 											: "border-transparent text-navy-tone hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted",
 									)}
 								>

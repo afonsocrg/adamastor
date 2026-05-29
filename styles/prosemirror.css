@@ -337,6 +337,13 @@ mark[style] > strong {
   --tw-prose-captions: rgb(77, 118, 137); /* navy-tone */
   --tw-prose-code: rgb(16, 67, 87);
   --tw-prose-pre-code: rgb(227, 242, 247); /* cyan-lifted */
+
+  /* Inline link palette — mirrors `navy.bright` / `navy.bright-deep` in
+   * tailwind.config.ts. Defined here (scoped to .article-prose) because
+   * prose is the only consumer; promote to :root if a non-prose surface
+   * ever needs them. */
+  --prose-link: #1C6EB4;       /* navy.bright */
+  --prose-link-hover: #0F5091; /* navy.bright-deep */
 }
 
 /* Mobile body text -1px from prose-lg's 18px baseline. Tighter on small
@@ -363,6 +370,24 @@ mark[style] > strong {
  */
 .article-prose strong {
   font-weight: 575;
+}
+
+/*
+ * Inline italic emphasis. Stays in the body family (Inter) deliberately —
+ * a serif italic (Lora) mid-paragraph would introduce a visible
+ * cross-family texture switch that reads as ornament rather than
+ * emphasis. At body 18px on modern screens with anti-aliasing, Inter
+ * italic's slant is plenty visible; the "italic sans barely stands out"
+ * rule (Butterick) is a print-era observation that doesn't carry to web.
+ *
+ * The weight bump from 400 → 450 lifts the italic just enough to read
+ * as deliberate, without crowding toward strong (still a 125-weight
+ * gap). Sits in the "edge of still a tint" zone — present, not loud.
+ * Inter loads as a variable font (see styles/fonts.ts), so 450 is on
+ * the axis at zero extra cost.
+ */
+.article-prose em {
+  font-weight: 450;
 }
 
 /*
@@ -543,26 +568,26 @@ mark[style] > strong {
  * Hover: colour deepens to a darker shade AND border thickens 1.6px → 2px
  * (two-axis change per Guardian principle).
  *
- * `navy.bright` is currently inlined as rgb(28, 110, 180) — should get
- * promoted to a named palette token once the colour is settled. See
- * `docs/typography.md` → "Inline links inside prose" for context.
+ * Colour is driven by the `--prose-link` / `--prose-link-hover` custom
+ * properties defined on `.article-prose` above. They mirror the
+ * `navy.bright` / `navy.bright-deep` palette tokens in tailwind.config.ts.
  *
  * Chosen 2026-05-28 after picker exploration through multiple directions;
  * see git history if revisiting.
  */
 .article-prose a {
-  color: rgb(28, 110, 180); /* navy.bright — saturated mid-blue link */
+  color: var(--prose-link);
   font-weight: 500;
   text-decoration: none;
-  border-bottom: 1.6px solid rgb(28, 110, 180);
+  border-bottom: 1.6px solid var(--prose-link);
   overflow-wrap: anywhere; /* raw URLs wrap inside the 60ch column */
   transition: color 180ms ease-out, border-bottom-color 180ms ease-out, border-bottom-width 180ms ease-out;
 }
 
 .article-prose a:hover,
 .article-prose a:focus-visible {
-  color: rgb(15, 80, 145); /* navy.bright deepened */
-  border-bottom-color: rgb(15, 80, 145);
+  color: var(--prose-link-hover);
+  border-bottom-color: var(--prose-link-hover);
   border-bottom-width: 2px;
 }
 

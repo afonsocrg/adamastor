@@ -121,10 +121,15 @@ export default async function PostPreviewPage({ params }: PreviewPageProps) {
 						/>
 						<PostPreview initialContent={post.content} />
 						<ArticleLinkDecorator postSlug={post.slug ?? String(post.id)} />
-						<AuthorStrap author={post.authors} kind={kind} />
-						<SubscribeForm kind={kind} />
-						{kind === "opinion" && relatedOpinions.length > 0 && <ReadNext posts={relatedOpinions} />}
-						<FeedbackForm />
+						{/* Post coda: matches /posts/[id]'s coda wrapper exactly.
+						    See that file for the 681px rationale (prose 60ch @
+						    Inter 18px). */}
+						<div className="mx-auto w-full max-w-[681px] space-y-8 md:space-y-12">
+							<AuthorStrap author={post.authors} kind={kind} />
+							<SubscribeForm kind={kind} />
+							{kind === "opinion" && relatedOpinions.length > 0 && <ReadNext posts={relatedOpinions} />}
+							<FeedbackForm />
+						</div>
 					</div>
 				</article>
 			</ContextMenuTrigger>

@@ -189,7 +189,7 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 						/>
 						<span className="flex-1 space-y-1">
 							<span className="block text-sm font-semibold leading-tight text-navy dark:text-cyan-lifted">
-								Adamastor Weekly
+								Weekly Adamastor
 							</span>
 							<span className="block text-sm text-muted-foreground">
 								An editorial take on Portugal’s startup scene — fundraises and founder interviews, every week, with a

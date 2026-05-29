@@ -2,7 +2,7 @@
 // H1 tiering, header ↔ prose alignment, kicker tracking), see
 // `docs/typography.md` — particularly "Page chrome" and "Reading column".
 
-import { type PostKind, getDisplayTitle, getKickerLabel, getWeekLabel } from "@/lib/posts/kind";
+import { type PostKind, getDisplayTitle, getFeedCardLabel, getWeekLabel } from "@/lib/posts/kind";
 import Byline from "./Byline";
 
 interface PostHeroAuthor {
@@ -24,7 +24,12 @@ interface PostHeroProps {
 export default function PostHero({ kind, title, author, publishedAt, publishedAtIso, readingMinutes }: PostHeroProps) {
 	const displayTitle = getDisplayTitle(title);
 	const weekLabel = getWeekLabel(title);
-	const kicker = getKickerLabel(kind, weekLabel);
+	const baseKicker = getFeedCardLabel(kind);
+	// Two-pillar kicker accent (publication-wide): Weekly carries the cool
+	// navy.bright brand-blue; Opinion carries the warm orange "named voice"
+	// accent. Same system on the homepage river + featured hero, so a reader
+	// who scans a kicker on `/` meets the same colour when they land here.
+	const kickerColor = kind === "opinion" ? "text-orange-hue" : "text-navy-bright dark:text-cyan-glow";
 
 	// Length-responsive H1 sizing. Short titles get the full editorial 48px
 	// punch; longer titles compress so they don't wrap past 2-3 lines inside
@@ -51,9 +56,21 @@ export default function PostHero({ kind, title, author, publishedAt, publishedAt
 		// prose — invisibly misaligned, which defeats the purpose.
 		<header className="max-w-[60ch] mx-auto text-lg space-y-5 md:space-y-8">
 			<div className="space-y-2 md:space-y-4">
-				<p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim md:text-xs">
-					{kicker}
-				</p>
+				{/* Kicker row mirrors the homepage feed: the pillar-accented
+				    masthead (Weekly = navy.bright, Opinion = orange) sits left;
+				    the issue marker recedes to a quiet right gutter as edition
+				    metadata — title-cased and muted exactly as on the river
+				    cards, so the article hero and the feed read as one system. */}
+				<div className="flex items-center justify-between gap-3">
+					<p className={`text-[11px] font-semibold uppercase tracking-[0.14em] md:text-xs ${kickerColor}`}>
+						{baseKicker}
+					</p>
+					{weekLabel && (
+						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-muted-foreground/75">
+							{weekLabel}
+						</p>
+					)}
+				</div>
 				<h1
 					className={`text-[1.9375rem] font-bold leading-tight tracking-tight text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] ${h1DesktopSize}`}
 				>

@@ -6,13 +6,18 @@
 
 import type { JSONContent } from "novel";
 import { normalizeEmojiLists } from "@/lib/posts/normalize-emoji-lists";
+import { normalizeTypography } from "@/lib/posts/normalize-typography";
 import RichTextEditor from "./rich-text-editor";
 
 const PostPreview = ({ initialContent }: { initialContent: JSONContent }) => {
 	if (!initialContent) return null;
-	// Coerce emoji-prefixed paragraph runs into proper bulleted lists at render
-	// time. See lib/posts/normalize-emoji-lists.ts.
-	const content = normalizeEmojiLists(initialContent);
+	// Render-time transforms over the stored TipTap JSON:
+	//   1. normalizeTypography — ASCII shortcuts → proper Unicode (curly
+	//      quotes, em-dash, ellipsis). Operates only on text-node strings.
+	//   2. normalizeEmojiLists — runs of emoji-prefixed paragraphs → <ul>.
+	// Order is independent (typography reads node-by-node; emoji detection
+	// only inspects the leading emoji), so #1 first reads cleanly.
+	const content = normalizeEmojiLists(normalizeTypography(initialContent));
 	return (
 		<RichTextEditor
 			initialContent={content}

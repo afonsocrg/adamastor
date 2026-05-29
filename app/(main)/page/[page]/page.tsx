@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: PaginatedHomePageProps): Prom
 	return {
 		title: `Adamastor archive — page ${pageNumber}`,
 		description:
-			"Browse older articles from Adamastor — Portugal's startup publication. The Adamastor Weekly digest plus occasional opinion from named voices.",
+			"Browse older articles from Adamastor — Portugal's startup publication. The Weekly Adamastor digest plus occasional opinion from named voices.",
 		alternates: { canonical: pathname },
 		openGraph: { url: pathname },
 		// Paginated archive pages are useful for users browsing but not for

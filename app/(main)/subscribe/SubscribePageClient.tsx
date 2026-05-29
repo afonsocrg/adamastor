@@ -114,7 +114,7 @@ export default function SubscribePageClient() {
 	}, []);
 
 	const selectionSummaryParts: string[] = [];
-	if (digest) selectionSummaryParts.push("Adamastor Weekly");
+	if (digest) selectionSummaryParts.push("Weekly Adamastor");
 	if (categories.size === 1) selectionSummaryParts.push("1 topic");
 	else if (categories.size > 1) selectionSummaryParts.push(`${categories.size} topics`);
 	const selectionSummary = selectionSummaryParts.join(" + ");
@@ -400,7 +400,7 @@ export default function SubscribePageClient() {
 						/>
 						<span className="flex-1 space-y-1">
 							<span className="block text-sm font-semibold leading-tight text-navy dark:text-cyan-lifted">
-								Adamastor Weekly
+								Weekly Adamastor
 							</span>
 							<span className="block text-sm text-muted-foreground">
 								An editorial take on Portugal’s startup scene — fundraises and founder interviews, every week, with a

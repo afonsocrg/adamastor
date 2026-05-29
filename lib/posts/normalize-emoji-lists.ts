@@ -4,7 +4,7 @@ import type { JSONContent } from "novel";
  * Render-time normalisation: coerce runs of emoji-prefixed paragraphs into
  * proper bulleted lists, preserving the emoji as the visible bullet marker.
  *
- * The Adamastor Weekly historically uses emoji-prefixed paragraphs as visual
+ * Weekly Adamastor historically uses emoji-prefixed paragraphs as visual
  * lists — 🔷 Highlights, 👏 Congrats, 📚🎧🎥 Read/Listen/Watch, 💡 Events.
  * Without normalisation these render as standalone paragraphs, missing the
  * list typography defined under `.article-prose ul` (tighter rhythm, hanging
@@ -19,7 +19,7 @@ import type { JSONContent } from "novel";
  * `PostPreview`. Carlos keeps writing emoji-paragraphs; readers see proper
  * lists with the emoji as a pre-attentive scan marker.
  *
- * See `docs/typography.md` — "The Adamastor Weekly — section patterns".
+ * See `docs/typography.md` — "Weekly Adamastor — emoji-led sections".
  */
 
 // ️ / ‍ handle emoji built from variation selectors or ZWJ

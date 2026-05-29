@@ -158,10 +158,22 @@ export default async function PostPage({ params }: PostPageProps) {
 						/>
 						<PostPreview initialContent={post.content} />
 						<ArticleLinkDecorator postSlug={post.slug ?? String(post.id)} />
-						<AuthorStrap author={post.authors} kind={kind} />
-						<SubscribeForm kind={kind} />
-						{kind === "opinion" && relatedOpinions.length > 0 && <ReadNext posts={relatedOpinions} />}
-						<FeedbackForm />
+						{/* Post coda: chrome aligns to the prose reading column.
+						    Prose resolves max-w-[60ch] against Inter 18px (its
+						    prose-lg context) → 681px. The chrome wrapper can't
+						    inherit prose's font context (chrome has its own type
+						    discipline), so we hardcode the matching pixel width.
+						    If prose font-size ever changes, recompute: 60 × ch
+						    width of Inter at the new size. Without this, chrome
+						    extends ~43px past each side of prose at lg+ —
+						    visible misalignment. See docs/typography.md →
+						    "Post-prose chrome alignment". */}
+						<div className="mx-auto w-full max-w-[681px] space-y-8 md:space-y-12">
+							<AuthorStrap author={post.authors} kind={kind} />
+							<SubscribeForm kind={kind} />
+							{kind === "opinion" && relatedOpinions.length > 0 && <ReadNext posts={relatedOpinions} />}
+							<FeedbackForm />
+						</div>
 					</div>
 				</article>
 			</ContextMenuTrigger>

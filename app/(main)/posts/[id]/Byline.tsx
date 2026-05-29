@@ -59,45 +59,58 @@ export default function Byline({ kind, author, publishedAt, publishedAtIso, read
 	//   - Weekly: /about, where Carlos's full masthead bio lives.
 	const nameHref = isOpinion ? author.website_url : "/about";
 	const nameLinkProps = isOpinion ? { target: "_blank", rel: "noopener noreferrer" } : {};
+	// Byline-link convention (per `docs/inspiration-guardian.md` → "Links
+	// across contexts"): no underline at rest; the name sits at full navy
+	// against quieter metadata around it. Hover adds the underline as the
+	// two-axis affordance. Weight 575 matches `.article-prose strong` and
+	// `PostTOC` active — same emphasis station across the publication.
 	const nameNode = nameHref ? (
 		<Link
 			href={nameHref}
 			{...nameLinkProps}
-			className="font-semibold text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted"
+			className="font-[575] text-navy hover:underline hover:decoration-navy-tint hover:decoration-2 hover:underline-offset-4 dark:text-cyan-lifted"
 		>
 			{author.name}
 		</Link>
 	) : (
-		<span className="font-semibold text-navy dark:text-cyan-lifted">{author.name}</span>
+		<span className="font-[575] text-navy dark:text-cyan-lifted">{author.name}</span>
 	);
 
 	return (
-		<div className="border-y border-navy-frame py-4">
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-				<div className="flex items-start gap-4">
-					<Avatar className="h-14 w-14 shrink-0">
-						<AvatarImage src={author.image_url ?? undefined} alt={author.name} />
-						<AvatarFallback className="text-sm font-medium text-navy">{initials(author.name)}</AvatarFallback>
-					</Avatar>
-					{/* Two-row byline (NYT Opinion register): top row carries identity
-					    + dateline at body weight; role line below is smaller +
-					    muted so the name stays dominant. */}
-					<div className="space-y-1.5 leading-snug">
-						<p className="text-sm">
-							By {nameNode}
-							<span className="text-muted-foreground">
-								{" "}
-								<span aria-hidden="true">·</span>{" "}
-								<time dateTime={publishedAtIso}>{publishedAt}</time>{" "}
-								<span aria-hidden="true">·</span> {readingMinutes} min read
-							</span>
+		<div className="border-y border-navy-frame">
+			{/* Two-zone strap, one concern per zone — the byline's job is to
+			    keep "who's speaking" from blurring into "reader tooling".
+
+			    Zone A — Author identity: avatar + name + credential. Answers
+			    "who", in editorial voice: name at full navy / 575, credential
+			    in Lora italic (sibling to the blockquote's set-apart voice).
+
+			    Zone B — Utility bar: publication date + read time on the left,
+			    share actions on the right, divided from the author by a
+			    hairline and held in the quieter navy-tone register. Date,
+			    read-time and share are all reader-tooling, so they share a
+			    lane and never compete with the author block above. Share lives
+			    here (not below the article) so it's in view on entry. */}
+			<div className="flex items-start gap-4 py-5">
+				<Avatar className="h-14 w-14 shrink-0">
+					<AvatarImage src={author.image_url ?? undefined} alt={author.name} />
+					<AvatarFallback className="text-sm font-medium text-navy">{initials(author.name)}</AvatarFallback>
+				</Avatar>
+				<div className="flex flex-col gap-1.5 leading-snug">
+					<p className="text-[15px] text-navy dark:text-cyan-lifted">{nameNode}</p>
+					{tag && (
+						<p className="max-w-[44ch] text-[14px] font-normal text-navy-tone dark:text-cyan-dim hyphens-manual">
+							{tag}
 						</p>
-						{tag && (
-							<p className="max-w-[44ch] text-xs text-navy-tone dark:text-cyan-dim">{tag}</p>
-						)}
-					</div>
+					)}
 				</div>
-				<ShareRow className="-ml-2 sm:-mr-2 sm:-mt-1 sm:ml-0 shrink-0" />
+			</div>
+			<div className="flex flex-col gap-2 border-t border-navy-frame py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+				<p className="text-[13px] text-navy-tone dark:text-cyan-dim">
+					<time dateTime={publishedAtIso}>{publishedAt}</time>{" "}
+					<span aria-hidden="true">·</span> {readingMinutes} min read
+				</p>
+				<ShareRow className="-ml-2 sm:ml-0 sm:-mr-2" />
 			</div>
 		</div>
 	);
