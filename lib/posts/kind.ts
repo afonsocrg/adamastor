@@ -47,13 +47,13 @@ export function getWeekLabel(title: string): string | null {
 /**
  * The kicker / card label for a post, used publication-wide: homepage feed
  * rows, the homepage featured hero, and the post-page hero all consume this,
- * so a reader who scans "WEEKLY ADAMASTOR" / "OPINION" on a card lands on the
+ * so a reader who scans "ADAMASTOR WEEKLY" / "OPINION" on a card lands on the
  * post page and meets the same label.
  *
  * The week number ("· Week N") is appended alongside this label on the heroes
  * (where it's the editorial differentiator), not on river cards (where it
  * would compete with the per-row week-label gutter on the right).
  */
-export function getFeedCardLabel(kind: PostKind): "Weekly Adamastor" | "Opinion" {
-	return kind === "weekly" ? "Weekly Adamastor" : "Opinion";
+export function getFeedCardLabel(kind: PostKind): "Adamastor Weekly" | "Opinion" {
+	return kind === "weekly" ? "Adamastor Weekly" : "Opinion";
 }

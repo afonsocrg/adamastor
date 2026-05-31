@@ -2,9 +2,11 @@
 
 This document captures the findings from the admin calendar loading polish work. The goal is to preserve the rules behind the current implementation so future changes to `react-big-calendar` views, skeletons, or user-facing calendar variants do not reintroduce flashes, layout shifts, or misleading loading states.
 
+> **Scope:** this doc is specifically about the SSR-skeleton → live cross-fade and geometry matching. For the broader customization layer (theming, slot renderers, prop getters, the rbc internals/gotchas), see [`react-big-calendar.md`](./react-big-calendar.md). For the nav/view-switch motion, see [`animations.md`](./animations.md) § *Calendar navigation*.
+
 ## Context
 
-The dashboard calendar uses Next.js App Router, React 18, `react-big-calendar`, and the Moment localizer. The page is auth-gated and dynamic-rendered. The loading experience is a server-rendered month skeleton that cross-fades into the live calendar once the client bundle is ready.
+The dashboard calendar uses Next.js App Router, React 19, `react-big-calendar`, and the Moment localizer. The page is auth-gated and dynamic-rendered. The loading experience is a server-rendered month skeleton that cross-fades into the live calendar once the client bundle is ready.
 
 The user-visible bug started as:
 

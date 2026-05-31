@@ -1,70 +1,150 @@
+/**
+ * Preferences-link — sent when a visitor requests their tokenized /preferences
+ * link. A transactional/utility email (cold register, per the brand doc), so no
+ * personal signature or tagline flourish — just a clear action and the
+ * frictionless "no password" promise. Shares the design system via ./_theme.
+ */
+
 import {
 	Body,
 	Button,
 	Container,
 	Head,
 	Heading,
+	Hr,
 	Html,
 	Link,
 	Preview,
 	Section,
-	Tailwind,
 	Text,
 } from "@react-email/components";
+import { C, DARK_MODE_CSS, FONTS_HREF, hairline, primaryCtaStyle, RESPONSIVE_CSS, SANS, SERIF } from "./_theme";
 
 interface PreferencesLinkEmailProps {
 	preferencesUrl: string;
 }
 
+// Malik's piara.li shortener forwards ?text= to wa.me, pre-filling the draft and
+// keeping his number out of the email source (same pattern as the events page).
+const WHATSAPP_URL = `https://piara.li/wa?text=${encodeURIComponent(
+	"Hi Malik, I have a question about my Adamastor subscription.",
+)}`;
+
 export const PreferencesLinkEmail = ({ preferencesUrl }: PreferencesLinkEmailProps) => {
 	return (
 		<Html lang="en" dir="ltr">
-			<Tailwind>
-				<Head />
-				<Preview>Your Adamastor preferences link</Preview>
-				<Body className="bg-gray-100 font-sans py-[40px]">
-					<Container className="bg-white rounded-[8px] p-[32px] max-w-[600px] mx-auto">
-						<Section>
-							<Heading className="text-[24px] font-bold text-[#104357] mb-[16px]">Manage your preferences</Heading>
+			<Head>
+				<link rel="stylesheet" href={FONTS_HREF} />
+				<meta name="color-scheme" content="light dark" />
+				<meta name="supported-color-schemes" content="light dark" />
+				<style dangerouslySetInnerHTML={{ __html: RESPONSIVE_CSS }} />
+				<style dangerouslySetInnerHTML={{ __html: DARK_MODE_CSS }} />
+			</Head>
+			<Preview>Your link to manage which Adamastor emails you get.</Preview>
+			<Body className="em-page" style={{ backgroundColor: C.canvas, fontFamily: SANS, padding: "40px 0" }}>
+				<Container
+					className="em-card"
+					style={{
+						backgroundColor: C.white,
+						borderRadius: "8px",
+						padding: "40px",
+						maxWidth: "600px",
+						margin: "0 auto",
+					}}
+				>
+					<Heading
+						className="em-text"
+						style={{
+							fontFamily: SERIF,
+							fontWeight: 700,
+							fontSize: "30px",
+							lineHeight: "1.15",
+							letterSpacing: "-0.01em",
+							color: C.navy,
+							margin: "0",
+						}}
+					>
+						Manage your preferences
+					</Heading>
 
-							<Text className="text-[16px] text-[#374151] mb-[24px] leading-[24px]">
-								Use the link below to update which Adamastor newsletters you receive. It opens a page where you can opt
-								in or out of any category — no login needed.
-							</Text>
+					<Hr className="em-rule" style={{ ...hairline, margin: "20px 0 28px 0" }} />
 
-							<Section className="text-center mb-[32px]">
-								<Button
-									href={preferencesUrl}
-									className="bg-[#104357] text-white px-[24px] py-[12px] rounded-[6px] text-[14px] font-semibold no-underline box-border inline-block"
-								>
-									Open my preferences
-								</Button>
-							</Section>
+					<Text
+						className="em-text"
+						style={{ fontFamily: SANS, fontSize: "17px", lineHeight: "1.7", color: C.navy, margin: "0 0 18px 0" }}
+					>
+						You asked to manage your Adamastor emails. The button below opens your preferences, where you can opt in or
+						out of any topic. No password needed.
+					</Text>
 
-							<Text className="text-[14px] text-gray-500 mb-[16px] leading-[20px]">
-								If the button doesn't work, paste this link into your browser:
-								<br />
-								<Link href={preferencesUrl} className="text-gray-500 underline break-all">
-									{preferencesUrl}
-								</Link>
-							</Text>
+					{/* Primary CTA — gold pill, centered. */}
+					<Section style={{ textAlign: "center", margin: "36px 0 8px 0" }}>
+						<Button href={preferencesUrl} className="cta-primary" style={primaryCtaStyle}>
+							Open my preferences
+						</Button>
+					</Section>
 
-							<Text className="text-[14px] text-gray-500 leading-[20px]">
-								If you didn't request this, you can safely ignore the email.
-							</Text>
-						</Section>
+					{/* A human path to Malik — the events-page WhatsApp pattern, kept quiet. */}
+					<Text
+						className="em-text"
+						style={{ fontFamily: SANS, fontSize: "16px", lineHeight: "1.7", color: C.navy, margin: "16px 0 0 0" }}
+					>
+						Need a hand?{" "}
+						<Link
+							className="em-link"
+							href={WHATSAPP_URL}
+							style={{ color: C.bright, textDecoration: "underline", fontWeight: 600 }}
+						>
+							Message Malik on WhatsApp
+						</Link>
+						.
+					</Text>
 
-						<Section className="border-t border-solid border-gray-200 pt-[24px] mt-[24px]">
-							<Text className="text-[12px] text-gray-500 text-center m-0">
-								© {new Date().getFullYear()} Adamastor —{" "}
-								<Link href="https://adamastor.blog" className="text-gray-500 underline">
-									adamastor.blog
-								</Link>
-							</Text>
-						</Section>
-					</Container>
-				</Body>
-			</Tailwind>
+					<Hr className="em-rule" style={hairline} />
+
+					{/* Fallback raw link + safety note — quiet utility fine-print. */}
+					<Text
+						className="em-muted"
+						style={{ fontFamily: SANS, fontSize: "14px", lineHeight: "1.6", color: C.tone, margin: "0 0 16px 0" }}
+					>
+						If the button doesn’t work, copy this link into your browser:
+						<br />
+						<Link
+							className="em-link"
+							href={preferencesUrl}
+							style={{ color: C.bright, textDecoration: "underline", wordBreak: "break-all" }}
+						>
+							{preferencesUrl}
+						</Link>
+					</Text>
+
+					<Text
+						className="em-muted"
+						style={{ fontFamily: SANS, fontSize: "14px", lineHeight: "1.6", color: C.tone, margin: "0" }}
+					>
+						Didn’t request this? You can safely ignore this email.
+					</Text>
+
+					<Hr className="em-rule" style={hairline} />
+
+					{/* Footer — minimal (transactional). */}
+					<Section>
+						<Text
+							className="em-muted"
+							style={{ fontFamily: SANS, fontSize: "12px", color: C.tone, textAlign: "center", margin: "0" }}
+						>
+							© {new Date().getFullYear()} Adamastor ·{" "}
+							<Link
+								className="em-muted"
+								href="https://adamastor.blog"
+								style={{ color: C.tone, textDecoration: "underline" }}
+							>
+								adamastor.blog
+							</Link>
+						</Text>
+					</Section>
+				</Container>
+			</Body>
 		</Html>
 	);
 };

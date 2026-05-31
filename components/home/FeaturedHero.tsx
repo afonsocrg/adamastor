@@ -1,6 +1,6 @@
 import { formatDate } from "@/lib/datetime";
 import type { HomePost } from "@/lib/home-posts";
-import { extractTiptapText, estimateReadingMinutes } from "@/lib/posts/content";
+import { estimateReadingMinutes, extractTiptapText } from "@/lib/posts/content";
 import { getDisplayTitle, getFeedCardLabel, getPostKind, getWeekLabel } from "@/lib/posts/kind";
 import { ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
@@ -44,7 +44,7 @@ function getLede(content: unknown): string {
  * editorial composition (no surface card, no border-box) — set apart from
  * the river below by Lora-bold title scale, a wider lede, and an editorial
  * byline strip. Kind-aware:
- *   - Weekly: kicker reads "Weekly Adamastor" (navy.bright) with the week
+ *   - Weekly: kicker reads "Adamastor Weekly" (navy.bright) with the week
  *     marker ("Week N") in the right gutter; Carlos's canonical role line
  *     under the byline.
  *   - Opinion: kicker is "Opinion" (orange); author portrait + role line
@@ -64,8 +64,7 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 	const lede = getLede(post.content);
 	const href = `/posts/${post.slug ?? post.id}`;
 
-	const roleLine =
-		kind === "weekly" ? WEEKLY_ROLE : opinionRoleLine(author?.bio ?? null);
+	const roleLine = kind === "weekly" ? WEEKLY_ROLE : opinionRoleLine(author?.bio ?? null);
 	// Hero portrait always renders when available — Weekly = Carlos (publication
 	// face), Opinion = guest writer. Repetition of Carlos across Tuesdays is the
 	// brand signal, not an accident; river cards stay text-only to balance.
@@ -84,11 +83,9 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 					    — same kicker-left / week-right layout as the river cards
 					    and the article-page hero; date + read-time move to the
 					    byline cluster below. */}
-					<p className={`text-[11px] font-semibold uppercase tracking-[0.18em] md:text-xs ${kickerColor}`}>
-						{label}
-					</p>
+					<p className={`text-[11px] font-semibold uppercase tracking-[0.14em] md:text-xs ${kickerColor}`}>{label}</p>
 					{weekLabel && (
-						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-muted-foreground/75">
+						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-cyan-dim/75">
 							{weekLabel}
 						</p>
 					)}
@@ -97,7 +94,7 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 					{displayTitle}
 				</h2>
 				{lede && (
-					<p className="mt-4 max-w-[60ch] text-base leading-[1.6] text-muted-foreground md:mt-5 md:text-lg md:leading-[1.55]">
+					<p className="mt-4 max-w-[60ch] text-base leading-[1.6] text-navy-tone dark:text-cyan-dim md:mt-5 md:text-lg md:leading-[1.55]">
 						{lede}
 					</p>
 				)}
@@ -113,15 +110,11 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 						/>
 					) : null}
 					<div className="min-w-0 text-sm leading-snug">
-						{author?.name && (
-							<p className="font-semibold text-navy dark:text-cyan-lifted">By {author.name}</p>
-						)}
+						{author?.name && <p className="font-semibold text-navy dark:text-cyan-lifted">By {author.name}</p>}
 						{roleLine && (
-							<p className="max-w-[44ch] text-xs leading-snug text-navy-tone dark:text-cyan-dim">
-								{roleLine}
-							</p>
+							<p className="max-w-[44ch] text-xs leading-snug text-navy-tone dark:text-cyan-dim">{roleLine}</p>
 						)}
-						<p className="mt-0.5 text-xs text-muted-foreground/80">
+						<p className="mt-0.5 text-xs text-navy-tone/80 dark:text-cyan-dim/80">
 							<time dateTime={post.created_at}>{formatDate(post.created_at)}</time> · {readingMinutes} min read
 						</p>
 					</div>

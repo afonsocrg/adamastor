@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 	// readers' "find feed" features, etc.) can auto-detect it from any page.
 	alternates: {
 		types: {
-			"application/rss+xml": [{ url: "/feed.xml", title: "Weekly Adamastor" }],
+			"application/rss+xml": [{ url: "/feed.xml", title: "Adamastor Weekly" }],
 		},
 	},
 	metadataBase: new URL("https://adamastor.blog"),

@@ -108,6 +108,12 @@ const config = {
   				frame: '#E8F0F4',    // near-neutral (L=0.95 C=0.01). THE workhorse for borders, hairlines, structural framing. "Navy frames everything" — see color rule #5.
   				veil: '#E1F2F9',     // intermediate (L=0.95 C=0.02). For soft text-containing backgrounds — trust asides, "Reviewed by" banners, empty-state fills. Subtle enough not to compete with text, visible enough to register as a contained surface.
   				wash: '#D7F0FB',     // visibly navy-tinted (L=0.94 C=0.03). For hover backgrounds and fills where the navy tint should READ. Don't use behind body text — too much pigment competes with readability.
+  				// Dark-mode roles — navy now anchors dark mode (cyan dark-anchors being phased out).
+  				// Values from the email C_DARK ramp (contrast-validated against the dark navy card).
+  				// Mirror cyan's lifted/dim/glow so migration is a 1:1 rename.
+  				lifted: '#CFE4EF',   // dark-mode primary text / headlines (≈11:1 on the dark navy surface)
+  				dim: '#8FB3C2',      // dark-mode secondary text — kickers, datelines (≈6.6:1)
+  				edge: '#2C4F5E',     // dark-mode hairlines / borders (subtle navy on the dark surface)
   			},
   			cyan: {
   				DEFAULT: '#04C9D8',  // alias → cyan.hue (bare `bg-cyan`)

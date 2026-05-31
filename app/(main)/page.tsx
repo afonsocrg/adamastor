@@ -1,7 +1,7 @@
+import { SubscribeForm } from "@/components/SubscribeForm";
 import HomeSidebar from "@/components/home/HomeSidebar";
 import Masthead from "@/components/home/Masthead";
 import PostRiver from "@/components/home/PostRiver";
-import { SubscribeForm } from "@/components/SubscribeForm";
 import { getPaginatedHomePosts } from "@/lib/home-posts";
 import { getUpcomingEventsTeaser } from "@/lib/home/upcoming-events";
 import { getDisplayTitle } from "@/lib/posts/kind";
@@ -71,7 +71,7 @@ function buildHomepageJsonLd(posts: BlogPostListing[]) {
 				"@type": "Blog",
 				"@id": `${SITE_URL}/#blog`,
 				url: SITE_URL,
-				name: "Weekly Adamastor",
+				name: "Adamastor Weekly",
 				description: "A weekly read on Portugal’s startup scene.",
 				publisher: { "@id": `${SITE_URL}/#organization` },
 				isPartOf: { "@id": `${SITE_URL}/#website` },

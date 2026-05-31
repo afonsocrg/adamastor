@@ -461,11 +461,23 @@ mark[style] > strong {
  * Rules:
  *   - Suppress the default disc bullet (the emoji IS the bullet).
  *   - text-indent + padding-left = hanging indent. First line (emoji + text)
- *     starts at the column edge; wrap lines align to padding-left, which
- *     sits one "marker column" inside.
+ *     starts at the column edge; wrap lines align to padding-left, which must
+ *     equal the rendered width of "emoji + space" for the wrap to sit flush
+ *     under the first-line text.
  *
- * 1.75em ≈ the visual width of an emoji glyph + a single space at 18px body.
- * Tune if Carlos starts using narrower or wider emoji.
+ * 1.3em = emoji advance (~1em) + a single trailing space (~0.3em). Emoji render
+ * at a fixed em-square advance regardless of which glyph, so this is measured,
+ * not eyeballed: every emoji measures 1.28em (21.8px on a 17px body). An em
+ * value is therefore reliable across emoji and scales with body size — the
+ * earlier 1.75em over-indented wrap lines by ~0.47em.
+ *
+ * The "single space" matters: ProseMirror renders this read-only view with
+ * white-space: pre-wrap, so multiple spaces an author types after the emoji do
+ * NOT collapse the way normal HTML would. collapseEmojiPrefixWhitespace() in
+ * lib/posts/normalize-emoji-lists.ts normalises the prefix to exactly one space
+ * at render time, so this fixed indent stays correct for every item. (A
+ * multi-emoji prefix like 📚🎧🎥 would still be wider, but those are short,
+ * non-wrapping section labels, so the hanging indent never shows on them.)
  */
 .article-prose ul.emoji-list {
   list-style: none;
@@ -473,8 +485,8 @@ mark[style] > strong {
 }
 
 .article-prose ul.emoji-list > li {
-  padding-left: 1.75em;
-  text-indent: -1.75em;
+  padding-left: 1.3em;
+  text-indent: -1.3em;
 }
 
 /*

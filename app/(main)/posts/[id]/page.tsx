@@ -1,9 +1,10 @@
+import { SubscribeForm } from "@/components/SubscribeForm";
 import PostAdminControls from "@/components/post-admin-controls";
 import PostPreview from "@/components/tailwind/post-preview";
 import { ContextMenu, ContextMenuTrigger } from "@/components/tailwind/ui/context-menu";
 import { formatDate } from "@/lib/datetime";
 import { buildArticleJsonLd, buildBreadcrumbListJsonLd } from "@/lib/events/seo";
-import { extractTiptapText, estimateReadingMinutes } from "@/lib/posts/content";
+import { estimateReadingMinutes, extractTiptapText } from "@/lib/posts/content";
 import { extractHeadings } from "@/lib/posts/headings";
 import { getDisplayTitle, getPostKind } from "@/lib/posts/kind";
 import { getRecentOpinionPosts } from "@/lib/posts/related";
@@ -15,7 +16,6 @@ import AuthorStrap from "./AuthorStrap";
 import PostHero from "./PostHero";
 import PostTOC from "./PostTOC";
 import ReadNext from "./ReadNext";
-import { SubscribeForm } from "@/components/SubscribeForm";
 import { FeedbackForm } from "./feedbackForm";
 
 export const revalidate = 3600;
@@ -63,6 +63,20 @@ async function getPostByIdOrSlug(idOrSlug: string) {
 
 interface PostPageProps {
 	params: Promise<{ id: string }>;
+}
+
+export async function generateStaticParams() {
+	const supabase = createPublicClient();
+	const { data, error } = await supabase.from("posts").select("id, slug").eq("is_public", true);
+
+	if (error) {
+		console.error("posts/[id]: failed to generate static params", error);
+		return [];
+	}
+
+	return (data ?? []).map((post) => ({
+		id: post.slug ?? String(post.id),
+	}));
 }
 
 export default async function PostPage({ params }: PostPageProps) {
@@ -123,25 +137,14 @@ export default async function PostPage({ params }: PostPageProps) {
 					dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
 				/>
 				{/* Article container matches the navbar's width contract
-				    (max-w-screen-xl + md:px-8) so the masthead chrome above and
-				    the body content below share the same left edge at every
+				    (max-w-6xl + md:px-8) so the masthead chrome above and the
+				    body content below share the same left edge at every
 				    viewport. Inside, a 3-col grid: TOC (12rem) | body
 				    (capped at 48rem for reading line-length) | empty space.
-				    The body cap means widening the outer container doesn't
-				    blow up prose line lengths — the body stays at the same
-				    ~720px it had under the old narrower container, with
-				    breathing room to the right at xl+ viewports. */}
-				<article className="-mt-2 mx-auto max-w-screen-xl pb-20 md:mt-0 md:p-4 md:pb-24 lg:grid lg:grid-cols-[12rem_minmax(0,48rem)_1fr] lg:gap-12">
-					{/* At lg+ viewports the article container aligns with the navbar
-					    edge, but at xl+ the article and navbar diverge by 32px
-					    (the navbar's outer px-8 vs the article-inside-main's
-					    stacked p-4 + md:p-4). This calc nudges only the
-					    necessary range — 0 below xl, growing to -32 around the
-					    transition, capped at -32 from there. */}
-					<aside
-						className="hidden lg:block"
-						style={{ marginLeft: "min(0px, max(-32px, calc((1280px - 100vw) / 2)))" }}
-					>
+				    The body cap means the narrower shell does not squeeze the
+				    article prose; it trims empty outer canvas first. */}
+				<article className="-mt-2 mx-auto max-w-6xl pb-20 md:mt-0 md:p-4 md:pb-24 lg:grid lg:grid-cols-[12rem_minmax(0,48rem)_1fr] lg:gap-12">
+					<aside className="hidden lg:block">
 						<PostTOC headings={headings} className="sticky top-24" alignTo=".article-prose" />
 					</aside>
 					<div className="space-y-8 md:space-y-12">
@@ -169,7 +172,7 @@ export default async function PostPage({ params }: PostPageProps) {
 						    visible misalignment. See docs/typography.md →
 						    "Post-prose chrome alignment". */}
 						<div className="mx-auto w-full max-w-[681px] space-y-8 md:space-y-12">
-							<AuthorStrap author={post.authors} kind={kind} />
+							<AuthorStrap author={post.authors} />
 							<SubscribeForm kind={kind} />
 							{kind === "opinion" && relatedOpinions.length > 0 && <ReadNext posts={relatedOpinions} />}
 							<FeedbackForm />

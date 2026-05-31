@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
 			htmlContent: string;
 			authorName: string;
 			url: string;
+			authorImageUrl?: string;
 		} | undefined;
 		let postTitleForSubject: string | undefined;
 
@@ -154,7 +155,8 @@ export async function POST(request: NextRequest) {
 					slug,
 					authors (
 						id,
-						name
+						name,
+						image_url
 					)
 				`)
 				.eq("id", Number.parseInt(postId, 10))
@@ -180,6 +182,16 @@ export async function POST(request: NextRequest) {
 				articleHtml = "<p>Read the full article on our website.</p>";
 			}
 
+			// authors.image_url is stored as a site-relative path (e.g. "/carlos.jpeg").
+			// Email needs an absolute URL, and we point at the RAW file (not /_next/image)
+			// because the optimizer serves WebP, which many email clients can't render.
+			const rawAuthorImage = post.authors?.[0]?.image_url as string | null | undefined;
+			const authorImageUrl = rawAuthorImage
+				? rawAuthorImage.startsWith("http")
+					? rawAuthorImage
+					: `https://adamastor.blog${rawAuthorImage}`
+				: undefined;
+
 			article = {
 				id: post.id.toString(),
 				title: post.title,
@@ -188,6 +200,7 @@ export async function POST(request: NextRequest) {
 				url: post.slug
 					? `https://adamastor.blog/posts/${post.slug}`
 					: `https://adamastor.blog/posts/${post.id}`,
+				authorImageUrl,
 			};
 			postTitleForSubject = post.title;
 		}

@@ -107,6 +107,11 @@ function EventCalendarMobileStrip({
 	const scrollByPage = React.useCallback((direction: 1 | -1) => {
 		const el = scrollRef.current;
 		if (!el) return;
+		// Brief blur pulse masks the fast paged scroll — the same blur language
+		// as the month-grid nav. The strip's own `filter` transition eases it
+		// in and out; removing the class after the scroll settles clears it.
+		el.classList.add("cal-strip-paging");
+		window.setTimeout(() => el.classList.remove("cal-strip-paging"), 240);
 		el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: "smooth" });
 	}, []);
 
@@ -142,7 +147,7 @@ function EventCalendarMobileStrip({
 					// first card to the padding edge (resting scrollLeft 0) instead of
 					// eating the padding and resting at 12px — which would otherwise
 					// trip the left scroll hint before any real scrolling.
-					className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory scroll-px-3 pb-1 px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+					className="cal-strip flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory scroll-px-3 pb-1 px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 				>
 					{days.map((day) => {
 						const dateString = day.toLocaleDateString("en-CA");
@@ -251,6 +256,42 @@ function EventCalendar({
 		return new Set(eventDates.map((date) => date.toISOString().split("T")[0]));
 	}, [eventDates]);
 
+	// Month-navigation transition: when the chevrons (or keyboard) change the
+	// visible month, slide the day grid in from the side it came from — right→
+	// left for "next", left→right for "back" — with a crossfade + blur. rdp
+	// updates the grid in place (no remount), so we re-fire the CSS animation
+	// imperatively via reflow once the new month has committed.
+	const desktopCalRef = React.useRef<HTMLDivElement>(null);
+	const prevMonthRef = React.useRef<number | null>(null);
+	const [monthNav, setMonthNav] = React.useState<{ count: number; dir: 1 | -1 }>({ count: 0, dir: 1 });
+
+	React.useEffect(() => {
+		if (prevMonthRef.current === null) {
+			const now = new Date();
+			prevMonthRef.current = now.getFullYear() * 12 + now.getMonth();
+		}
+	}, []);
+
+	const handleMonthChange = (newMonth: Date) => {
+		const idx = newMonth.getFullYear() * 12 + newMonth.getMonth();
+		const prev = prevMonthRef.current;
+		prevMonthRef.current = idx;
+		if (prev === null || idx === prev) return;
+		setMonthNav((s) => ({ count: s.count + 1, dir: idx > prev ? 1 : -1 }));
+	};
+
+	React.useLayoutEffect(() => {
+		if (monthNav.count === 0) return;
+		const grid = desktopCalRef.current?.querySelector<HTMLElement>("table");
+		if (!grid) return;
+		// New month enters from the right when going forward, from the left when
+		// going back; the sign drives the keyframe via a custom property.
+		grid.style.setProperty("--cal-nav-from", monthNav.dir === 1 ? "14px" : "-14px");
+		grid.classList.remove("cal-nav-enter");
+		void grid.offsetWidth; // reflow so the animation re-fires every nav
+		grid.classList.add("cal-nav-enter");
+	}, [monthNav]);
+
 	// Custom day component that shows dots for events and handles clicks
 	const CustomDay = ({ date }: DayProps) => {
 		const dateString = date.toLocaleDateString("en-CA"); // 'YYYY-MM-DD' format in local time
@@ -333,15 +374,17 @@ function EventCalendar({
 	return (
 		<>
 			<EventCalendarMobileStrip eventDates={eventDates} onDateClick={onDateClick} selectedDate={selectedDate} />
+			<div ref={desktopCalRef} className={cn("hidden lg:block", className)}>
 			<DayPicker
 				locale={enGB}
 				showOutsideDays={showOutsideDays}
 				defaultMonth={new Date()}
+				onMonthChange={handleMonthChange}
 				// enGB's default weekday abbreviation is 2-char ("Mo", "Tu"). Now
 				// that columns flex to fill the wider card there's room for the
 				// more legible 3-char form ("Mon", "Tue").
 				formatters={{ formatWeekdayName: (day) => day.toLocaleDateString("en-GB", { weekday: "short" }) }}
-				className={cn("hidden lg:block p-3", className)}
+				className="p-3"
 				onDayClick={(day) => {
 					if (onDateClick) {
 						onDateClick(day);
@@ -392,6 +435,7 @@ function EventCalendar({
 				}}
 				{...props}
 			/>
+			</div>
 		</>
 	);
 }

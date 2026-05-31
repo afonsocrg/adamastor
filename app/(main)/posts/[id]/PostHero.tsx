@@ -42,10 +42,7 @@ export default function PostHero({ kind, title, author, publishedAt, publishedAt
 	// long titles wrap regardless, and the smaller starting point doesn't need
 	// further compression.
 	const titleLength = displayTitle.length;
-	const h1DesktopSize =
-		titleLength <= 45 ? "md:text-5xl"
-		: titleLength <= 70 ? "md:text-[2.5rem]"
-		: "md:text-[2rem]";
+	const h1DesktopSize = titleLength <= 45 ? "md:text-5xl" : titleLength <= 70 ? "md:text-[2.5rem]" : "md:text-[2rem]";
 
 	return (
 		// max-w-[60ch] aligns the header (kicker, title, byline) with the prose
@@ -66,7 +63,7 @@ export default function PostHero({ kind, title, author, publishedAt, publishedAt
 						{baseKicker}
 					</p>
 					{weekLabel && (
-						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-muted-foreground/75">
+						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-cyan-dim/75">
 							{weekLabel}
 						</p>
 					)}

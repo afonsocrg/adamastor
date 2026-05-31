@@ -1,6 +1,7 @@
+import { EVENT_CATEGORIES } from "@/lib/events/categories";
 import { buildEventsRss, feedUtmCampaign } from "@/lib/events/feed";
 import { fetchPublicEvents } from "@/lib/events/fetch-public";
-import { isKnownCategorySlug, isKnownCitySlug } from "@/lib/events/route-slugs";
+import { KNOWN_CITY_SLUGS, isKnownCategorySlug, isKnownCitySlug } from "@/lib/events/route-slugs";
 import { getEventsRouteTitleAndDescription } from "@/lib/events/seo";
 
 const SITE_URL = "https://adamastor.blog";
@@ -9,6 +10,16 @@ export const revalidate = 3600;
 
 interface RouteContext {
 	params: Promise<{ slug: string; category: string }>;
+}
+
+export function generateStaticParams() {
+	const params: { slug: string; category: string }[] = [];
+	for (const citySlug of KNOWN_CITY_SLUGS) {
+		for (const category of EVENT_CATEGORIES) {
+			params.push({ slug: citySlug, category: category.slug });
+		}
+	}
+	return params;
 }
 
 export async function GET(_request: Request, { params }: RouteContext) {

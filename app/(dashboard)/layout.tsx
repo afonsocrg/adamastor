@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { DashboardTrigger } from "@/components/dashboard-trigger";
 import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs";
+import RouteTransitionFrame from "@/components/route-transition-frame";
 import { SidebarInset, SidebarProvider } from "@/components/tailwind/ui/sidebar";
 import { type UserWithProfile, assertAuthenticated } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
@@ -61,7 +62,7 @@ export default async function DashboardLayout({
 						<DashboardTrigger placement="topbar" className="-ml-1" />
 						<DynamicBreadcrumbs />
 					</div>
-					{children}
+					<RouteTransitionFrame>{children}</RouteTransitionFrame>
 				</SidebarInset>
 			</SidebarProvider>
 		</div>

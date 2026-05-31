@@ -62,24 +62,24 @@ export default function MonthSkeleton({ date, events }: MonthSkeletonProps) {
 
 	return (
 		<div className="space-y-4">
-			<div className="rounded-lg border border-navy-frame bg-white p-5 dark:border-cyan-glow/[0.18] dark:bg-background">
+			<div className="rounded-lg border border-navy-frame bg-white p-5 dark:border-navy-edge dark:bg-background">
 				{/* Toolbar shape — non-interactive. The live CalendarToolbar
 				    re-renders this exact layout once hydration completes, so
 				    the swap is visually identical. */}
 				<div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-					<h2 className="flex items-center gap-2.5 text-xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+					<h2 className="flex items-center gap-2.5 text-xl font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 						<CalendarIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
 						<span>{label}</span>
 					</h2>
 					<div className="flex gap-2">
 						<div
 							aria-hidden="true"
-							className="flex items-center gap-1 rounded-md border border-navy-frame dark:border-cyan-glow/[0.18]"
+							className="flex items-center gap-1 rounded-md border border-navy-frame dark:border-navy-edge"
 						>
 							<div className="p-2">
 								<ChevronLeft className="h-4 w-4 opacity-40" />
 							</div>
-							<div className="border-l border-r border-navy-frame px-3 py-1.5 text-sm opacity-40 dark:border-cyan-glow/[0.18]">
+							<div className="border-l border-r border-navy-frame px-3 py-1.5 text-sm opacity-40 dark:border-navy-edge">
 								Today
 							</div>
 							<div className="p-2">
@@ -88,7 +88,7 @@ export default function MonthSkeleton({ date, events }: MonthSkeletonProps) {
 						</div>
 						<div
 							aria-hidden="true"
-							className="flex h-10 w-[140px] items-center justify-between rounded-md border border-navy-frame px-3 text-sm opacity-60 dark:border-cyan-glow/[0.18]"
+							className="flex h-10 w-[140px] items-center justify-between rounded-md border border-navy-frame px-3 text-sm opacity-60 dark:border-navy-edge"
 						>
 							<span>Month</span>
 						</div>
@@ -105,7 +105,7 @@ export default function MonthSkeleton({ date, events }: MonthSkeletonProps) {
 							<div className="rbc-row rbc-month-header">
 								{weekdayLabels.map((dayLabel) => (
 									<div key={dayLabel} className="rbc-header">
-										<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+										<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">
 											{dayLabel}
 										</span>
 									</div>
@@ -182,7 +182,7 @@ export default function MonthSkeleton({ date, events }: MonthSkeletonProps) {
 																		    this skeleton and row-limit assumptions in the same patch; see
 																		    docs/react-big-calendar-loading-stability.md. */}
 																		<div className="rbc-event pointer-events-none">
-																			<div className="h-4 rounded-sm bg-navy-frame/80 dark:bg-cyan-glow/[0.12]" />
+																			<div className="h-4 rounded-sm bg-navy-frame/80 dark:bg-navy-tint/[0.12]" />
 																		</div>
 																	</>
 																) : (

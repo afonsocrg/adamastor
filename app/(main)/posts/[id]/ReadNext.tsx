@@ -35,11 +35,10 @@ export default function ReadNext({ posts }: ReadNextProps) {
 								/>
 							) : null}
 							<div className="min-w-0 flex-1 space-y-1.5">
-								<p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-orange-hue">Opinion</p>
-								<h3 className="text-lg font-semibold leading-snug tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] group-hover:underline md:text-xl">
+								<h3 className="text-[1.1875rem] font-semibold leading-snug tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] group-hover:underline md:text-xl">
 									{getDisplayTitle(post.title)}
 								</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-sm text-navy-tone dark:text-cyan-dim">
 									{post.authors?.name ?? "Adamastor"}
 									<span aria-hidden="true"> · </span>
 									<time dateTime={post.created_at}>{formatDate(post.created_at)}</time>

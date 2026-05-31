@@ -25,14 +25,14 @@ interface SubscribeFormProps {
 function copyForKind(kind: PostKind): { heading: string; dek: string; stickyLabel: string } {
 	if (kind === "weekly") {
 		return {
-			heading: "Subscribe to Weekly Adamastor",
-			dek: "A weekly read on Portugal’s startup scene. Every Tuesday by Carlos Resende.",
-			stickyLabel: "Weekly Adamastor · Every Tuesday",
+			heading: "Subscribe to Adamastor Weekly",
+			dek: "A weekly read on Portugal’s startup scene. The raises, the launches, and the stories behind them. Every Tuesday by Carlos Resende, who’s curated it since 2017.",
+			stickyLabel: "Adamastor Weekly · Every Tuesday",
 		};
 	}
 	return {
 		heading: "Subscribe to Adamastor",
-		dek: "A weekly read on Portugal’s startup scene, plus occasional opinion from named voices in the ecosystem.",
+		dek: "A weekly read on Portugal’s startup scene — the raises, the launches, the hires — plus opinion from named voices in the ecosystem. Curated by Carlos Resende since 2017.",
 		stickyLabel: "Adamastor",
 	};
 }
@@ -116,19 +116,16 @@ export function SubscribeForm({ kind }: SubscribeFormProps) {
 		}
 	}
 
-	const showStickyBar =
-		!submitVisible && !navbarSubscribeVisible && !done && !form.formState.isSubmitting;
+	const showStickyBar = !submitVisible && !navbarSubscribeVisible && !done && !form.formState.isSubmitting;
 
 	return (
 		<>
 			<section className="border-t border-navy-frame pt-10" data-subscribe-region>
-				<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
-					Subscribe
-				</p>
-				<h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] md:text-3xl">
+				<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">Subscribe</p>
+				<h2 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] md:text-[1.75rem]">
 					{heading}
 				</h2>
-				<p className="mt-3 max-w-[55ch] text-base leading-relaxed text-muted-foreground">{dek}</p>
+				<p className="mt-3 max-w-[55ch] text-base leading-relaxed text-navy-tone dark:text-cyan-dim">{dek}</p>
 
 				{done ? (
 					<div className="mt-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300">
@@ -160,7 +157,13 @@ export function SubscribeForm({ kind }: SubscribeFormProps) {
 										<FormItem>
 											<FormLabel className="sr-only">Email</FormLabel>
 											<FormControl>
-												<Input {...field} type="email" placeholder="ana@yourstartup.pt" className="h-11" autoComplete="email" />
+												<Input
+													{...field}
+													type="email"
+													placeholder="ana@yourstartup.pt"
+													className="h-11"
+													autoComplete="email"
+												/>
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -183,12 +186,11 @@ export function SubscribeForm({ kind }: SubscribeFormProps) {
 			</section>
 
 			{showStickyBar && (
-				<div
+				<section
 					className="fixed inset-x-0 bottom-0 z-40 border-t border-navy-frame bg-white/95 shadow-[0_-1px_4px_-2px_rgba(8,41,58,0.05)] backdrop-blur-sm motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-300 motion-safe:ease-out dark:bg-navy-deep/90"
-					role="region"
 					aria-label="Subscribe"
 				>
-					<div className="mx-auto flex max-w-screen-lg items-center justify-between gap-3 px-4 py-3 md:px-8">
+					<div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8">
 						<p className="text-xs font-medium text-navy dark:text-cyan-lifted">{stickyLabel}</p>
 						<Button
 							type="button"
@@ -201,7 +203,7 @@ export function SubscribeForm({ kind }: SubscribeFormProps) {
 							<ArrowRightIcon className="ml-2 h-4 w-4" aria-hidden="true" />
 						</Button>
 					</div>
-				</div>
+				</section>
 			)}
 		</>
 	);

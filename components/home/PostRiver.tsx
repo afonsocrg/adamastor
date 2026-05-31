@@ -60,7 +60,7 @@ function RiverCard({ post }: RiverCardProps) {
 							{label}
 						</p>
 						{weekLabel && (
-							<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-muted-foreground/75">
+							<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-cyan-dim/75">
 								{weekLabel}
 							</p>
 						)}
@@ -68,11 +68,15 @@ function RiverCard({ post }: RiverCardProps) {
 					<h3 className="text-[1.22rem] font-bold leading-[1.22] text-navy [text-wrap:pretty] transition-colors duration-150 ease-out group-hover:underline dark:text-cyan-lifted sm:text-[1.55rem] sm:leading-[1.18]">
 						{displayTitle}
 					</h3>
-					<p className="max-w-[60ch] text-[0.98rem] leading-[1.55] text-muted-foreground line-clamp-3 sm:line-clamp-2 sm:text-base sm:leading-[1.6]">
+					<p className="max-w-[58ch] text-[0.98rem] leading-[1.55] text-navy-tone line-clamp-3 dark:text-cyan-dim sm:line-clamp-2 sm:text-base sm:leading-[1.6]">
 						{contentPreview}
 					</p>
-					<p className="text-[0.85rem] leading-6 text-muted-foreground/80">
-						{authorName ? <>{authorName} <span aria-hidden="true">·</span> </> : null}
+					<p className="text-[0.85rem] leading-6 text-navy-tone/80 dark:text-cyan-dim/80">
+						{authorName ? (
+							<>
+								{authorName} <span aria-hidden="true">·</span>{" "}
+							</>
+						) : null}
 						<time dateTime={post.created_at}>{formatDate(post.created_at)}</time>
 					</p>
 				</section>
@@ -111,13 +115,13 @@ export default function PostRiver({ currentPage, posts, totalPages }: PostRiverP
 								Newer articles
 							</Link>
 						) : (
-							<span className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-muted-foreground/50 dark:border-cyan-glow/[0.12]">
+							<span className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy-tone/50 dark:border-cyan-glow/[0.12] dark:text-cyan-dim/50">
 								Newer articles
 							</span>
 						)}
 					</div>
 
-					<div className="text-sm text-muted-foreground">
+					<div className="text-sm text-navy-tone dark:text-cyan-dim">
 						Page {currentPage} of {totalPages}
 					</div>
 
@@ -130,7 +134,7 @@ export default function PostRiver({ currentPage, posts, totalPages }: PostRiverP
 								Older articles
 							</Link>
 						) : (
-							<span className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-muted-foreground/50 dark:border-cyan-glow/[0.12]">
+							<span className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy-tone/50 dark:border-cyan-glow/[0.12] dark:text-cyan-dim/50">
 								Older articles
 							</span>
 						)}

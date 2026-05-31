@@ -111,13 +111,17 @@ Adamastor's primary color. Typography, structural framing, brand strip. **And** 
 | `navy-frame` | `#E8F0F4` | L=0.95 C=0.01 h=229 | **Near-neutral. THE workhorse for borders, hairlines, structural framing.** "Navy frames everything" — see color rule #5. |
 | `navy-veil` | `#E1F2F9` | L=0.95 C=0.02 h=228 | Intermediate. For soft text-containing backgrounds — trust asides ("Reviewed by"), empty-state fills, banners. Subtle enough not to compete with text, visible enough to register as a contained surface. |
 | `navy-wash` | `#D7F0FB` | L=0.94 C=0.03 h=228 | Visibly navy-tinted. For hover backgrounds and fills where navy presence should READ. **Don't use behind body text** — competes with readability. |
+| **Dark-mode roles — navy now anchors dark mode** (2026-05-30 decision; cyan dark-anchors being phased out). Values from the email `C_DARK` ramp, contrast-validated against the dark navy surface. | | | |
+| `navy-lifted` | `#CFE4EF` | L≈0.90 C≈0.04 | Dark-mode primary text / headlines (≈11:1 on the dark navy surface). The navy replacement for `cyan-lifted`. |
+| `navy-dim` | `#8FB3C2` | L≈0.73 C≈0.04 | Dark-mode secondary text — kickers, datelines (≈6.6:1). Replaces `cyan-dim`. |
+| `navy-edge` | `#2C4F5E` | L≈0.38 C≈0.03 | Dark-mode hairlines / borders (subtle navy on the dark surface). Replaces `cyan-glow` borders. Dark-mode highlight *fills* use `navy-tint` at low opacity (e.g. `dark:bg-navy-tint/[0.18]`). |
 
 **Why three atmospheric tiers in navy specifically.** The navy family has more atmospheric roles than the other families (76+ surfaces use one of these). A single token tries to serve borders, soft text backgrounds, AND visible hovers — and ends up wrong for at least one (the original `#D7F0FB` workhorse made borders too present and reduced readability behind text-containing soft fills). The three-tier split lets each surface pick the right pigment level for its job: invisible for frames, subtle for content backgrounds, visible for hover affordance. Other families don't need this split — their atmospheric roles are rarer and a single pigmented `*-wash` serves them well.
 
 #### Cyan — RESTRICTED (dark-mode anchor + rare brand moments)
 
 > ⚠️ **Cyan is restricted in light mode.** Use `navy.tint` for default interactive highlights instead. Cyan is reserved for:
-> - **Dark mode** anchoring (`cyan-lifted`, `cyan-glow`, `cyan-dim` handle the dark theme)
+> - **Dark mode** anchoring — ⚠️ *being phased out.* Navy now anchors dark mode via `navy-lifted` / `navy-dim` / `navy-edge` (+ `navy-tint` at low opacity for highlight fills) — see the Navy table. The admin calendar (`/dashboard/calendar` + `calendar-custom.css`) is the **first migrated surface** (2026-05-31); other surfaces still on `cyan-lifted`/`glow`/`dim` will follow. New dark-mode code should use the navy roles, not cyan.
 > - **Rare brand-moment hues** — hero covers, the occasional big CTA punch (per the high-stim tier)
 > - The footer seal Easter-egg animation where intentional
 >
@@ -176,7 +180,7 @@ Use Tailwind's built-in `gray-*` scale and the shadcn theme tokens (`bg-backgrou
 
 1. **TINTS for interactive accents.** Selected states, active chips, hover backgrounds — always `*-tint` or `*-wash`. Never `*-shade` or `*-hue` for interactive fills.
 2. **`navy-tint` is the light-mode highlight accent.** Selected calendar days, active filter chips, list bullets, blockquote hairline, focus outlines, "this is the current item" fills. Cyan does NOT do this anymore. (Inline link colour moved to `navy-bright` after the 2026-05-28 audit — see Navy family table.)
-3. **Gold is THE action color.** Primary CTAs use `bg-gold-hue` with `hover:bg-gold-shade`. One gold pill per page, max.
+3. **Gold is THE action color.** Primary CTAs use `bg-gold-hue` with `hover:bg-gold-shade`. One gold pill per page, max. **Text on gold is always white, never navy** — a hard brand rule that overrides the contrast math (see memory `feedback_never_navy_on_gold`).
 4. **Orange is an inline accent, never a button fill.** Arrow-tip icons (`text-orange-hue`), opinion kickers (`text-orange-shade`). Don't use `bg-orange-hue` as a button.
 5. **Navy frames everything.** All page-level borders use `border-navy-frame`. Single border tone per page.
 6. **One hue moment per fold (high-stim reserve).** A surface in the mid-stim baseline can have ONE high-stim moment — usually the gold pill OR a brand-cyan "wow" beat, not both. Don't pile high-stim elements.
@@ -221,13 +225,29 @@ Additional code-level migrations done in the same pass:
 - `decoration-cyan` and `hover:text-cyan-shade` (formerly `cyan-darker`) → `decoration-navy-tint` and `hover:decoration-navy`
 - All light-mode `bg-cyan-wash text-cyan-shade` (active states) → `bg-navy-tint text-navy`
 
+### Event category colours
+
+The 5 event categories carry their own colour identity — a **dedicated tint set drawn from the footer seal rainbow** ([`components/AdamastorMark.tsx`](../components/AdamastorMark.tsx)), re-assigned by *meaning*. They deliberately do NOT reuse the functional families (gold = CTA, green = success, orange = accent) — borrowing those muddied the design language (a gold "Product" chip read as a button). Decided 2026-05-31.
+
+**Source of truth:** the `--cat-*` custom properties in [`styles/globals.css`](../styles/globals.css) (light + dark in one place). Referenced by `EVENT_CATEGORY_COLORS` in `lib/events/categories.ts`, by the calendar grid (`.cat-*` in `calendar-custom.css`), and copied as hex into the newsletter email.
+
+| Category | Hue | Why it earns it | Light fill / ink |
+|---|---|---|---|
+| Design | peach blush | LisboaUX's peach (P3, pinker than the raw seal peach) | `oklch(0.94 0.045 31)` / `oklch(0.5 0.115 31)` |
+| Software Engineering | yellow | JavaScript *is* yellow (JS logo · LisboaJS) | `#fcf3d2` / `#7a5a12` |
+| Startups & Fundraising | green | money / funding / growth | `#def3df` / `#236929` |
+| Product | cyan | digital / tool | `#d6f4f6` / `#0a6e76` |
+| AI | lavender | intelligence / future | `#e8e2ff` / `#4a3c9e` |
+
+Each chip is a **monochrome study**: tint fill · same-hue *shade* ink · hue dot. In dark mode the fill becomes the hue at 18 % opacity on the navy surface with `navy-lifted` ink — handled automatically by the `.dark` override of the `--cat-*` vars. **Rose `#FFA0D0` from the seal is reserved for a future 6th category** (it'll certainly come). Distinct from the navy-tint *filter* chips (city / category lenses) — those tag "what am I filtering by", these tag "what kind of event this is".
+
 ## Spacing & layout
 
 - Vertical rhythm: **32px (2rem)** between major sections, **16px (1rem)** within.
-- Public surfaces cap at `max-w-screen-xl` (1280px); text-heavy pages (single articles, forms) cap further at `max-w-screen-lg` (1024px) or narrower. Admin uses available width up to `max-w-screen-2xl`.
+- Public editorial surfaces cap at `max-w-6xl` (1152px); text-heavy pages (single articles, forms) cap further at `max-w-screen-lg` (1024px) or narrower. Admin uses available width up to `max-w-screen-2xl`.
 - **Section dividers**: `navy-frame` hairline. Never multiple border tones on the same page.
 - **Modular cards** (Guardian-inspired): cards expand and contract to their content. Don't force uniform heights unless presenting genuinely comparable data (stat grids, comparison tables).
-- **Content edge on desktop = 32px.** On `/events`, the page content wrapper has `md:p-4` on top of `<main>`'s `p-4`, doubling the inset to 32px at `md:` and up. The navbar masthead (`md:px-8`) and the site-level section nav (`px-8` inside its `hidden md:block` wrapper) match this 32px edge so the tagline, site nav, scope tabs, and page heading all share one vertical rail down the page. Mobile stays at 16px because the doubling kicks in at `md:` only.
+- **Content edge on desktop = 32px.** On `/events`, the page content wrapper has `md:p-4` on top of `<main>`'s `p-4`, doubling the inset to 32px at `md:` and up. The navbar masthead and the site-level section nav put `px-4 md:px-8` **inside** their `max-w-6xl` wrappers, so the tagline, site nav, scope tabs, and page heading share one vertical rail even when the viewport is wider than the max-width container. Mobile stays at 16px because the doubling kicks in at `md:` only.
 
 ### Editorial grid
 
@@ -374,30 +394,60 @@ Key bits:
 - `sm:flex-wrap sm:overflow-x-visible sm:-mx-0 sm:px-0` — revert above 640px where
   content fits comfortably.
 
-### Scroll-cue gradient overlay
+### Scroll-cue affordance (directional chevrons)
 
-When the scrollbar is hidden, users have no signal that the row scrolls. Wrap the
-scroll container in a `relative` parent and overlay a 32px gradient on the right
-edge that fades from `from-background` to transparent — always on, mirrors the
-iOS / Material affordance:
+When the scrollbar is hidden, users have no signal that a row scrolls. The standard
+cue is a **scroll-position-aware, tappable chevron** on each edge that has more
+content off-screen — right from the start, left once the user has scrolled in. Each
+chevron sits on a short fade gradient and pages the strip by ~0.8× the viewport on
+tap (one card of overlap so context carries across the jump); `snap-mandatory`
+settles the landing on a card boundary.
+
+```tsx
+const ref = useRef<HTMLDivElement>(null);
+const [canLeft, setCanLeft] = useState(false);
+const [canRight, setCanRight] = useState(false);
+const sync = useCallback(() => {
+  const el = ref.current; if (!el) return;
+  setCanLeft(el.scrollLeft > 1);                                   // 1px epsilon
+  setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+}, []);
+// attach `sync` to the element's passive `scroll` + window `resize`; call once on mount.
+const page = (dir: 1 | -1) => ref.current?.scrollBy({ left: dir * ref.current.clientWidth * 0.8, behavior: "smooth" });
+```
 
 ```tsx
 <div className="relative -mx-3">
-  <div className="flex … overflow-x-auto px-3" role="listbox">
+  <div ref={ref} className="flex … overflow-x-auto snap-x snap-mandatory scroll-px-3 px-3">
     {items}
   </div>
-  <div
-    aria-hidden="true"
-    className="pointer-events-none absolute inset-y-0 right-0 w-8
-               bg-gradient-to-l from-background to-transparent"
-  />
+  {canLeft && (
+    <button aria-label="Scroll to earlier" onClick={() => page(-1)}
+      className="absolute inset-y-0 left-0 flex w-12 items-center justify-start
+                 bg-gradient-to-r from-background via-background to-transparent
+                 text-navy-tone transition-colors hover:text-navy">
+      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+    </button>
+  )}
+  {/* mirror on the right: right-0, justify-end, gradient-to-l, ChevronRight, page(1) */}
 </div>
 ```
 
-This is "always on" rather than scroll-position-aware: JS detection of `scrollLeft`
-adds complexity for marginal UX benefit — the fade reads as natural editorial trail-off
-whether or not the user has scrolled. The trade-off is mild dishonesty at end-of-scroll
-(the fade still hints at more content); we accept that for the simpler implementation.
+**Why this supersedes the old always-on fade.** Earlier guidance was a single
+always-on right-edge gradient with no scroll detection ("JS adds complexity for
+marginal benefit"). The scroll-aware version earns its keep: it's honest at both
+ends (the cue disappears when there's nothing more that way), it adds a real
+control (tap to page, not just swipe — better for touch), and the detection is
+cheap (two reads + arithmetic per scroll, with `setState` no-ops until a hint
+actually flips). A decorative-only fade is still acceptable for short rows where
+paging adds nothing — e.g. the filter chip rows.
+
+**Gotcha — `snap-mandatory` eats container padding.** A scroll container with
+`px-3` rests at `scrollLeft: 12`, not 0, because mandatory snap aligns the first
+card to the *padding box* and scrolls the inset out of view — which trips the left
+hint before any real scrolling. Mirror the inset with `scroll-px-3` so snap aligns
+to the padded edge and rests at 0. First shipped on the `/events` mobile day strip
+(`components/event-calendar.tsx`).
 
 ### Active-chip auto-center
 
@@ -513,6 +563,10 @@ of translucency via the backdrop-blur but anchors the bar visually.
 
 - **Destructive**: shadcn destructive variant. White text on destructive fill.
 
+- **Ghost** — the quietest button-shaped action, below the outlined secondary: transparent fill, no border, navy text, with a soft `navy-veil` background on hover. For low-priority utility actions that shouldn't pull focus (e.g. "Manage preferences" in a just-subscribed welcome). Distinct from the *Tertiary / inline link* above — ghost keeps button padding and shape; the inline link is prose-embedded with an underline.
+
+**Email implementations** of these tiers live in [`components/email/_theme.ts`](../components/email/_theme.ts) — `primaryCtaStyle` (gold pill), `secondaryCtaStyle` (outlined-navy pill), `ghostCtaStyle` (transparent). Email carries **pill shape across all tiers** (the rounded-lg-vs-rounded-full distinction is hard to hold across mail clients, so role is carried by fill/border instead), and **drops the arrow icon** on contact CTAs — it reads pushy on a relaxed "reach out" offer (see *WhatsApp contact pattern* in `docs/emails.md`).
+
 ### Pill chips
 
 For column-level lens controls (category filters). Wrap-friendly, snug touch targets.
@@ -540,20 +594,21 @@ For page-level edition selectors (city tabs). Quieter than pill chips — these 
 
 The strap directly below the masthead. Switches between the top-level surfaces of the publication (Articles · Events). Architectural — read as a permanent rail, not a frequently-touched filter. Hidden on mobile (`hidden md:block`); `MobileTabBar` handles small viewports.
 
-- Container: `max-w-screen-xl mx-auto flex flex-wrap items-center gap-x-8 gap-y-1 px-8 border-b border-navy-frame` (32px horizontal inset at desktop to match `/events` content edge — see *Masthead* below)
+- Container: `border-b border-navy-frame` wrapper, with inner `max-w-6xl mx-auto px-4 md:px-8`; the inner `<nav>` is `relative flex flex-wrap items-center gap-x-8 gap-y-1` (32px horizontal inset at desktop to match `/events` content edge — see *Masthead* below)
 - **Inactive**: `text-sm font-semibold uppercase tracking-[0.18em] text-navy-tone hover:text-navy border-b-2 border-transparent`
 - **Active**: `text-sm font-semibold uppercase tracking-[0.18em] text-navy border-b-2 border-navy` — navy underline (architectural). The role distinction with the page-level scope tabs is now carried by typography (caps + tracking vs mixed case) and weight (semibold uppercase vs sentence-case) — both use navy active state since the cyan/teal kicker color was retired.
+- **Transition**: the semantic links render as the inactive layer after hydration; an `aria-hidden` duplicate active text layer sits above with `pointer-events-none` and a measured `clip-path: inset(...)`. The underline is a separate measured `span` (`bottom-[-1px] h-0.5 w-px origin-left`) that animates `transform` only via `translateX(...) scaleX(...)` with `220ms cubic-bezier(0.77,0,0.175,1)`. Keep the line separate from the clipped text layer; otherwise the clip can reveal old/new underline fragments mid-transition. See [`docs/animations.md`](./animations.md).
 
 ### Sidebar modules
 
 Outlined editorial cards in a sidebar column (calendar block, subscribe block).
 
 ```tsx
-className="rounded-lg border border-navy-frame p-5"
+className="rounded-md border border-navy-frame p-5"
 ```
-- Heading: `text-lg font-bold text-navy [font-family:var(--font-lora-bold)]`
-- Body: `text-sm leading-relaxed text-muted-foreground`
-- Action: inline subscribe button pattern (above)
+- Heading: Inter `text-[1.0625rem] font-bold tracking-tight text-navy [text-wrap:balance]`
+- Body: `text-sm leading-relaxed text-navy-tone`
+- Action: inline subscribe button pattern (above), with `hover:bg-navy-veil/40`
 
 ### Empty states
 
@@ -561,14 +616,14 @@ Two distinct treatments, depending on cause.
 
 - **Content-gap** (the route is genuinely empty — no events for this city/category yet). Editorial moment, organiser-acquisition opportunity.
   ```tsx
-  className="rounded-lg border border-navy-frame bg-navy-veil/40 px-6 py-10 text-center"
+  className="rounded-md border border-navy-frame bg-navy-veil/40 px-6 py-10 text-center"
   ```
-  - Lora Bold heading: `"No upcoming [X] events"`
-  - Body with inline action: `"Organising one? [Submit it] — it'll show up here."`
+  - Inter Bold heading: `"No upcoming [X] events"`
+  - Body in `text-navy-tone` with inline action: `"Organising one? [Submit it] — it'll show up here."`
 
 - **Filter-result** (transient — user filtered to nothing; just needs to clear the filter). Dashed border signals "this is a filter result, not the page's actual state."
   ```tsx
-  className="rounded-md border border-dashed border-navy-frame px-6 py-10 text-center text-base leading-relaxed text-muted-foreground"
+  className="rounded-md border border-dashed border-navy-frame px-6 py-10 text-center text-base leading-relaxed text-navy-tone"
   ```
 
 ### Editorial inline link
@@ -635,6 +690,23 @@ Meaning matters — pick the variant that communicates, don't default to "second
 - **Filled green** (`bg-green-hue text-white`): approved / live / positive signal.
 - **Filled orange** (`bg-orange-tint text-orange-shade`): editorial / opinion flag.
 
+**Count / milestone badge** — a celebratory emblem for round-number moments (e.g. subscriber-count milestones). A **circle** (`border-radius: 50%`) filled `gold-hue` with the number in **white** (the gold/white celebration pairing), optionally ringed by a soft `gold-tint` glow (`box-shadow: 0 0 0 8px gold-tint`). "Basic shapes" by design — a hexagon would need SVG, which email clients strip, so a circle is the portable primitive (it degrades to a gold circle without the glow where `box-shadow` is ignored; Outlook may square the corners). First used in the team milestone email (`components/email/team/subscribe-alert.tsx`); promote to web if a milestone surface appears there.
+
+### Event date block & calendars
+
+One date-block grammar spans every events surface — the `/events` desktop month picker, its mobile day strip, the admin `react-big-calendar` month/week views, and the homepage "Upcoming" teaser. They read as one family:
+
+- **Weekday cap**: `uppercase tracking-[0.14em] text-[0.625rem] font-semibold text-navy-tone` (3-char — "MON"). Always navy-tone, never state-tinted; the same kicker register as section nav.
+- **Day numeral**: Lora Bold (`[font-family:var(--font-lora-bold)]`), `tabular-nums`. `text-base` in the dense desktop month grid, `text-lg` in the strip and the static badge.
+- **Active day** — the *selected* day, or *today* when nothing is selected: `bg-navy-tint` fill, `rounded-md`, **no border**. Selection wins exclusively: once a day is picked, today drops its highlight so the grid never shows two filled cells (`isActive = isSelected || (isToday && !selectedDate)`).
+- **Surface vs highlight**: the fill follows colour rule #2 — `navy-tint` is the highlight, reserved for the active day. Date plaques that appear on *every* item (the homepage teaser) are **surfaces**, so they use `navy-veil`, not tint. Using tint there would erode what tint signals everywhere else.
+
+**Shared component — `components/EventDateBadge.tsx`.** The *static* date block (weekday cap + Lora numeral, sized `min-w-[52px] h-[68px]`) with a `tone` prop: `"surface"` (navy-veil — homepage teaser, email event rows) or `"highlight"` (navy-tint — an active day). Presentational; wrap in a link/button for interactivity. Route new static date surfaces through it.
+
+**The interactive calendar day cells stay separate by design.** The picker/strip cells share the grammar and the `min-w-[52px] h-[68px]` dimensions but NOT the component — they carry an event dot, three selection states, and scroll-snap that would bloat the badge with conditional props (the wrong-abstraction trap). Shared grammar ≠ shared code.
+
+> **Customizing the admin `react-big-calendar`** (month/week/day/agenda, category tints, the navigation + view-switch motion, the rbc internals that bite): see [`docs/react-big-calendar.md`](./react-big-calendar.md) — written to be portable to other apps — with [`docs/react-big-calendar-loading-stability.md`](./react-big-calendar-loading-stability.md) for the SSR-skeleton cross-fade and [`docs/animations.md`](./animations.md) § *Calendar navigation* for the motion.
+
 ### Tables
 
 - Header: Inter `font-medium`, `text-xs uppercase tracking-wide text-muted-foreground`
@@ -670,13 +742,13 @@ All feed URLs are scope-aware (`/events/feed.xml`, `/events/[city]/feed.xml`, `/
 ### Sections
 
 A "section" is a meaningful grouping (Stats, By category, Recent activity). Each section:
-- Has a heading in Inter `font-semibold`, `text-base` or `text-lg` (reserve Lora Bold for page titles, module headings, and hero numbers)
+- Has a heading in Inter `font-semibold`, `text-base` or `text-lg` (reserve Lora Bold for page titles, brand straps, and hero numbers)
 - May have a one-line subhead in `text-sm text-muted-foreground`
 - Sits inside `space-y-8` (or larger) with previous/next section
 
 ### Author strap
 
-A horizontal byline for editorial content with a known author (e.g. the "Weekly Adamastor" card on `/preferences` and `/subscribe`). Lifts the author *out* of the card so the card stays clean while still surfacing credit + credentials + a way to reach them.
+A horizontal byline for editorial content with a known author (e.g. the "Adamastor Weekly" card on `/preferences` and `/subscribe`). Lifts the author *out* of the card so the card stays clean while still surfacing credit + credentials + a way to reach them.
 
 - Container: `flex items-start gap-3`
 - Avatar: `h-10 w-10 shrink-0 rounded-full object-cover` (~40px portrait)
@@ -701,7 +773,7 @@ Bottom-of-viewport fixed bar that surfaces a primary form action when (a) the us
 
 - Container: `fixed inset-x-0 bottom-0 z-40 border-t border-navy-frame bg-background/95 shadow-[0_-1px_4px_-2px_rgba(8,41,58,0.05)] backdrop-blur-sm`
 - Inner: `mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 md:px-8`
-- Left: tight selection summary (e.g. "Weekly Adamastor + 1 topic"), `text-xs font-medium text-navy`
+- Left: tight selection summary (e.g. "Adamastor Weekly + 1 topic"), `text-xs font-medium text-navy`
 - Right: primary action — same gold pill as the in-form submit, with the `form="<form-id>"` attribute so the button submits the offscreen form
 - Mount animation: `motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-300 motion-safe:ease-out`
 - Gating: visibility tracked via `IntersectionObserver` on the in-form submit row. Bar hides when submit re-enters the viewport. Also gated on `!leaving && !done` so it dismounts during the form fade-out and never lingers over the success state.
@@ -713,7 +785,7 @@ Subtle shadow only — never enough to compete with page content. Used on `/subs
 The shadcn `AlertDialog` defaults visually emphasize the action button. For dialogs that should encourage the user to *stay* (leave-page guards, discard-changes prompts), flip the hierarchy.
 
 - Title: Lora Bold, navy, `text-2xl font-bold leading-tight [font-family:var(--font-lora-bold)]`
-- Description: surface concrete state ("You're one click away from Weekly Adamastor + 1 topic.") so the user sees what they'd lose, not just an abstract warning
+- Description: surface concrete state ("You're one click away from Adamastor Weekly + 1 topic.") so the user sees what they'd lose, not just an abstract warning
 - Content border: override to `border-navy-frame` to match the page-level border tone
 - **Cancel button** (the wanted action — "Stay and subscribe"): gold pill, `rounded-full bg-gold-hue font-semibold text-white hover:bg-gold-shade`, includes the arrow icon (mirrors the in-form submit)
 - **Action button** (the unwanted action — "Leave anyway"): quiet text link, `bg-transparent text-sm text-muted-foreground hover:bg-transparent hover:text-navy hover:underline` — never destructive red (red signals an error or harm; this is just the less-preferred path, not a destructive one)
@@ -971,7 +1043,7 @@ The canonical composition for a single-article reading surface (`/posts/[id]`). 
 ```
 ─── 5px navy strip ─── masthead + section strap ───
 
-  <article>  max-w-screen-xl mx-auto + 2-col grid at lg+
+  <article>  max-w-6xl mx-auto + 2-col grid at lg+
 
   ┌── (Optional) Admin controls ───────────────────┐  (justify-end, post owners only)
 
@@ -1040,9 +1112,9 @@ The canonical composition for a single-article reading surface (`/posts/[id]`). 
 
 **Layout primitives:**
 
-- **Container**: `mx-auto max-w-screen-xl px-0 pb-20 md:p-4 md:pb-24` — matches the navbar's width contract (max-w-screen-xl) so masthead chrome and article body share the same left content edge at every viewport. Mobile drops the article's own `px-4` and relies on main's `p-4` only, so body content aligns at x=16 with the navbar wordmark.
+- **Container**: `mx-auto max-w-6xl px-0 pb-20 md:p-4 md:pb-24` — matches the navbar's width contract (`max-w-6xl`) so masthead chrome and article body share the same left content edge at every viewport. Mobile drops the article's own `px-4` and relies on main's `p-4` only, so body content aligns at x=16 with the navbar wordmark.
 - **Grid at lg+**: `lg:grid lg:grid-cols-[12rem_minmax(0,48rem)_1fr] lg:gap-12` — TOC | body (capped at 48rem for reading line length) | empty space. The body cap prevents the wider outer container from blowing up prose line lengths.
-- **Aside (TOC) horizontal nudge**: at xl+ the navbar's outer-padding-centered inner edge diverges from the article's main-padded inner edge by 32px. Calc-based margin on the aside corrects this: `style={{ marginLeft: 'min(0px, max(-32px, calc((1280px - 100vw) / 2)))' }}`.
+- **Aside (TOC)**: no horizontal nudge. The narrowed shell keeps navbar, article grid, and TOC on the same rail through shared `max-w-6xl` + `md:px-8` / `md:p-4` geometry.
 - **Mobile vertical gap navbar → article**: `-mt-2 md:mt-0` on the article pulls it up 8px on mobile (main's `p-4` provides 16px gap by default).
 - **Hero mobile spacing**: `space-y-5 md:space-y-8` between heading-group and byline; `space-y-2 md:space-y-4` between kicker and H1.
 - **Article section spacing**: `space-y-8 md:space-y-12` between hero / body / author / coda / read-next / feedback.
@@ -1051,6 +1123,7 @@ The canonical composition for a single-article reading surface (`/posts/[id]`). 
 - **Vertical alignment**: a small JS pass measures the target element (`.article-prose`)'s top and applies `padding-top` to a container wrapping the nav, so the nav's first row sits at the first paragraph's y-position. Uses padding (not margin) on the container to avoid margin-collapsing with the nav child.
 - **Sticky range**: the same JS sets the container's `height` to `lastContentBottom - containerTop`, where `lastContentBottom` walks the article-prose children in reverse to find the last child with non-empty text content. This skips TipTap's trailing empty `<p>` and binds sticky to the actual last paragraph — the TOC stops following exactly at the body's end, not at the column's end.
 - **Active section**: scroll-position-based (not IntersectionObserver) — picks the deepest h2/h3 whose top has crossed the viewport's 25% line. Document-order scan keeps the active state stable.
+- **Active rail**: the inactive `<ol>` keeps the full-height `navy-frame` hairline; active anchors switch to transparent borders after hydration, while one measured absolute `span` animates `transform` only via `translateY(...) scaleY(...)` with `220ms cubic-bezier(0.77,0,0.175,1)`. This matches the site nav and events city tabs without duplicating line fragments. See [`docs/animations.md`](./animations.md).
 - **ID injection**: TipTap renders h2/h3 without IDs; PostTOC walks `.article-prose h2, h3` on mount, assigns IDs from the server-extracted heading list, and sets `scrollMarginTop: 6rem` so anchor jumps land below the masthead.
 
 **Sticky CTA bar gating** (`SubscribeForm.tsx`):
@@ -1061,7 +1134,7 @@ The canonical composition for a single-article reading surface (`/posts/[id]`). 
 
 **Kind-aware behavior** (`lib/posts/kind.ts`):
 - Posts are classified as `weekly` or `opinion`. Heuristic: Carlos Resende author OR title contains `Week N` → weekly; else opinion.
-- Kicker label: `getFeedCardLabel(kind)` returns "Weekly Adamastor" or "Opinion". The `Week N` marker (from `getWeekLabel()`) is **not** concatenated into the label — it renders separately in the kicker row's right gutter (see two-pillar kicker note under Cross-route consistency).
+- Kicker label: `getFeedCardLabel(kind)` returns "Adamastor Weekly" or "Opinion". The `Week N` marker (from `getWeekLabel()`) is **not** concatenated into the label — it renders separately in the kicker row's right gutter (see two-pillar kicker note under Cross-route consistency).
 - Title display: `getDisplayTitle()` strips the `| Week N` suffix from Weekly titles.
 - Read-next: shown only on Opinion (3 recent Opinions; the Subscribe coda is the natural exit ramp for Weeklies).
 - Author strap CTA: "More from Carlos →" appears on Weekly only.
@@ -1075,17 +1148,17 @@ Rules that span more than one editorial template (`/`, `/posts/[id]`, `/events`,
 
 | Kind | Card kicker (homepage river, sidebar) | Hero / post-page kicker | Subscribe coda heading | Sticky bar label |
 |---|---|---|---|---|
-| Weekly | `WEEKLY ADAMASTOR` | `WEEKLY ADAMASTOR` + `Week N` right gutter | `Subscribe to Weekly Adamastor` | `Weekly Adamastor · Every Tuesday` |
+| Weekly | `ADAMASTOR WEEKLY` | `ADAMASTOR WEEKLY` + `Week N` right gutter | `Subscribe to Adamastor Weekly` | `Adamastor Weekly · Every Tuesday` |
 | Opinion | `OPINION` | `OPINION` | `Subscribe to Adamastor` | `Adamastor` |
 
-`getFeedCardLabel(kind)` in `lib/posts/kind.ts` is the single source of truth for the card kicker. It used to return `"Weekly Digest" / "Guest Article"` — both retired in favour of the canonical publication-name vocabulary, so a reader sees the same noun on `/`, `/posts/[id]`, and the sidebar Opinion stack. Don't introduce a third short form. The publication name dropped its leading "The": the brand is **`Weekly Adamastor`** (bare) in every label, kicker, heading, and CTA. A referential "the" is still correct in flowing prose that points at *the* newsletter (e.g. the Masthead dek: "…The Weekly Adamastor every Tuesday…") — that's grammar, not the name. The old `getKickerLabel()` helper (which concatenated the week into the label string) was deleted; the week marker is now a separate gutter element.
+`getFeedCardLabel(kind)` in `lib/posts/kind.ts` is the single source of truth for the card kicker. It used to return `"Weekly Digest" / "Guest Article"` — both retired in favour of the canonical publication-name vocabulary, so a reader sees the same noun on `/`, `/posts/[id]`, and the sidebar Opinion stack. Don't introduce a third short form. The brand is **`Adamastor Weekly`** (bare, leading "The" dropped) in every label, kicker, heading, and CTA — and the word order is **Adamastor Weekly**, never "Weekly Adamastor". A referential "the" is still correct in flowing prose that points at *the* newsletter — that's grammar, not the name. The old `getKickerLabel()` helper (which concatenated the week into the label string) was deleted; the week marker is now a separate gutter element.
 
 **Two-pillar kicker accent** (publication-wide — homepage river, featured hero, sidebar Opinion, and the `/posts/[id]` hero):
 
 - **Weekly** kicker is `text-navy-bright` (`#1C6EB4`, the cool brand-blue — same token as the inline-link rest colour) / `dark:text-cyan-glow`.
 - **Opinion** kicker is `text-orange-hue` (`#E05E00`, the warm "named voice" accent).
 - A reader who scans a kicker colour on `/` meets the same colour when they land on the article — the accent *is* the kind signal.
-- Kicker row layout is `[pillar-coloured label] ←→ [Week N, right gutter]` via `flex … justify-between`. The week marker is title-case ("Week 21", not uppercase), `text-muted-foreground/75` — quiet edition metadata, deliberately neutral gray rather than navy-tinted (it's the quietest tier).
+- Kicker row layout is `[pillar-coloured label] ←→ [Week N, right gutter]` via `flex … justify-between`. The week marker is title-case ("Week 21", not uppercase), `text-navy-tone/75 dark:text-cyan-dim/75` — quiet edition metadata, still inside the navy family.
 
 **Photo treatment policy** (when does the duotone filter apply?):
 
@@ -1102,7 +1175,7 @@ The duotone is reserved for the **earned editorial moments** where a single face
 
 **Hover background token** (single value across the page):
 
-- `hover:bg-navy-veil/40` for surface hovers on interactive cards/items (hero, river card, ReadNext item, "Browse all events" inline action, pagination buttons). Dark-mode equivalent: `dark:hover:bg-cyan-glow/[0.04]`.
+- `hover:bg-navy-veil/40` for surface hovers on interactive cards/items (hero, river card, event rows, ReadNext item, "Browse all events" inline action, events coda links, pagination buttons). Dark-mode equivalent: `dark:hover:bg-cyan-glow/[0.04]`.
 - Do not introduce parallel hover values (`navy-frame/30`, `navy-veil/60`, `navy-wash`). One token = one visual register for "this is interactive."
 
 **Hairlines = `navy-frame`** (don't use shadcn `<Separator/>` for editorial dividers):
@@ -1112,13 +1185,13 @@ The duotone is reserved for the **earned editorial moments** where a single face
 
 **Kicker geometry (canonical)**:
 
-- Main-column kickers (river card, hero, post-page hero, sidebar module heading): `text-[11px] md:text-xs font-semibold uppercase tracking-[0.18em]`.
-- Smaller per-item kickers (sidebar Opinion item, sidebar event date plaque): `text-[10px] font-semibold uppercase tracking-[0.18em]` (or `tracking-[0.14em]` for the date plaque which has even less room for tracking to breathe).
-- Color: navy-tone for Weekly/neutral; `text-orange-hue` for Opinion (the single warm-accent moment per fold).
+- Main-column kickers (river card, hero, post-page hero, sidebar module heading): `text-[11px] md:text-xs font-semibold uppercase tracking-[0.14em]`.
+- Smaller per-item kickers (sidebar Opinion item, sidebar event date plaque): `text-[10px] font-semibold uppercase tracking-[0.14em]`.
+- Color: `navy-bright` for Weekly, `navy-tone` for neutral support labels, and `text-orange-hue` for Opinion (the single warm-accent moment per fold).
 
 **Left-edge alignment with the navbar wordmark**:
 
-- Navbar uses `px-4 md:px-8` (16px mobile, 32px desktop). Main wraps content in `p-4` (16px both viewports). To meet the navbar's 32px edge at md+, editorial pages with their own grids add a *second* `md:p-4` to their grid wrapper (the same trick `/events` uses). The homepage's outer grid does this; `/posts/[id]` does it via the article container's `md:p-4`.
+- Navbar uses inner `px-4 md:px-8` inside its `max-w-6xl` wrappers (16px mobile, 32px desktop). Main wraps content in `p-4` (16px both viewports). To meet the navbar's 32px edge at md+, editorial pages with their own grids add a *second* `md:p-4` to their grid wrapper (the same trick `/events` uses). The homepage's outer grid does this; `/posts/[id]` does it via the article container's `md:p-4`.
 - Interactive cards inside the grid (river card, hero) extend their hover surface outward via the `-mx-4 px-4` pairing — content stays at the same x position as the H1, the surface bleeds 16px past on each side.
 
 ### Editorial homepage template
@@ -1128,7 +1201,7 @@ The canonical composition for `/` (and the paginated archive at `/page/[page]`).
 ```
 ─── 5px navy strip ─── masthead + section strap ───
 
-  max-w-screen-xl mx-auto p-4 + md:p-4  (32px content edge at md+)
+  max-w-6xl mx-auto p-4 + md:p-4  (32px content edge at md+)
   ┌── grid grid-cols-1 gap-8 md:p-4 lg:grid-cols-8 lg:gap-20 ────────┐
   │ ┌── main (order-1 lg:col-span-5 space-y-10 lg:space-y-12) ───┐  │
   │ │ <Masthead>                                                 │  │
@@ -1145,12 +1218,12 @@ The canonical composition for `/` (and the paginated archive at `/page/[page]`).
   │ ┌── sidebar (order-2 lg:col-span-3) ─────────────────────────┐  │
   │ │ <HomeSidebar opinions upcomingEvents>                      │  │
   │ │   <section>  "From the opinion desk" (orange kicker)       │  │
-  │ │     "Named voices in the ecosystem" Lora module heading    │  │
+  │ │     "Named voices in the ecosystem" Inter module heading   │  │
   │ │     ul × 4 opinion items (40px circular avatar + Inter     │  │
   │ │              title + author·date)                          │  │
   │ │   </section>                                               │  │
   │ │   <section>  "Upcoming" (navy-tone kicker)                 │  │
-  │ │     "Events worth showing up to" Lora module heading       │  │
+  │ │     "Events worth showing up to" Inter module heading      │  │
   │ │     ul × 3 events (date plaque + Inter title + city)       │  │
   │ │     "Browse all events →" exit link                        │  │
   │ │   </section>                                               │  │
@@ -1161,7 +1234,7 @@ The canonical composition for `/` (and the paginated archive at `/page/[page]`).
 
 **Layout primitives:**
 
-- **Container**: page contents render directly into main's `max-w-screen-xl mx-auto p-4` — no extra wrapper. An additional `md:p-4` on the grid wrapper adds the second 16px layer at md+, putting content at x=32 (same as the navbar's `md:px-8`).
+- **Container**: page contents render directly into main's `max-w-6xl mx-auto p-4` — no extra wrapper. An additional `md:p-4` on the grid wrapper adds the second 16px layer at md+, putting content at x=32 (same as the navbar's inner `md:px-8`). This cap replaced `max-w-screen-xl`; the narrower shell adds outer margin and brings the main column closer to a magazine measure at laptop-wide sizes.
 - **Grid at lg+**: `lg:grid-cols-8 lg:gap-20` with main as `lg:col-span-5` and sidebar as `lg:col-span-3`. 80px gutter is editorial, not SaaS-tight. The H1+dek lives *inside* the main column so the sidebar's top aligns with the H1 baseline (the 8-col rule).
 - **Mobile collapse**: single column with `order-1` main → `order-2` sidebar. Sidebar reads as a coda, not as a competing pane.
 - **Main vertical rhythm**: `space-y-10 lg:space-y-12` between Masthead / Hero (when present) / River / SubscribeForm.
@@ -1169,30 +1242,44 @@ The canonical composition for `/` (and the paginated archive at `/page/[page]`).
 **Masthead** (`components/home/Masthead.tsx`):
 
 - `<header className="space-y-3 pb-2 pt-2">`
-- H1: `text-xl md:text-2xl font-bold leading-tight text-navy [font-family:var(--font-lora-bold)] [text-wrap:balance] dark:text-cyan-lifted` — quiet editorial nameplate, intentionally smaller than `/events`' H1 because it sits *above* the river (which carries its own typographic weight at scale).
-- Dek: opens with the canonical brand strapline `"A weekly read on Portugal's startup scene."` then names the offering mix — must reuse the strapline verbatim from `/about` for cross-surface voice consistency.
+- H1: `text-xl md:text-2xl font-bold leading-tight text-navy [font-family:var(--font-lora-bold)] [text-wrap:balance] dark:text-cyan-lifted` — quiet editorial nameplate, shared with `/events` so the sister routes start from the same typographic voice.
+- Dek: `text-navy-tone dark:text-cyan-dim`; opens with the canonical brand strapline `"A weekly read on Portugal's startup scene."` then names the offering mix — must reuse the strapline verbatim from `/about` for cross-surface voice consistency.
 - Default heading `"Latest from Adamastor"`; the `/page/[page]` route overrides to `"From the Adamastor archive"`.
 
 **River cards** (`components/home/PostRiver.tsx`):
 
 - `<article>` with `border-b border-navy-frame last:border-b-0` — single-tone navy hairlines (deliberately NOT shadcn's `<Separator />`, which uses the grey `--border` token and diverges from the rest of the page's hairlines).
 - Card link uses the negative-margin hover trick: `sm:-mx-4 sm:px-4 sm:hover:bg-navy-veil/40` so the hover surface extends 16px outward without shifting content rightward off the masthead's left edge.
-- Kicker row: `text-[11px] md:text-xs font-semibold uppercase tracking-[0.18em]` — canonical kicker geometry. Color is kind-aware: Opinion = `text-orange-hue`, Weekly = `text-navy-tone dark:text-cyan-dim`.
+- Kicker row: `text-[11px] md:text-xs font-semibold uppercase tracking-[0.14em]` — canonical kicker geometry. Color is kind-aware: Opinion = `text-orange-hue`, Weekly = `text-navy-bright dark:text-cyan-glow`.
 - Title: Inter bold `text-[1.22rem] sm:text-[1.55rem]` — catalog/scan mode, intentionally not Lora (Lora is reserved for the Masthead H1 + the post-page H1; using it here would dilute the editorial signal).
-- Week label hangs in the right gutter when present (`text-[0.78rem] tracking-[0.04em] text-muted-foreground/75`).
+- Week label hangs in the right gutter when present (`text-[0.78rem] tracking-[0.04em] text-navy-tone/75 dark:text-cyan-dim/75`).
+- Lede + metadata use `text-navy-tone` / `text-navy-tone/80` (dark: `cyan-dim`) rather than shadcn gray, so the homepage uses the same navy-family secondary register as the post route. Lede measure is `max-w-[58ch]`, matching event descriptions.
 - `<time datetime="…">` wraps the visible date (semantic HTML + AI freshness signal).
 - Pagination: outlined navy lozenges (`border-navy-frame px-3 py-2 text-sm`) with hover `bg-navy-veil/40` and focus-visible ring. No `sm:px-4` on the nav wrapper (would re-introduce the indent the cards just escaped).
 
 **Sidebar** (`components/home/HomeSidebar.tsx`):
 
 - `<aside className="flex flex-col gap-8 lg:sticky lg:top-24 lg:gap-10">` — sticky at lg+ so the editorial modules stay in view through the river scroll.
-- Module chrome: `lg:rounded-lg lg:border lg:border-navy-frame lg:p-6` — outlined card only at lg+. On mobile the chrome drops per the *Mobile patterns → card register* rule; the sidebar reads as a coda continuation, not as twin boxed widgets.
-- Module heading group: kicker (`text-xs font-semibold uppercase tracking-[0.18em]`) + Lora H2 (`text-lg font-bold [font-family:var(--font-lora-bold)] [text-wrap:balance]`). Opinion module's kicker is `text-orange-hue`; "Upcoming" stays `text-navy-tone`.
+- Module chrome: `lg:rounded-md lg:border lg:border-navy-frame lg:p-6` — outlined card only at lg+. On mobile the chrome drops per the *Mobile patterns → card register* rule; the sidebar reads as a coda continuation, not as twin boxed widgets.
+- Module heading group: kicker (`text-xs font-semibold uppercase tracking-[0.14em]`) + Inter H2 (`text-[1.0625rem] font-bold tracking-tight [text-wrap:balance]`). Opinion module's kicker is `text-orange-hue`; "Upcoming" stays `text-navy-tone`. Lora stays reserved for page-level editorial moments.
 - Opinion items: 40px circular avatar (`rounded-full border border-navy-frame`, no duotone — see *Photo treatment policy* below) + Inter `text-sm font-semibold` title + author · `<time>`.
 - Event items: date plaque (`w-12 rounded-md border bg-navy-veil/40`, weekday small caps + day numeric tabular) + Inter title + city. External links are UTM-tagged with `medium: "referral"`, `campaign: "home_sidebar_events"`, `content: event.id` so home-sourced clicks attribute correctly in destination analytics.
 - "Browse all events →" exit link uses the *Inline action with hover-background* pattern (navy semibold + orange-hue arrow).
 
 **Featured hero (currently hidden)**: `components/home/FeaturedHero.tsx` exists but is not rendered on `/`. The earlier version surfaced the latest post above the river with an oversized Lora title + portrait. Held back pending a future revisit. Re-enabling is a 3-line diff in `app/(main)/page.tsx`: re-add the import, the `const [heroPost, …riverPosts] = posts;` destructure, and the conditional render. The component itself remains in source so iterating on it can happen without re-deriving the layout.
+
+### Events sister route template
+
+`/events` is the homepage's sister product surface: same editorial grid and support-color logic, with event-specific controls layered in. The route lives in [`app/(main)/events/EventsPageClient.tsx`](../app/(main)/events/EventsPageClient.tsx), event rows in [`components/EventCard.tsx`](../components/EventCard.tsx), and the date picker in [`components/event-calendar.tsx`](../components/event-calendar.tsx).
+
+- **Container / grid**: same `max-w-6xl` public shell, doubled-padding `md:p-4`, `lg:grid-cols-8`, `lg:gap-20`, `lg:col-span-5 / 3` composition as the homepage. Header lives inside the main column so the sidebar calendar aligns to the page title rather than floating above it.
+- **Masthead**: `<header className="space-y-3 pb-2 pt-2">`; H1 uses the same quiet Lora scale as `/` (`text-xl md:text-2xl`, `text-navy`, `[text-wrap:balance]`), and the intro/dek uses `text-navy-tone dark:text-cyan-dim`, never shadcn gray.
+- **Scope tabs + category chips**: city tabs are architectural (`border-b border-navy`, active `text-navy`); category chips are browse lenses. City tabs use one measured underline span that animates `transform` only via `translateX(...) scaleX(...)` with `220ms cubic-bezier(0.77,0,0.175,1)`, matching the site-level section nav. Do not restore per-link active borders after hydration. Active chips use `border-navy bg-navy-tint text-navy` in light mode, not cyan. See [`docs/animations.md`](./animations.md).
+- **Event list**: parent rail is `border-l border-navy-frame pl-4 md:pl-8`; day markers carry the dot, not individual event cards. Event rows are open editorial entries with `rounded-md p-4 hover:bg-navy-veil/40`, Inter bold titles, and `text-navy-tone` metadata/descriptions. Descriptions use the same `max-w-[58ch]` measure as homepage post previews.
+- **Sidebar**: calendar and newsletter modules use the same rounded-md outlined-card register as homepage sidebar modules. Module headings are Inter bold, not Lora; support copy uses `text-navy-tone`.
+- **Calendar**: selected date uses `bg-navy-tint text-navy`; event-day hovers use `hover:bg-navy-veil/40`; disabled days use faded navy/cyan text rather than neutral gray.
+- **Subscribe / syndication coda**: neutral kickers use canonical `tracking-[0.14em] text-navy-tone`; the Google Calendar CTA is an outlined navy pill; RSS/ICS/copy/WhatsApp actions use the shared hover-background token.
+- **Loading state**: [`app/(main)/events/loading.tsx`](../app/(main)/events/loading.tsx) mirrors the same order, spacing, H1 width, rounded-md module chrome, and main-first mobile collapse so the skeleton does not flash a different layout.
 
 **SEO scaffolding the homepage adds**:
 
@@ -1401,11 +1488,10 @@ Side effect: ensures every decorated outbound link has `target="_blank"` and `re
 
   Open question: should "Subscribe to the Weekly" use the same hover-background pattern as "Submit your event" (consistent register for sub-CTAs that route to forms), or keep the underline-led editorial inline link? Currently leaning toward inline-action-with-hover-background for both, since they're parallel actions structurally. Resolve before any new sub-CTA lands so we don't pile up a third precedent.
 - **Blockquote variant pending decision.** `/posts/[id]` ships with a temporary `QuoteVariantPicker` that toggles between four variant rules in `styles/prosemirror.css` (`.quote-a` Marginal Glyph, `.quote-d` Indent Margin, `.quote-e` Twin Apertures, `.quote-f` Tactile Broadside). Once a direction is picked, delete the picker + the three unchosen rules + promote the chosen rule to an unscoped `.article-prose blockquote`.
-- **`authors.role` column** (DB schema). Opinion byline role line is currently derived from `authors.bio` first sentence — uneven length, mixes credentials with project pitches. Adding `authors.role` (short headline-style credential, NYT-style 60–80 chars) would replace the heuristic with a controlled string per contributor. Carlos's canonical row would store "Co-founder of Adamastor. Curates Weekly Adamastor since 2017." or similar.
+- **`authors.role` column** (DB schema). Opinion byline role line is currently derived from `authors.bio` first sentence — uneven length, mixes credentials with project pitches. Adding `authors.role` (short headline-style credential, NYT-style 60–80 chars) would replace the heuristic with a controlled string per contributor. Carlos's canonical row would store "Co-founder of Adamastor. Curates Adamastor Weekly since 2017." or similar.
 - **White text on gold pills (a11y).** The gold pill (`bg-gold-hue #D4A657` + `text-white`) has a 2.23:1 contrast ratio — fails WCAG AA. Used on the navbar Subscribe pill, the form-page submits, and the post-page Subscribe coda + sticky bar. Per Malik's call (this session), the brand convention is white-on-gold across all pills. A future a11y pass may revisit (the previous proposal — navy-on-gold — was rejected). Workaround until then: ensure the gold pill text is large enough (text-sm + font-semibold satisfies AA Large Text at 4.5:1 minimum is still failed, but it's the lightest violation; flag as a known issue).
 - **`orange-hue` text contrast (a11y).** `text-orange-hue` (`rgb(224, 94, 0)`) on white at small text sizes (`text-[10px]` / `text-[11px]` kickers) has not been measured. Used on every Opinion kicker (river card, hero kicker if re-enabled, sidebar Opinion module, sidebar item, ReadNext). Likely passes AA Large Text but may fail AA Normal at these sizes. Worth measuring with axe / Lighthouse once a Lighthouse pass is possible against a production build. If it fails, the cleanest fix is darkening to an `orange-shade` variant for text use while keeping `orange-hue` for arrow-tip icons.
 - **FeaturedHero hidden, not deleted.** `components/home/FeaturedHero.tsx` is in source but unrendered by `app/(main)/page.tsx` (deliberate — held back for a future revisit). Re-enabling is a 3-line restore: re-add the import, the `const [heroPost, …riverPosts] = posts;` destructure, the conditional `{heroPost ? <FeaturedHero post={heroPost} /> : null}`, and pass `riverPosts` (not `posts`) to `<PostRiver/>`. Restore the `<DuotonePortraitFilter/>` mount too if the revisit brings back duotone portraits (current direction is clean circles, no filter).
-- **`SubscribeForm` sticky bar `max-w` drift.** The sticky CTA bar inside `components/SubscribeForm.tsx` uses `max-w-screen-lg` for its inner container. The rest of the site's containers run on `max-w-screen-xl` (navbar, footer, main, `/events`, `/posts/[id]` article). At xl+ viewports the sticky bar's content edge will sit 128px inset from where the editorial chrome above sits — minor, only visible at xl+ and only on the rare moment the sticky bar is showing, but worth catching in a future polish pass.
 - **`ArticleLinkDecorator` depends on a MutationObserver.** Outbound article-link UTM tagging on `/posts/[id]` runs client-side and waits for TipTap to render the article body. Three implications: (a) crawlers and AI bots reading the SSR HTML see the original unedited destination URL — desired behaviour for SEO/AI canonical links, but it means *click* attribution is via the runtime decoration only; (b) a user who clicks a link in the first ~100ms after a cold mount before TipTap has rendered will hit the un-tagged URL — accept the rare miss; (c) any future article-body re-render (currently none — `editable: false`) would be caught by the observer, no extra work needed.
 - **Lighthouse SEO baseline still uncaptured.** The session that landed the SEO sweep couldn't run `npx lighthouse` (sandbox classifier blocked external-package execution). Open: install `lighthouse` as a devDependency and run against a `next build && next start` to get an objective before/after score for production. Manual rubric scores (29/40 → 34.5/40 across `/` + `/posts/[id]`) are documented in the previous handoff but they're a less defensible artefact than a Lighthouse number.
 - **No `/llms.txt` yet.** Flagged in the SEO sweep as a follow-up — would surface `/`, `/events`, `/about` as canonical entry points for AI-agent crawlers with brief context. Adamastor already meets the SEO fundamentals layer (canonical, JSON-LD, semantic time, E-E-A-T signals); the `llms.txt` is the next layer up.

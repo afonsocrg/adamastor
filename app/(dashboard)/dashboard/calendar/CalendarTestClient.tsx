@@ -9,6 +9,8 @@ import {
 	isValidElement,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
+	useRef,
 	useState,
 	type KeyboardEvent,
 	type ReactNode,
@@ -159,14 +161,14 @@ const calendarComponents = {
 			const num = m.format("D");
 			return (
 				<div className="flex min-h-[3.25rem] flex-col items-center justify-center gap-1">
-					<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] leading-none text-navy-tone dark:text-cyan-dim">
+					<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] leading-none text-navy-tone dark:text-navy-dim">
 						{day}
 					</span>
 					<span
 						className={`flex h-7 w-7 items-center justify-center rounded-full text-base font-bold leading-none [font-family:var(--font-lora-bold)] ${
 							isToday
-								? "bg-navy-tint text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted"
-								: "text-navy dark:text-cyan-lifted"
+								? "bg-navy-tint text-navy dark:bg-navy-tint/[0.18] dark:text-navy-lifted"
+								: "text-navy dark:text-navy-lifted"
 						}`}
 					>
 						{num}
@@ -179,7 +181,7 @@ const calendarComponents = {
 		header: ({ date: cellDate }: { date: Date }) => {
 			const day = moment(cellDate).format("ddd").toUpperCase();
 			return (
-				<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+				<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">
 					{day}
 				</span>
 			);
@@ -193,7 +195,7 @@ const calendarComponents = {
 			const dotClass =
 				slug && isEventCategorySlug(slug)
 					? EVENT_CATEGORY_COLORS[slug as EventCategorySlug].dot
-					: "bg-navy-tone dark:bg-cyan-dim";
+					: "bg-navy-tone dark:bg-navy-dim";
 			const start = moment(event.start);
 			const time = start.minutes() === 0 ? start.format("ha") : start.format("h:mma");
 			const renderEventRow = (kind: "base" | "preview") => (
@@ -206,7 +208,7 @@ const calendarComponents = {
 					{/* min-w-0 is the load-bearing bit: without it the title's
 					    flex min-width defaults to its content width (=full
 					    string), so truncate can't kick in. */}
-					<span className="rbc-month-event-title min-w-0 flex-1 truncate font-medium text-navy dark:text-cyan-lifted">
+					<span className="rbc-month-event-title min-w-0 flex-1 truncate font-medium text-navy dark:text-navy-lifted">
 						{event.title}
 					</span>
 				</span>
@@ -226,17 +228,17 @@ function CalendarToolbar({ view, date, onNavigate, onView }: CalendarToolbarProp
 	const label = formatToolbarLabel(view, date);
 	return (
 		<div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-			<h2 className="flex items-center gap-2.5 text-xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+			<h2 className="flex items-center gap-2.5 text-xl font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 				<CalendarIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
 				<span>{label}</span>
 			</h2>
 
 			<div className="flex gap-2">
-				<div className="flex items-center gap-1 rounded-md border border-navy-frame dark:border-cyan-glow/[0.18]">
+				<div className="flex items-center gap-1 rounded-md border border-navy-frame dark:border-navy-edge">
 					<button
 						type="button"
 						onClick={() => onNavigate("PREV")}
-						className="rounded-md p-2 transition-colors hover:bg-navy-wash dark:hover:bg-cyan-glow/[0.12]"
+						className="rounded-md p-2 transition-colors hover:bg-navy-wash focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy-tint dark:hover:bg-navy-tint/[0.12]"
 						aria-label="Previous"
 					>
 						<ChevronLeft className="h-4 w-4" />
@@ -245,7 +247,7 @@ function CalendarToolbar({ view, date, onNavigate, onView }: CalendarToolbarProp
 					<button
 						type="button"
 						onClick={() => onNavigate("TODAY")}
-						className="border-l border-r border-navy-frame px-3 py-1.5 text-sm transition-colors hover:bg-navy-wash dark:border-cyan-glow/[0.18] dark:hover:bg-cyan-glow/[0.12]"
+						className="border-l border-r border-navy-frame px-3 py-1.5 text-sm transition-colors hover:bg-navy-wash focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy-tint dark:border-navy-edge dark:hover:bg-navy-tint/[0.12]"
 					>
 						Today
 					</button>
@@ -253,7 +255,7 @@ function CalendarToolbar({ view, date, onNavigate, onView }: CalendarToolbarProp
 					<button
 						type="button"
 						onClick={() => onNavigate("NEXT")}
-						className="rounded-md p-2 transition-colors hover:bg-navy-wash dark:hover:bg-cyan-glow/[0.12]"
+						className="rounded-md p-2 transition-colors hover:bg-navy-wash focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy-tint dark:hover:bg-navy-tint/[0.12]"
 						aria-label="Next"
 					>
 						<ChevronRight className="h-4 w-4" />
@@ -282,12 +284,63 @@ export default function CalendarTestClient({ initialEvents = [], user, initialDa
 	const [view, setView] = useState<View>(() => readStoredView() ?? "month");
 	const [date, setDate] = useState(() => initialDate ?? new Date());
 
+	// Range-navigation transition: slide the calendar grid in from the side it
+	// came from (right→left for "Next", left→right for "Back", straight crossfade
+	// for "Today") with a blur, matching the events calendars. rbc swaps the grid
+	// in place, so we re-fire the CSS animation imperatively via reflow.
+	const calViewportRef = useRef<HTMLDivElement>(null);
+	// Wraps the toolbar + the calendar view together. The view switch reflows
+	// BOTH (the toolbar tracks the card's content width; the day-header reflows
+	// when rbc reserves its scrollbar gutter), so the fade has to cover the whole
+	// card content, not just the calendar viewport.
+	const cardContentRef = useRef<HTMLDivElement>(null);
+	const [calNav, setCalNav] = useState<{ count: number; dir: -1 | 0 | 1 }>({ count: 0, dir: 0 });
+	// Bumped on every view switch (month/week/day/agenda). Drives a hold-then-fade
+	// that masks react-big-calendar's late scrollbar-gutter reflow — the day-header
+	// (and the toolbar's width) otherwise visibly resize a frame after the switch.
+	const [viewNav, setViewNav] = useState(0);
+
+	useLayoutEffect(() => {
+		if (calNav.count === 0) return;
+		const root = calViewportRef.current;
+		if (!root) return;
+		// Anchor the motion to the DATA, not the whole viewport. In month view the
+		// weekday-name header (`.rbc-month-header`) is identical every month, so
+		// sliding it read as noise and made the data look like it started from the
+		// wrong place. We animate only the week rows (month) and the time grid body
+		// + day headers (week/day); the static header stays put and acts as a fixed
+		// reference, which makes even a modest slide read clearly as directional.
+		// Agenda view has none of those nodes, so fall back to the whole list.
+		const dataEls = root.querySelectorAll<HTMLElement>(".rbc-month-row, .rbc-time-content, .rbc-time-header");
+		const targets = dataEls.length > 0 ? Array.from(dataEls) : [root];
+		const from = calNav.dir === 0 ? "0px" : calNav.dir === 1 ? "20px" : "-20px";
+		for (const el of targets) {
+			el.style.setProperty("--cal-nav-from", from);
+			el.classList.remove("cal-nav-enter");
+			void el.offsetWidth; // reflow so the animation re-fires every nav
+			el.classList.add("cal-nav-enter");
+		}
+	}, [calNav]);
+
+	useLayoutEffect(() => {
+		if (viewNav === 0) return;
+		const el = cardContentRef.current;
+		if (!el) return;
+		// Set opacity:0 (via the animation's backwards fill) before the browser
+		// paints the new view, so rbc's scrollbar-gutter reflow — and any toolbar
+		// width change — happen under the hold rather than as a visible jump.
+		el.classList.remove("cal-view-enter");
+		void el.offsetWidth;
+		el.classList.add("cal-view-enter");
+	}, [viewNav]);
+
 	const handleNavigate = useCallback((newDate: Date) => {
 		setDate(newDate);
 	}, []);
 
 	const handleViewChange = useCallback((newView: View) => {
 		setView(newView);
+		setViewNav((c) => c + 1);
 		try {
 			window.localStorage.setItem(VIEW_STORAGE_KEY, newView);
 		} catch {
@@ -301,6 +354,7 @@ export default function CalendarTestClient({ initialEvents = [], user, initialDa
 		(direction: "PREV" | "NEXT" | "TODAY") => {
 			if (direction === "TODAY") {
 				setDate(new Date());
+				setCalNav((s) => ({ count: s.count + 1, dir: 0 }));
 				return;
 			}
 			const sign = direction === "PREV" ? -1 : 1;
@@ -310,6 +364,7 @@ export default function CalendarTestClient({ initialEvents = [], user, initialDa
 			else if (view === "day") next.add(sign, "day");
 			else next.add(sign * AGENDA_LENGTH_DAYS, "days");
 			setDate(next.toDate());
+			setCalNav((s) => ({ count: s.count + 1, dir: sign }));
 		},
 		[date, view],
 	);
@@ -490,9 +545,11 @@ export default function CalendarTestClient({ initialEvents = [], user, initialDa
 
 	return (
 		<div className="space-y-4">
-			<div className="rounded-lg border border-navy-frame bg-white p-5 dark:border-cyan-glow/[0.18] dark:bg-background">
+			<div className="rounded-lg border border-navy-frame bg-white p-5 dark:border-navy-edge dark:bg-background">
+				<div ref={cardContentRef}>
 				<CalendarToolbar view={view} date={date} onNavigate={handleToolbarNavigate} onView={handleViewChange} />
 
+				<div ref={calViewportRef}>
 				{view === "agenda" ? (
 					<AgendaList events={events} date={date} length={AGENDA_LENGTH_DAYS} />
 				) : (
@@ -520,6 +577,8 @@ export default function CalendarTestClient({ initialEvents = [], user, initialDa
 						/>
 					</div>
 				)}
+				</div>
+				</div>
 			</div>
 		</div>
 	);

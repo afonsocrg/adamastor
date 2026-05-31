@@ -59,7 +59,7 @@ export default function AgendaList({ events, date, length = DEFAULT_LENGTH_DAYS 
 
 	if (eventsInRange.length === 0) {
 		return (
-			<div className="rounded-md border border-dashed border-navy-frame px-6 py-16 text-center text-sm leading-relaxed text-muted-foreground dark:border-cyan-glow/[0.18]">
+			<div className="rounded-md border border-dashed border-navy-frame px-6 py-16 text-center text-sm leading-relaxed text-muted-foreground dark:border-navy-edge">
 				No events in this window.
 			</div>
 		);
@@ -75,18 +75,18 @@ export default function AgendaList({ events, date, length = DEFAULT_LENGTH_DAYS 
 	const todayKey = moment().startOf("day").format("YYYY-MM-DD");
 
 	return (
-		<div className="divide-y divide-navy-frame dark:divide-cyan-glow/[0.18]">
+		<div className="divide-y divide-navy-frame dark:divide-navy-edge">
 			{Array.from(groups.entries()).map(([key, dayEvents]) => {
 				const day = moment(key, "YYYY-MM-DD").toDate();
 				const isToday = key === todayKey;
 				return (
 					<section key={key} className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4 flex items-baseline gap-3">
-							<h3 className="text-xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+							<h3 className="text-xl font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 								{moment(day).format("dddd, MMM D")}
 							</h3>
 							{isToday && (
-								<span className="rounded-full bg-navy-tint px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted">
+								<span className="rounded-full bg-navy-tint px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-navy dark:bg-navy-tint/[0.18] dark:text-navy-lifted">
 									Today
 								</span>
 							)}
@@ -110,16 +110,16 @@ export default function AgendaList({ events, date, length = DEFAULT_LENGTH_DAYS 
 														href={ev.url}
 														target="_blank"
 														rel="noopener noreferrer"
-														className="text-sm font-medium text-navy underline-offset-4 decoration-navy-tint decoration-2 hover:underline dark:text-cyan-lifted dark:decoration-cyan-glow/40"
+														className="text-sm font-medium text-navy underline-offset-4 decoration-navy-tint decoration-2 hover:underline dark:text-navy-lifted dark:decoration-navy-edge/40"
 													>
 														{ev.title}
 													</a>
 												) : (
-													<span className="text-sm font-medium text-navy dark:text-cyan-lifted">{ev.title}</span>
+													<span className="text-sm font-medium text-navy dark:text-navy-lifted">{ev.title}</span>
 												)}
 												<a
 													href={`/events/${ev.id}/edit`}
-													className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-navy-wash hover:text-navy group-hover:opacity-100 focus:opacity-100 dark:hover:bg-cyan-glow/[0.12] dark:hover:text-cyan-lifted"
+													className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-navy-wash hover:text-navy group-hover:opacity-100 focus:opacity-100 dark:hover:bg-navy-tint/[0.12] dark:hover:text-navy-lifted"
 													title="Edit"
 													aria-label={`Edit ${ev.title}`}
 												>

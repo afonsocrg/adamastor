@@ -1,10 +1,11 @@
+import { SubscribeForm } from "@/components/SubscribeForm";
 import HomeSidebar from "@/components/home/HomeSidebar";
 import Masthead from "@/components/home/Masthead";
 import PostRiver from "@/components/home/PostRiver";
-import { SubscribeForm } from "@/components/SubscribeForm";
-import { getPaginatedHomePosts } from "@/lib/home-posts";
+import { HOME_POSTS_PAGE_SIZE, getPaginatedHomePosts } from "@/lib/home-posts";
 import { getUpcomingEventsTeaser } from "@/lib/home/upcoming-events";
 import { getRecentOpinionPosts } from "@/lib/posts/related";
+import { createPublicClient } from "@/lib/supabase/public";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -14,6 +15,24 @@ interface PaginatedHomePageProps {
 	params: Promise<{ page: string }>;
 }
 
+export async function generateStaticParams() {
+	const supabase = createPublicClient();
+	const { count, error } = await supabase
+		.from("posts")
+		.select("id", { count: "exact", head: true })
+		.eq("is_public", true);
+
+	if (error) {
+		console.error("page/[page]: failed to generate static params", error);
+		return [];
+	}
+
+	const totalPages = Math.max(1, Math.ceil((count ?? 0) / HOME_POSTS_PAGE_SIZE));
+	return Array.from({ length: Math.max(0, totalPages - 1) }, (_, index) => ({
+		page: String(index + 2),
+	}));
+}
+
 export async function generateMetadata({ params }: PaginatedHomePageProps): Promise<Metadata> {
 	const { page } = await params;
 	const pageNumber = Number.parseInt(page, 10);
@@ -21,7 +40,7 @@ export async function generateMetadata({ params }: PaginatedHomePageProps): Prom
 	return {
 		title: `Adamastor archive — page ${pageNumber}`,
 		description:
-			"Browse older articles from Adamastor — Portugal's startup publication. The Weekly Adamastor digest plus occasional opinion from named voices.",
+			"Browse older articles from Adamastor — Portugal's startup publication. The Adamastor Weekly digest plus occasional opinion from named voices.",
 		alternates: { canonical: pathname },
 		openGraph: { url: pathname },
 		// Paginated archive pages are useful for users browsing but not for
@@ -31,8 +50,7 @@ export async function generateMetadata({ params }: PaginatedHomePageProps): Prom
 }
 
 const ARCHIVE_HEADING = "From the Adamastor archive";
-const ARCHIVE_DEK =
-	"Older articles from Portugal's startup publication. Use Newer / Older below to walk the archive.";
+const ARCHIVE_DEK = "Older articles from Portugal's startup publication. Use Newer / Older below to walk the archive.";
 
 export default async function PaginatedHomePage({ params }: PaginatedHomePageProps) {
 	const { page } = await params;

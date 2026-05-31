@@ -59,10 +59,10 @@ export function FeedbackForm() {
 			<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
 				Reader notes
 			</p>
-			<h2 className="mt-3 text-2xl font-semibold leading-tight tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] md:text-3xl">
+			<h2 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] md:text-[1.75rem]">
 				Reply to this piece
 			</h2>
-			<p className="mt-3 max-w-[55ch] text-base leading-relaxed text-muted-foreground">
+			<p className="mt-3 max-w-[55ch] text-base leading-relaxed text-navy-tone dark:text-cyan-dim">
 				Anonymous. Carlos reads every note that comes in.
 			</p>
 			<Form {...form}>
@@ -88,7 +88,7 @@ export function FeedbackForm() {
 						<Button
 							type="submit"
 							variant="outline"
-							className="rounded-lg border-navy px-5 font-medium text-navy hover:bg-navy-wash dark:border-cyan-glow/40 dark:text-cyan-lifted"
+							className="rounded-full border-navy px-6 font-semibold text-navy hover:bg-navy-wash dark:border-cyan-glow/40 dark:text-cyan-lifted"
 						>
 							Send note
 						</Button>

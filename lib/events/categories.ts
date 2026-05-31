@@ -122,46 +122,48 @@ export function inferEventCategorySlugs(input: {
 }
 
 /**
- * Brand-family color mapping for the 5 event categories. Each category gets
- * one tint from the design-system palette. Used by the dashboard calendar
- * agenda + grid views to tag events visually; reusable anywhere we render an
- * event chip.
+ * Category colour mapping for the 5 event categories. Each category owns one
+ * tint drawn from the footer seal rainbow, re-assigned by MEANING — not by the
+ * functional brand families (gold/green/orange already mean CTA / success /
+ * accent, so reusing them muddied the design language). The concrete colours
+ * live as `--cat-*` CSS custom properties in styles/globals.css (light + dark
+ * in one place); these class strings reference them, and the calendar grid does
+ * the same via `.cat-*` rules.
  *
- * Assignments are intuitive 1:1 with the brand families:
- *   software-engineering → navy   (architectural / dev register)
- *   ai                   → cyan   (tech-modern, the brand-cyan moment)
- *   design               → orange (editorial creative warmth)
- *   product              → gold   (strategy / considered)
- *   startups-fundraising → green  (growth / momentum)
+ *   design               → peach blush  (LisboaUX peach)
+ *   software-engineering → yellow        (JavaScript / LisboaJS yellow)
+ *   startups-fundraising → green         (money / funding / growth)
+ *   product              → cyan          (digital / tool)
+ *   ai                   → lavender      (intelligence / future)
  *
- * Note: `navy-tint` is also the design-system "today / selected" highlight
- * color in light mode. In the calendar that overlap is fine because the two
- * roles live on different layers (cell background vs event chip on top).
+ * Rose from the seal is intentionally reserved for a future 6th category.
+ * Email carries its own hex copy (components/email/newsletter-template.tsx).
+ * See docs/design-system.md → "Event categories".
  */
 export const EVENT_CATEGORY_COLORS: Record<EventCategorySlug, { chip: string; dot: string; label: string }> = {
-	"startups-fundraising": {
-		chip: "bg-green-tint text-green-shade dark:bg-green-hue/20 dark:text-green-tint",
-		dot: "bg-green-shade dark:bg-green-tint",
-		label: "Startups",
-	},
-	product: {
-		chip: "bg-gold-tint text-gold-shade dark:bg-gold-hue/20 dark:text-gold-tint",
-		dot: "bg-gold-shade dark:bg-gold-tint",
-		label: "Product",
-	},
 	design: {
-		chip: "bg-orange-tint text-orange-shade dark:bg-orange-hue/20 dark:text-orange-tint",
-		dot: "bg-orange-shade dark:bg-orange-tint",
+		chip: "bg-[var(--cat-design-fill)] text-[var(--cat-design-ink)]",
+		dot: "bg-[var(--cat-design-dot)]",
 		label: "Design",
 	},
 	"software-engineering": {
-		chip: "bg-navy-tint text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted",
-		dot: "bg-navy dark:bg-cyan-glow",
+		chip: "bg-[var(--cat-engineering-fill)] text-[var(--cat-engineering-ink)]",
+		dot: "bg-[var(--cat-engineering-dot)]",
 		label: "Engineering",
 	},
+	"startups-fundraising": {
+		chip: "bg-[var(--cat-startups-fill)] text-[var(--cat-startups-ink)]",
+		dot: "bg-[var(--cat-startups-dot)]",
+		label: "Startups",
+	},
+	product: {
+		chip: "bg-[var(--cat-product-fill)] text-[var(--cat-product-ink)]",
+		dot: "bg-[var(--cat-product-dot)]",
+		label: "Product",
+	},
 	ai: {
-		chip: "bg-cyan-tint text-cyan-shade dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted",
-		dot: "bg-cyan-shade dark:bg-cyan-glow",
+		chip: "bg-[var(--cat-ai-fill)] text-[var(--cat-ai-ink)]",
+		dot: "bg-[var(--cat-ai-dot)]",
 		label: "AI",
 	},
 };

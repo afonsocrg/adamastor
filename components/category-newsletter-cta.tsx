@@ -3,11 +3,11 @@
 import { Input } from "@/components/tailwind/ui/input";
 import type { EventCategorySlug } from "@/lib/events/categories";
 import {
+	type SavedIdentity,
 	clearSavedIdentity,
 	clearSubscribed,
 	getFirstNameForGreeting,
 	getSavedIdentity,
-	type SavedIdentity,
 } from "@/lib/user-identity";
 import { ArrowRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -26,10 +26,9 @@ interface CategoryNewsletterCtaProps {
  * "Events in your inbox" ask is contextual to whichever category the
  * visitor is browsing. Stacks vertically to fit the narrow sidebar column.
  *
- * Visual treatment mirrors the generic "Events in your inbox" sidebar block
- * in EventsPageClient — outlined navy-wash card, Lora Bold heading, navy
- * Subscribe text + orange arrow tip as the warmth accent. Editorial, not
- * SaaS-y.
+ * Visual treatment mirrors the generic events sidebar block in
+ * EventsPageClient — rounded-md outlined card, Inter heading, navy Subscribe
+ * text + orange arrow tip as the warmth accent. Editorial, not SaaS-y.
  */
 export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNewsletterCtaProps) {
 	const router = useRouter();
@@ -82,14 +81,14 @@ export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNe
 	}
 
 	return (
-		<aside className="rounded-lg border border-navy-frame p-5 dark:border-cyan-glow/[0.18]">
-			<h2 className="text-lg font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+		<aside className="rounded-md border border-navy-frame p-5 dark:border-cyan-glow/[0.18]">
+			<h2 className="text-[1.0625rem] font-bold tracking-tight text-navy [text-wrap:balance] dark:text-cyan-lifted">
 				{greetingFirstName ? `${headingPhrase}, ${greetingFirstName}` : headingPhrase}
 			</h2>
-			<p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+			<p className="mt-2 text-sm leading-relaxed text-navy-tone dark:text-cyan-dim">{description}</p>
 			<form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-2">
 				{isPrefilledNow && (
-					<p className="text-xs text-muted-foreground">
+					<p className="text-xs text-navy-tone dark:text-cyan-dim">
 						Pre-filled from your last visit.{" "}
 						<button
 							type="button"
@@ -114,7 +113,7 @@ export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNe
 				<button
 					type="submit"
 					disabled={!canSubmit}
-					className="-mx-2 -my-1 inline-flex items-center gap-2 self-start rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-wash dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06] disabled:opacity-50 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					className="-mx-2 -my-1 inline-flex items-center gap-2 self-start rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06] disabled:opacity-50 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 				>
 					Subscribe
 					<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />

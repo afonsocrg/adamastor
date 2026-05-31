@@ -60,13 +60,13 @@
 /* Month row borders */
 .rbc-month-row + .rbc-month-row,
 .rbc-day-bg + .rbc-day-bg {
-	@apply border-neutral-200/60 dark:border-border;
+	@apply border-navy-frame dark:border-navy-edge;
 }
 
 /* Day cells background and hover */
 .rbc-day-bg {
-	@apply border-neutral-50 dark:border-border;
-	@apply hover:bg-neutral-50 dark:hover:bg-background;
+	@apply border-navy-frame dark:border-navy-edge;
+	@apply hover:bg-navy-veil/40 dark:hover:bg-background;
 	@apply transition-colors duration-200;
 }
 
@@ -99,23 +99,23 @@
 
 .rbc-date-cell.rbc-off-range > .rbc-button-link,
 .rbc-date-cell.rbc-off-range {
-	@apply text-navy-tone/70 dark:text-cyan-dim/60;
+	@apply text-navy-tone/70 dark:text-navy-dim/60;
 }
 
 /* Selected cell — migrated from indigo to navy-tint per the design-system
    highlight rule. Inert today (selectable={false} in the client), kept for
    future date-picker use cases. */
 .rbc-day-bg.rbc-selected {
-	@apply bg-navy-tint/40 dark:bg-cyan-glow/[0.12];
+	@apply bg-navy-tint/40 dark:bg-navy-tint/[0.12];
 }
 
 /* Date cell styling */
 .rbc-date-cell {
-	@apply p-3 text-right text-xs font-medium text-navy-tone dark:text-cyan-dim;
+	@apply p-3 text-right text-xs font-medium text-navy-tone dark:text-navy-dim;
 }
 
 .rbc-date-cell > .rbc-button-link {
-	@apply text-sm font-medium text-navy dark:text-cyan-lifted;
+	@apply text-sm font-medium text-navy dark:text-navy-lifted;
 	background: transparent;
 	border: none;
 	cursor: pointer;
@@ -126,7 +126,7 @@
    shifted to inline-flex so the pill (h-7 w-7 fixed) sizes consistently
    regardless of digit width (1 vs 2 digits). */
 .rbc-date-cell.rbc-now > .rbc-button-link {
-	@apply inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-full bg-navy-tint px-1 font-bold text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted;
+	@apply inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-full bg-navy-tint px-1 font-bold text-navy dark:bg-navy-tint/[0.18] dark:text-navy-lifted;
 	font-family: var(--font-lora-bold);
 }
 
@@ -149,13 +149,13 @@
 /* This makes the border appear again in the monthly view */
 .rbc-month-header .rbc-header + .rbc-header {
 	@apply border-l;
-	@apply border-neutral-200/60;
+	@apply border-navy-frame;
 }
 
 /* Header cells (weekday names) */
 .rbc-header {
-	/* @apply bg-neutral-50 dark:bg-neutral-800; */
-	@apply text-neutral-500 dark:text-neutral-300;
+	/* @apply bg-navy-veil/40 dark:bg-neutral-800; */
+	@apply text-navy-tone dark:text-navy-dim;
 	@apply font-normal text-xs tracking-wider;
 	@apply px-2;
 	@apply border-none;
@@ -192,27 +192,34 @@
 }
 
 .rbc-header.rbc-today .rbc-button-link {
-	@apply bg-navy-tint text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted;
+	@apply bg-navy-tint text-navy dark:bg-navy-tint/[0.18] dark:text-navy-lifted;
 	@apply relative z-50;
 }
 
 /* Time header content borders */
 .rbc-time-header-content {
-	@apply border-l border-neutral-100 dark:border-border;
+	@apply border-l border-navy-frame dark:border-navy-edge;
 }
 
 /* Time content borders */
 .rbc-time-content {
-	@apply border-t-neutral-100 dark:border-t-border;
+	@apply border-t-navy-frame dark:border-t-navy-edge;
+	/* NOTE: do NOT add `scrollbar-gutter: stable` here. It reserves a gutter the
+	   header row doesn't, so the content's day-columns sit offset from the
+	   header's by the scrollbar width — the past-day wash (which paints both the
+	   header all-day cell AND the content column) then jogs at that seam, a
+	   visible 1px column misalignment. rbc already keeps header/content aligned
+	   via its own overflow-gutter margin; the view-switch jump is masked by the
+	   `.cal-view-enter` opacity hold, which doesn't need a stable gutter. */
 }
 
 .rbc-time-content > * + * > * {
-	@apply border-l-neutral-100 dark:border-border;
+	@apply border-l-navy-frame dark:border-navy-edge;
 }
 
 /* Time slot groups */
 .rbc-timeslot-group {
-	@apply border-b border-neutral-100 dark:border-border;
+	@apply border-b border-navy-frame dark:border-navy-edge;
 	@apply min-h-12;
 }
 
@@ -230,7 +237,7 @@
 
 /* Time slot text */
 .rbc-time-slot {
-	@apply text-neutral-500 dark:text-neutral-400 text-xs;
+	@apply text-navy-tone dark:text-navy-dim text-xs;
 }
 
 /* ============================================
@@ -401,7 +408,7 @@
 	.rbc-event:not(.rbc-event--past):is(:hover, :focus-visible)
 	.rbc-month-event-row--preview {
 	background-color: hsla(201, 72%, 8%, 1);
-	border-color: rgba(76, 228, 240, 0.18);
+	border-color: rgba(44, 79, 94, 1); /* navy-edge */
 	box-shadow: 0 8px 22px rgba(0, 0, 0, 0.34);
 }
 
@@ -499,60 +506,48 @@
 }
 
 /* ---- Per-category event tints ----
-   Applied via `cat-{slug}` className from `eventPropGetter`.
-   Mapping mirrors `EVENT_CATEGORY_COLORS` in lib/events/categories.ts. */
-.rbc-event.cat-software-engineering {
-	@apply bg-navy-tint text-navy;
-	border-color: rgba(16, 67, 87, 0.18);
-}
-.rbc-event.cat-ai {
-	@apply bg-cyan-tint text-cyan-shade;
-	border-color: rgba(2, 142, 151, 0.2);
-}
+   Applied via `cat-{slug}` className from `eventPropGetter`. Colours come from
+   the `--cat-*` custom properties in styles/globals.css (light + dark in one
+   place; mirrors EVENT_CATEGORY_COLORS in lib/events/categories.ts).
+   Mapping: Design → peach · Engineering → yellow · Startups → green ·
+   Product → cyan · AI → lavender. */
 .rbc-event.cat-design {
-	@apply bg-orange-tint text-orange-shade;
-	border-color: rgba(189, 83, 24, 0.2);
+	background-color: var(--cat-design-fill);
+	border-color: var(--cat-design-edge);
+	color: var(--cat-design-ink);
 }
-.rbc-event.cat-product {
-	@apply bg-gold-tint text-gold-shade;
-	border-color: rgba(184, 137, 58, 0.2);
+.rbc-event.cat-software-engineering {
+	background-color: var(--cat-engineering-fill);
+	border-color: var(--cat-engineering-edge);
+	color: var(--cat-engineering-ink);
 }
 .rbc-event.cat-startups-fundraising {
-	@apply bg-green-tint text-green-shade;
-	border-color: rgba(35, 105, 37, 0.2);
+	background-color: var(--cat-startups-fill);
+	border-color: var(--cat-startups-edge);
+	color: var(--cat-startups-ink);
+}
+.rbc-event.cat-product {
+	background-color: var(--cat-product-fill);
+	border-color: var(--cat-product-edge);
+	color: var(--cat-product-ink);
+}
+.rbc-event.cat-ai {
+	background-color: var(--cat-ai-fill);
+	border-color: var(--cat-ai-edge);
+	color: var(--cat-ai-ink);
 }
 .rbc-event.cat-none {
 	@apply bg-navy-veil text-navy-tone;
 	border-color: rgba(16, 67, 87, 0.12);
 }
 
-/* Dark-mode category event variants — use family hue at low opacity so the
-   block reads on dark background, with `cyan-lifted` text for legibility. */
-.dark .rbc-event.cat-software-engineering,
-.dark .rbc-event.cat-ai {
-	background-color: rgba(76, 228, 240, 0.18);
-	border-color: rgba(76, 228, 240, 0.4);
-	@apply text-cyan-lifted;
-}
-.dark .rbc-event.cat-design {
-	background-color: rgba(224, 94, 0, 0.18);
-	border-color: rgba(224, 94, 0, 0.4);
-	@apply text-orange-tint;
-}
-.dark .rbc-event.cat-product {
-	background-color: rgba(212, 166, 87, 0.18);
-	border-color: rgba(212, 166, 87, 0.4);
-	@apply text-gold-tint;
-}
-.dark .rbc-event.cat-startups-fundraising {
-	background-color: rgba(61, 181, 64, 0.18);
-	border-color: rgba(61, 181, 64, 0.4);
-	@apply text-green-tint;
-}
+/* Dark-mode category fills are handled by the `--cat-*` custom properties
+   (they flip in `.dark`, see styles/globals.css). Only the uncategorised
+   fallback still needs its own dark rule. */
 .dark .rbc-event.cat-none {
-	background-color: rgba(76, 228, 240, 0.08);
-	border-color: rgba(76, 228, 240, 0.2);
-	@apply text-cyan-dim;
+	background-color: rgba(167, 225, 252, 0.08); /* navy-tint, quiet — uncategorised */
+	border-color: rgba(167, 225, 252, 0.2);
+	@apply text-navy-dim;
 }
 
 /* ============================================
@@ -566,22 +561,22 @@
 .rbc-toolbar button {
 	@apply px-4 py-2 text-sm font-medium;
 	@apply bg-white dark:bg-background/50;
-	@apply text-neutral-700 dark:text-neutral-300;
-	@apply border border-neutral-200 dark:border-neutral-600 shadow-none;
+	@apply text-navy dark:text-navy-dim;
+	@apply border border-navy-frame dark:border-navy-edge shadow-none;
 	@apply rounded-lg;
-	@apply hover:bg-neutral-50 dark:bg-background/50;
-	@apply focus:outline-none focus:ring-2 focus:ring-[#04C9D8];
+	@apply hover:bg-navy-veil/40 dark:bg-background/50;
+	@apply focus:outline-none focus:ring-2 focus:ring-navy-tint;
 	@apply transition-colors duration-200;
 }
 
 .rbc-toolbar button:active,
 .rbc-toolbar button.rbc-active {
-	@apply bg-[#dff6f7] text-[#28aeb8] border-neutral-100 shadow-none;
-	@apply hover:opacity-80 !bg-[#dff6f7] !text-[#28aeb8];
+	@apply bg-navy-tint text-navy border-navy-frame shadow-none;
+	@apply hover:opacity-80 !bg-navy-tint !text-navy;
 }
 
 .rbc-toolbar-label {
-	@apply text-lg font-medium text-[#104357] dark:text-[#E3F2F7];
+	@apply text-lg font-medium text-navy dark:text-navy-lifted;
 	@apply flex-grow text-center;
 }
 
@@ -639,7 +634,7 @@
 }
 
 .rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
-	@apply p-2 border-b border-neutral-200 dark:border-border;
+	@apply p-2 border-b border-navy-frame dark:border-navy-edge;
 }
 
 .rbc-agenda-view table.rbc-agenda-table tbody > tr > td + td {
@@ -647,13 +642,13 @@
 }
 
 .rbc-agenda-view table.rbc-agenda-table thead > tr > th {
-	@apply p-3 text-left font-semibold text-neutral-700 dark:text-neutral-300;
-	@apply bg-neutral-50 dark:bg-background/80 rounded-lg;
-	@apply border-b border-neutral-200 dark:border-border;
+	@apply p-3 text-left font-semibold text-navy dark:text-navy-dim;
+	@apply bg-navy-veil/40 dark:bg-background/80 rounded-lg;
+	@apply border-b border-navy-frame dark:border-navy-edge;
 }
 
 .rbc-agenda-view table {
-	@apply dark:border-border;
+	@apply dark:border-navy-edge;
 }
 
 /* ============================================
@@ -662,18 +657,18 @@
 /* Selection overlay */
 .rbc-overlay {
 	@apply bg-white dark:bg-background;
-	@apply border border-neutral-200 dark:border-neutral-700;
+	@apply border border-navy-frame dark:border-navy-edge;
 	@apply shadow-none rounded-lg;
 }
 
 .rbc-overlay-header {
-	@apply border-b border-neutral-200 dark:border-neutral-700;
+	@apply border-b border-navy-frame dark:border-navy-edge;
 	@apply p-2 font-semibold;
 }
 
 /* Show more events link */
 .rbc-show-more {
-	@apply text-navy dark:text-cyan-lifted;
+	@apply text-navy dark:text-navy-lifted;
 	@apply text-xs font-medium;
 	@apply hover:opacity-80;
 }

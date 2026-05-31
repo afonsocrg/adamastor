@@ -1,22 +1,21 @@
-import {
-	Body,
-	Container,
-	Font,
-	Head,
-	Heading,
-	Hr,
-	Html,
-	Preview,
-	Section,
-	Tailwind,
-	Text,
-} from "@react-email/components";
+/**
+ * Event-submission rejected — to the submitter, when we can't publish an event.
+ * Gentle register. The "Message Malik on WhatsApp" line doubles as the human
+ * path to talk it through or send another. Shares the design system via ./_theme.
+ */
+
+import { Body, Container, Head, Heading, Hr, Html, Link, Preview, Section, Text } from "@react-email/components";
+import { C, DARK_MODE_CSS, FONTS_HREF, hairline, kickerStyle, RESPONSIVE_CSS, SANS, SERIF } from "./_theme";
 
 interface EventSubmissionRejectedTemplateProps {
 	submitterName: string;
 	eventTitle: string;
 	rejectionReason?: string | null;
 }
+
+const WHATSAPP_URL = `https://piara.li/wa?text=${encodeURIComponent(
+	"Hi Malik, I’d like to talk about my event submission to Adamastor.",
+)}`;
 
 export const EventSubmissionRejectedTemplate = ({
 	submitterName,
@@ -25,59 +24,120 @@ export const EventSubmissionRejectedTemplate = ({
 }: EventSubmissionRejectedTemplateProps) => {
 	return (
 		<Html lang="en" dir="ltr">
-			<Tailwind>
-				<Head>
-					<Font
-						fontFamily="Inter"
-						fallbackFontFamily="Helvetica"
-						webFont={{
-							url: "https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap",
-							format: "woff2",
+			<Head>
+				<link rel="stylesheet" href={FONTS_HREF} />
+				<meta name="color-scheme" content="light dark" />
+				<meta name="supported-color-schemes" content="light dark" />
+				<style dangerouslySetInnerHTML={{ __html: RESPONSIVE_CSS }} />
+				<style dangerouslySetInnerHTML={{ __html: DARK_MODE_CSS }} />
+			</Head>
+			<Preview>An update on your event submission.</Preview>
+			<Body className="em-page" style={{ backgroundColor: C.canvas, fontFamily: SANS, padding: "40px 0" }}>
+				<Container
+					className="em-card"
+					style={{
+						backgroundColor: C.white,
+						borderRadius: "8px",
+						padding: "40px",
+						maxWidth: "600px",
+						margin: "0 auto",
+					}}
+				>
+					<Text className="em-muted" style={kickerStyle(C.tone)}>
+						Event submission
+					</Text>
+					<Heading
+						className="em-text"
+						style={{
+							fontFamily: SERIF,
+							fontWeight: 700,
+							fontSize: "30px",
+							lineHeight: "1.15",
+							letterSpacing: "-0.01em",
+							color: C.navy,
+							margin: "10px 0 0 0",
 						}}
-						fontWeight={400}
-						fontStyle="normal"
-					/>
-				</Head>
-				<Preview>Update on your event submission</Preview>
-				<Body className="bg-gray-100 py-[40px]" style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif" }}>
-					<Container className="bg-white rounded-[8px] p-[32px] max-w-[600px] mx-auto">
-						<Section>
-							<Heading className="text-[24px] font-bold text-[#104357] mb-[16px]">
-								Hi {submitterName} — about your event
-							</Heading>
+					>
+						About your event
+					</Heading>
 
-							<Text className="text-[16px] text-[#374151] mb-[16px] leading-[24px]">
-								Thanks again for submitting <strong>{eventTitle}</strong>. After reviewing it, we weren't able to
-								publish this one on Adamastor.
+					<Hr className="em-rule" style={{ ...hairline, margin: "20px 0 28px 0" }} />
+
+					<Text
+						className="em-text"
+						style={{ fontFamily: SANS, fontSize: "17px", lineHeight: "1.7", color: C.navy, margin: "0 0 18px 0" }}
+					>
+						Hi {submitterName}, thanks again for submitting <span style={{ fontWeight: 575 }}>{eventTitle}</span>. After
+						reviewing it, we weren’t able to publish this one on Adamastor.
+					</Text>
+
+					{rejectionReason ? (
+						<Section
+							className="em-aside"
+							style={{ backgroundColor: C.veil, borderRadius: "8px", padding: "20px 24px", margin: "0 0 24px 0" }}
+						>
+							<Text className="em-muted" style={{ ...kickerStyle(C.tone), marginBottom: "10px" }}>
+								Why
 							</Text>
-
-							{rejectionReason ? (
-								<Section className="bg-[#fff7ed] border border-solid border-[#fed7aa] rounded-[8px] p-[20px] mb-[24px]">
-									<Text className="text-[14px] text-[#64748b] mb-[8px] font-semibold uppercase tracking-wide">
-										Why
-									</Text>
-									<Text className="text-[14px] text-[#374151] leading-[22px] whitespace-pre-wrap">
-										{rejectionReason}
-									</Text>
-								</Section>
-							) : null}
-
-							<Text className="text-[16px] text-[#374151] mb-[16px] leading-[24px]">
-								We'd love to feature future events from you. If you'd like to discuss this one or send another, just
-								reply to this email — we read every response.
-							</Text>
-
-							<Hr className="border-gray-200 my-[24px]" />
-
-							<Text className="text-[14px] text-[#374151] leading-[22px]">
-								Até breve,
-								<br />
-								<strong>The Adamastor team</strong>
+							<Text
+								className="em-text"
+								style={{
+									fontFamily: SANS,
+									fontSize: "15px",
+									color: C.navy,
+									margin: "0",
+									lineHeight: "1.6",
+									whiteSpace: "pre-wrap",
+								}}
+							>
+								{rejectionReason}
 							</Text>
 						</Section>
-					</Container>
-				</Body>
-			</Tailwind>
+					) : null}
+
+					<Text
+						className="em-text"
+						style={{ fontFamily: SANS, fontSize: "17px", lineHeight: "1.7", color: C.navy, margin: "0" }}
+					>
+						We’d love to feature future events from you. To talk this one through or send another,{" "}
+						<Link
+							className="em-link"
+							href={WHATSAPP_URL}
+							style={{ color: C.bright, textDecoration: "underline", fontWeight: 600 }}
+						>
+							message Malik on WhatsApp
+						</Link>
+						.
+					</Text>
+
+					<Hr className="em-rule" style={hairline} />
+
+					<Text
+						className="em-text"
+						style={{ fontFamily: SANS, fontSize: "15px", lineHeight: "1.4", color: C.navy, margin: "0" }}
+					>
+						Até breve,
+						<br />
+						<span style={{ fontWeight: 575 }}>The Adamastor team</span>
+					</Text>
+
+					{/* Footer — minimal (transactional). */}
+					<Hr className="em-rule" style={hairline} />
+					<Text
+						className="em-muted"
+						style={{ fontFamily: SANS, fontSize: "12px", color: C.tone, textAlign: "center", margin: "0" }}
+					>
+						© {new Date().getFullYear()} Adamastor ·{" "}
+						<Link
+							className="em-muted"
+							href="https://adamastor.blog"
+							style={{ color: C.tone, textDecoration: "underline" }}
+						>
+							adamastor.blog
+						</Link>
+					</Text>
+				</Container>
+			</Body>
 		</Html>
 	);
 };
@@ -85,5 +145,7 @@ export const EventSubmissionRejectedTemplate = ({
 EventSubmissionRejectedTemplate.PreviewProps = {
 	submitterName: "Ana",
 	eventTitle: "Lisbon AI Builders Meetup #12",
-	rejectionReason: "This event is outside the tech / startup focus of Adamastor's audience. Best of luck with it!",
+	rejectionReason: "This event is outside the startup and tech focus of Adamastor’s audience. Best of luck with it!",
 } satisfies EventSubmissionRejectedTemplateProps;
+
+export default EventSubmissionRejectedTemplate;

@@ -25,7 +25,7 @@ const aboutPageJsonLd = {
 	name: "About Adamastor",
 	url: `${SITE_URL}/about`,
 	description:
-		"Since 2017, Carlos Resende has written a weekly read on Portugal’s startup scene, originally as the Techstars StartUp Digest Portugal and now as Weekly Adamastor. Plus opinion from contributors across the ecosystem like Productized, Fx2 Group, and Startup Portugal.",
+		"Since 2017, Carlos Resende has written a weekly read on Portugal’s startup scene, originally as the Techstars StartUp Digest Portugal and now as Adamastor Weekly. Plus opinion from contributors across the ecosystem like Productized, Fx2 Group, and Startup Portugal.",
 	mainEntity: {
 		"@type": "Organization",
 		"@id": `${SITE_URL}/#organization`,
@@ -52,7 +52,7 @@ const aboutPageJsonLd = {
 				name: "Carlos Resende",
 				url: "https://www.linkedin.com/in/carlosresende47/",
 				description:
-					"Co-founder of Adamastor and author of Weekly Adamastor, which Carlos has curated since 2017, originally as the Techstars StartUp Digest Portugal. Co-founder of Founder Institute Portugal. Expert Evaluator for the European Commission. Two decades of work in startup funding and finance.",
+					"Co-founder of Adamastor and author of Adamastor Weekly, which Carlos has curated since 2017, originally as the Techstars StartUp Digest Portugal. Co-founder of Founder Institute Portugal. Expert Evaluator for the European Commission. Two decades of work in startup funding and finance.",
 			},
 			{
 				"@type": "Person",
@@ -91,7 +91,7 @@ const aboutPageJsonLd = {
 export const metadata: Metadata = {
 	title: "About Adamastor — Stories from Portugal’s Startup Scene",
 	description:
-		"Carlos Resende has written a weekly read on Portugal’s startup scene since 2017, now as Weekly Adamastor. Plus opinion from contributors across the ecosystem like Productized, Fx2 Group, and Startup Portugal.",
+		"Carlos Resende has written a weekly read on Portugal’s startup scene since 2017, now as Adamastor Weekly. Plus opinion from contributors across the ecosystem like Productized, Fx2 Group, and Startup Portugal.",
 	alternates: { canonical: "/about" },
 	openGraph: {
 		title: "About Adamastor — Stories from Portugal’s Startup Scene",
@@ -298,7 +298,7 @@ export default function About() {
 
 			{/*
 				What we publish. The main editorial highlight on the page — two
-				streams that define Adamastor's output. Weekly Adamastor is
+				streams that define Adamastor's output. Adamastor Weekly is
 				Carlos's column (running weekly since 2017, originally the
 				Techstars StartUp Digest Portugal); Opinion brings named voices
 				in from the ecosystem. Sits between hero and beats so it's the
@@ -317,11 +317,11 @@ export default function About() {
 				<div className="grid gap-10 md:grid-cols-2">
 					<article className="space-y-3">
 						<h3 className="text-xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
-							Weekly Adamastor
+							Adamastor Weekly
 						</h3>
 						<p className="max-w-[55ch] text-base leading-relaxed text-foreground">
 							Since 2017, Carlos Resende has curated a weekly read on Portugal’s startup scene, originally as the
-							Techstars StartUp Digest Portugal. In 2025, that work evolved into Weekly Adamastor. The raises,
+							Techstars StartUp Digest Portugal. In 2025, that work evolved into Adamastor Weekly. The raises,
 							the launches, the hires, and the stories behind them.
 						</p>
 						<Link href="/subscribe" className={`${editorialLink} inline-flex items-center gap-2 pt-1`}>

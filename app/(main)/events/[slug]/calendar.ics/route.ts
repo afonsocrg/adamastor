@@ -1,12 +1,20 @@
 import { buildEventsIcs, calendarUtmCampaign } from "@/lib/events/calendar";
+import { EVENT_CATEGORIES } from "@/lib/events/categories";
 import { fetchPublicEvents } from "@/lib/events/fetch-public";
-import { isKnownCategorySlug, isKnownCitySlug } from "@/lib/events/route-slugs";
+import { KNOWN_CITY_SLUGS, isKnownCategorySlug, isKnownCitySlug } from "@/lib/events/route-slugs";
 import { getEventsRouteTitleAndDescription } from "@/lib/events/seo";
 
 export const revalidate = 3600;
 
 interface RouteContext {
 	params: Promise<{ slug: string }>;
+}
+
+export function generateStaticParams() {
+	return [
+		...KNOWN_CITY_SLUGS.map((slug) => ({ slug })),
+		...EVENT_CATEGORIES.map((category) => ({ slug: category.slug })),
+	];
 }
 
 export async function GET(_request: Request, { params }: RouteContext) {

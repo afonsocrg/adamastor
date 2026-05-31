@@ -2,7 +2,7 @@
 
 import type { PostHeading } from "@/lib/posts/headings";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface PostTOCProps {
 	headings: PostHeading[];
@@ -32,6 +32,22 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 	const [activeSlug, setActiveSlug] = useState<string | null>(headings[0]?.slug ?? null);
 	const navRef = useRef<HTMLElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
+	const listRef = useRef<HTMLOListElement>(null);
+	const [activeLine, setActiveLine] = useState({ top: 0, height: 0 });
+	const [hasMeasuredActiveLine, setHasMeasuredActiveLine] = useState(false);
+
+	const measureActiveLine = useCallback(() => {
+		const list = listRef.current;
+		const activeLink = list?.querySelector<HTMLAnchorElement>('a[aria-current="location"]');
+
+		if (!list || !activeLink) return;
+
+		setActiveLine({
+			top: activeLink.offsetTop,
+			height: activeLink.offsetHeight,
+		});
+		setHasMeasuredActiveLine(true);
+	}, []);
 
 	useEffect(() => {
 		if (headings.length === 0) return;
@@ -98,6 +114,30 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 			window.removeEventListener("resize", onScroll);
 		};
 	}, [headings]);
+
+	useLayoutEffect(() => {
+		measureActiveLine();
+	}, [measureActiveLine, activeSlug]);
+
+	useEffect(() => {
+		measureActiveLine();
+
+		const list = listRef.current;
+		if (!list) return;
+
+		const resizeObserver = new ResizeObserver(measureActiveLine);
+		resizeObserver.observe(list);
+		for (const link of list.querySelectorAll("a")) {
+			resizeObserver.observe(link);
+		}
+
+		document.fonts?.ready.then(measureActiveLine).catch(() => {
+			// The active border fallback keeps the TOC readable before font
+			// metrics settle; this only refines the animated rail.
+		});
+
+		return () => resizeObserver.disconnect();
+	}, [measureActiveLine]);
 
 	// Align the nav's top with `alignTo`'s top and bound the sticky container
 	// to the target's last-content bottom. Padding-top (not margin-top) on
@@ -177,7 +217,7 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 				<p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
 					In this article
 				</p>
-				<ol className="space-y-2 border-l border-navy-frame">
+				<ol ref={listRef} className="relative border-l border-navy-frame [&>li+li]:mt-2">
 					{headings.map((heading) => {
 						const isActive = heading.slug === activeSlug;
 						return (
@@ -190,11 +230,14 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 								    passive scroll indicator. */}
 								<a
 									href={`#${heading.slug}`}
+									aria-current={isActive ? "location" : undefined}
 									className={cn(
 										"-ml-px block border-l py-0.5 pl-3 text-sm leading-snug transition-colors",
-										isActive
+										isActive && !hasMeasuredActiveLine
 											? "border-navy font-[575] text-navy dark:border-cyan-lifted dark:text-cyan-lifted"
-											: "border-transparent text-navy-tone hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted",
+											: isActive
+												? "border-transparent font-[575] text-navy dark:text-cyan-lifted"
+												: "border-transparent text-navy-tone hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted",
 									)}
 								>
 									{heading.text}
@@ -202,6 +245,16 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 							</li>
 						);
 					})}
+					<span
+						aria-hidden="true"
+						className={cn(
+							"pointer-events-none absolute left-0 top-0 h-px w-px origin-top bg-navy dark:bg-cyan-lifted [transition:transform_220ms_cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none",
+							hasMeasuredActiveLine ? "opacity-100" : "opacity-0",
+						)}
+						style={{
+							transform: `translateY(${activeLine.top}px) scaleY(${activeLine.height})`,
+						}}
+					/>
 				</ol>
 			</nav>
 		</div>

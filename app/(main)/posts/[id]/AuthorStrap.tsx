@@ -1,10 +1,9 @@
 import DuotonePortraitFilter from "@/components/DuotonePortraitFilter";
 import { BlueskyIcon, LinkedInIcon, TwitterIcon } from "@/public/social";
-import type { PostKind } from "@/lib/posts/kind";
-import { ArrowRightIcon, Github, Globe } from "lucide-react";
+import { Github, Globe } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import type { SVGProps } from "react";
+import type { JSX, SVGProps } from "react";
 
 interface AuthorStrapAuthor {
 	name: string;
@@ -16,7 +15,6 @@ interface AuthorStrapAuthor {
 
 interface AuthorStrapProps {
 	author: AuthorStrapAuthor;
-	kind: PostKind;
 }
 
 // Branded icons from /public/social and lucide line icons share the same
@@ -72,59 +70,52 @@ function collectSocialIcons(author: AuthorStrapAuthor): SocialIcon[] {
 	return icons;
 }
 
-export default function AuthorStrap({ author, kind }: AuthorStrapProps) {
+export default function AuthorStrap({ author }: AuthorStrapProps) {
 	const icons = collectSocialIcons(author);
 	const bio = author.bio?.trim();
 
 	return (
 		<aside className="border-t border-navy-frame pt-10">
 			<DuotonePortraitFilter />
-			<p className="mb-6 text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+			<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
 				About the author
 			</p>
-			<div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+			<div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
 				{author.image_url ? (
 					<Image
 						src={author.image_url}
 						alt={author.name}
-						width={120}
-						height={120}
-						className="h-28 w-28 shrink-0 rounded-md border border-navy-frame object-cover sm:h-32 sm:w-32"
+						width={144}
+						height={144}
+						className="h-32 w-32 shrink-0 rounded-md border border-navy-frame object-cover sm:h-36 sm:w-36"
 						style={{ filter: "url(#duotone-navy-portrait)" }}
 					/>
 				) : null}
 				<div className="space-y-3">
-					<h3 className="text-2xl font-semibold leading-tight tracking-tight text-navy dark:text-cyan-lifted">
-						{author.name}
-					</h3>
-					{bio && (
-						<p className="max-w-[55ch] text-base leading-relaxed text-muted-foreground">{bio}</p>
-					)}
-					{icons.length > 0 && (
-						<ul className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
-							{icons.map((social) => (
-								<li key={social.href}>
+					<div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+						<h2 className="text-2xl font-bold leading-tight tracking-tight text-navy dark:text-cyan-lifted md:text-[1.75rem]">
+							{author.name}
+						</h2>
+						{icons.length > 0 && (
+							<div className="flex items-center gap-4">
+								{icons.map((social) => (
 									<Link
+										key={social.href}
 										href={social.href}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="inline-flex items-center gap-1.5 text-sm text-navy-tone transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted"
+										aria-label={`${author.name} on ${social.label}`}
+										className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-tone transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted"
 									>
 										<social.Icon className="h-4 w-4" aria-hidden="true" />
-										<span>{social.label}</span>
+										{social.label}
 									</Link>
-								</li>
-							))}
-						</ul>
-					)}
-					{kind === "weekly" && (
-						<Link
-							href="/subscribe"
-							className="inline-flex items-center gap-2 pt-2 text-sm font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 transition-colors hover:decoration-navy dark:text-cyan-lifted dark:decoration-cyan-glow/40 dark:hover:decoration-cyan-lifted"
-						>
-							More from Carlos
-							<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />
-						</Link>
+								))}
+							</div>
+						)}
+					</div>
+					{bio && (
+						<p className="max-w-[55ch] text-base leading-relaxed text-navy-tone dark:text-cyan-dim">{bio}</p>
 					)}
 				</div>
 			</div>

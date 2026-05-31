@@ -1,10 +1,10 @@
+import { SubscribeForm } from "@/components/SubscribeForm";
 import PostPreview from "@/components/tailwind/post-preview";
 import { ContextMenu, ContextMenuTrigger } from "@/components/tailwind/ui/context-menu";
-import { SubscribeForm } from "@/components/SubscribeForm";
 import { formatDate } from "@/lib/datetime";
+import { estimateReadingMinutes } from "@/lib/posts/content";
 import { extractHeadings } from "@/lib/posts/headings";
 import { getPostKind } from "@/lib/posts/kind";
-import { estimateReadingMinutes } from "@/lib/posts/content";
 import { getRecentOpinionPosts } from "@/lib/posts/related";
 import { getUserProfile } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
@@ -15,10 +15,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import ArticleLinkDecorator from "../../[id]/ArticleLinkDecorator";
 import AuthorStrap from "../../[id]/AuthorStrap";
-import { FeedbackForm } from "../../[id]/feedbackForm";
 import PostHero from "../../[id]/PostHero";
 import PostTOC from "../../[id]/PostTOC";
 import ReadNext from "../../[id]/ReadNext";
+import { FeedbackForm } from "../../[id]/feedbackForm";
 
 // Preview route: render any post (draft or published) by id or slug. Used by
 // the dashboard Preview action and by the typography specimen workflow.
@@ -88,11 +88,8 @@ export default async function PostPreviewPage({ params }: PreviewPageProps) {
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
-				<article className="-mt-2 mx-auto max-w-screen-xl pb-20 md:mt-0 md:p-4 md:pb-24 lg:grid lg:grid-cols-[12rem_minmax(0,48rem)_1fr] lg:gap-12">
-					<aside
-						className="hidden lg:block"
-						style={{ marginLeft: "min(0px, max(-32px, calc((1280px - 100vw) / 2)))" }}
-					>
+				<article className="-mt-2 mx-auto max-w-6xl pb-20 md:mt-0 md:p-4 md:pb-24 lg:grid lg:grid-cols-[12rem_minmax(0,48rem)_1fr] lg:gap-12">
+					<aside className="hidden lg:block">
 						<PostTOC headings={headings} className="sticky top-24" alignTo=".article-prose" />
 					</aside>
 					<div className="space-y-8 md:space-y-12">
@@ -125,7 +122,7 @@ export default async function PostPreviewPage({ params }: PreviewPageProps) {
 						    See that file for the 681px rationale (prose 60ch @
 						    Inter 18px). */}
 						<div className="mx-auto w-full max-w-[681px] space-y-8 md:space-y-12">
-							<AuthorStrap author={post.authors} kind={kind} />
+							<AuthorStrap author={post.authors} />
 							<SubscribeForm kind={kind} />
 							{kind === "opinion" && relatedOpinions.length > 0 && <ReadNext posts={relatedOpinions} />}
 							<FeedbackForm />

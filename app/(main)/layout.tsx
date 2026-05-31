@@ -1,6 +1,7 @@
 import AdamastorMark from "@/components/AdamastorMark";
 import MobileTabBar from "@/components/MobileTabBar";
 import Navbar from "@/components/navbar";
+import RouteTransitionFrame from "@/components/route-transition-frame";
 import { LinkedInIcon, TwitterIcon } from "@/public/social";
 import { ArrowRightIcon, Rss } from "lucide-react";
 import Link from "next/link";
@@ -21,13 +22,13 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 	return (
 		<div>
 			<Navbar />
-			{/* Container widened to screen-xl (1280px) so editorial pages like
-			    /events can breathe. Text-heavy pages constrain themselves
-			    further (posts/[id] uses max-w-[750px]; preferences and
-			    events/submit use max-w-2xl). Defensive wrappers on / and
-			    /about keep them at max-w-screen-lg for comfortable text
-			    line lengths. */}
-			<main className="max-w-screen-xl mx-auto p-4">{children}</main>
+			{/* Public editorial shell. max-w-6xl (1152px) gives homepage /
+			    events enough room for the sidebar while keeping the main
+			    reading column cleaner at laptop-wide viewports. Text-heavy
+			    pages constrain themselves further where needed. */}
+			<main className="max-w-6xl mx-auto p-4">
+				<RouteTransitionFrame>{children}</RouteTransitionFrame>
+			</main>
 
 			{/* Footer: mid-weight editorial. Three rows:
 			    (1) "Submit your event" ask — organiser-acquisition CTA in the
@@ -41,7 +42,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 			        index, not a sitemap dump.
 			    (3) Copyright strap on a quiet bottom row. */}
 			<footer className="mt-12 border-t border-navy-frame dark:border-cyan-glow/[0.12]">
-				<div className="max-w-screen-xl mx-auto px-4 md:px-8 py-8">
+				<div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
 					<p className="text-sm text-muted-foreground">Organising an event in Portugal?</p>
 					<Link
 						href="/events/submit"
@@ -53,7 +54,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 				</div>
 
 				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
-					<div className="max-w-screen-xl mx-auto grid grid-cols-1 gap-8 px-4 py-10 md:grid-cols-4 md:gap-12 md:px-8">
+					<div className="max-w-6xl mx-auto grid grid-cols-1 gap-8 px-4 py-10 md:grid-cols-4 md:gap-12 md:px-8">
 						<div>
 							{/* Inlined SVG (not <Image>) so the paths are stylable for the
 							    one-shot "ink draw-on" animation on first intersection.
@@ -73,7 +74,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 						    "in Lisboa") as keyword-rich link text, even though some
 						    destination page titles stay terse. */}
 						<nav aria-label="Browse Events" className={FOOTER_NAV}>
-							<Link href="/events" className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-cyan-lifted`}>
+							<Link
+								href="/events"
+								className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-cyan-lifted`}
+							>
 								Browse Events
 							</Link>
 							<ul className={FOOTER_LIST}>
@@ -186,7 +190,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 						    no longer carries that weight. Labels wrapped in <span> so
 						    icon/text spacing is stable across formatter passes. */}
 						<nav aria-label="Follow Us" className={FOOTER_NAV}>
-							<Link href="/subscribe" className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-cyan-lifted`}>
+							<Link
+								href="/subscribe"
+								className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-cyan-lifted`}
+							>
 								Follow Us
 							</Link>
 							<ul className={FOOTER_LIST}>
@@ -224,7 +231,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 				</div>
 
 				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
-					<div className="max-w-screen-xl mx-auto px-4 py-6 md:px-8">
+					<div className="max-w-6xl mx-auto px-4 py-6 md:px-8">
 						<Link
 							href="/about"
 							className="block text-center text-base font-bold italic text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] transition-colors hover:underline underline-offset-4 decoration-navy-tint decoration-2 dark:decoration-cyan-glow/[0.4]"
@@ -235,7 +242,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 				</div>
 
 				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
-					<div className="max-w-screen-xl mx-auto flex items-center justify-between gap-3 px-4 py-4 md:px-8">
+					<div className="max-w-6xl mx-auto flex items-center justify-between gap-3 px-4 py-4 md:px-8">
 						<p className="text-xs text-muted-foreground">© 2026 Adamastor</p>
 						<Link
 							href="/about"

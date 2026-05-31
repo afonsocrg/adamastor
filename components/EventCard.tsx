@@ -58,7 +58,7 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 	const isAdmin = profile?.role === "admin" || process.env.NEXT_ALLOW_BAD_UI === "true";
 
 	return (
-		// Pure rail layout — events hang off the parent column's navy-wash
+		// Pure rail layout — events hang off the parent column's navy-frame
 		// left border (see EventsPageClient). Cyan dots live on the day
 		// headers, not the individual event rows (matches Luma's pattern —
 		// the rail marks day transitions, not every entry).
@@ -70,24 +70,24 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 						target="_blank"
 						rel="noopener noreferrer"
 						onClick={onEventClick}
-						// Clean white at rest, navy-wash outline on hover.
-						// Reserves visual change for the interaction signal;
-						// default reads as an editorial entry, not a boxed item.
-						className="flex flex-col rounded-lg border border-transparent p-4 transition-colors duration-150 ease hover:border-navy-frame dark:hover:border-cyan-glow/[0.18] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
+						// Clean white at rest, navy-veil hover. This shares the
+						// homepage river-card interaction without turning event
+						// rows into boxed cards.
+						className="flex flex-col rounded-md p-4 transition-colors duration-150 ease hover:bg-navy-veil/40 dark:hover:bg-cyan-glow/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
 					>
 						<section className="w-full space-y-2">
-							<h3 className="text-lg md:text-xl font-bold leading-tight text-[#104357] [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-inter)] decoration-navy-tint decoration-2 underline-offset-4 group-hover:underline">
+							<h3 className="text-lg md:text-xl font-bold leading-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted decoration-navy-tint decoration-2 underline-offset-4 group-hover:underline">
 								{event.title}
 							</h3>
 							{/* Metadata strip — time leads (most scannable for "what's
 							    happening tonight"), then city. Bullet separator.
 							    tabular-nums keeps times column-aligned across cards. */}
-							<p className="text-sm leading-5 text-muted-foreground">
+							<p className="text-sm leading-5 text-navy-tone dark:text-cyan-dim">
 								<span className="tabular-nums">{TIME_FORMATTER.format(new Date(event.start_time))}</span>
 								<span aria-hidden="true"> · </span>
 								<span>{formatCity(event.city)}</span>
 							</p>
-							<p className="line-clamp-2 max-w-[50ch] text-sm md:text-base leading-5 md:leading-relaxed text-muted-foreground">
+							<p className="line-clamp-2 max-w-[58ch] text-sm md:text-base leading-5 md:leading-relaxed text-navy-tone dark:text-cyan-dim">
 								{event.description}
 							</p>
 						</section>

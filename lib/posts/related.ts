@@ -9,6 +9,19 @@ export interface RelatedPost {
 	authors: { name: string; image_url: string | null } | null;
 }
 
+type RelatedPostAuthor = NonNullable<RelatedPost["authors"]>;
+
+interface RelatedPostRow extends Omit<RelatedPost, "authors"> {
+	authors: RelatedPostAuthor | RelatedPostAuthor[] | null;
+}
+
+function normalizeRelatedPost(row: RelatedPostRow): RelatedPost {
+	return {
+		...row,
+		authors: Array.isArray(row.authors) ? (row.authors[0] ?? null) : row.authors,
+	};
+}
+
 /**
  * Pull up to `take` recent Opinion posts (kind = opinion) for the read-next
  * strip on the post detail page. Excludes the current post by id. Implemented
@@ -35,10 +48,11 @@ export async function getRecentOpinionPosts(currentId: number | string, take = 3
 	if (error || !data) return [];
 
 	const opinions: RelatedPost[] = [];
-	for (const row of data as RelatedPost[]) {
+	for (const row of data as unknown as RelatedPostRow[]) {
 		if (opinions.length >= take) break;
-		if (getPostKind({ title: row.title, authors: row.authors }) === "opinion") {
-			opinions.push(row);
+		const post = normalizeRelatedPost(row);
+		if (getPostKind({ title: post.title, authors: post.authors }) === "opinion") {
+			opinions.push(post);
 		}
 	}
 	return opinions;
