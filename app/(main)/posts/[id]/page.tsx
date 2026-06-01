@@ -1,10 +1,12 @@
 import { SubscribeForm } from "@/components/SubscribeForm";
 import PostAdminControls from "@/components/post-admin-controls";
-import PostPreview from "@/components/tailwind/post-preview";
 import { ContextMenu, ContextMenuTrigger } from "@/components/tailwind/ui/context-menu";
 import { formatDate } from "@/lib/datetime";
 import { buildArticleJsonLd, buildBreadcrumbListJsonLd } from "@/lib/events/seo";
 import { estimateReadingMinutes, extractTiptapText, stripEmptyLinkMarks } from "@/lib/posts/content";
+import { normalizeEmojiLists } from "@/lib/posts/normalize-emoji-lists";
+import { normalizeTypography } from "@/lib/posts/normalize-typography";
+import { tiptapToHtml } from "@/lib/tiptap-to-html";
 import { extractHeadings } from "@/lib/posts/headings";
 import { getDisplayTitle, getPostKind } from "@/lib/posts/kind";
 import { getRecentOpinionPosts } from "@/lib/posts/related";
@@ -106,6 +108,10 @@ export default async function PostPage({ params }: PostPageProps) {
 	// the visible H1 instead of the raw DB title.
 	const cleanPostTitle = getDisplayTitle(post.title);
 
+	// QA: server-render the article body (was a client-mounted novel editor).
+	// Same render-time transforms PostPreview applied, then generateHTML.
+	const articleHtml = tiptapToHtml(normalizeEmojiLists(normalizeTypography(stripEmptyLinkMarks(post.content))));
+
 	const breadcrumbJsonLd = buildBreadcrumbListJsonLd([
 		{ name: "Home", pathname: "/" },
 		{ name: cleanPostTitle, pathname: postPathname },
@@ -159,7 +165,11 @@ export default async function PostPage({ params }: PostPageProps) {
 							publishedAtIso={post.created_at}
 							readingMinutes={readingMinutes}
 						/>
-						<PostPreview initialContent={stripEmptyLinkMarks(post.content)} />
+						<div
+							className="ProseMirror article-prose prose prose-lg dark:prose-invert prose-headings:font-title prose-headings:text-balance prose-h1:leading-tight prose-h2:leading-tight prose-h3:leading-snug font-default max-w-[60ch] mx-auto leading-relaxed prose-p:leading-relaxed prose-li:leading-relaxed"
+							// biome-ignore lint/security/noDangerouslySetInnerHtml: server-rendered prose from trusted, sanitized TipTap content
+							dangerouslySetInnerHTML={{ __html: articleHtml }}
+						/>
 						<ArticleLinkDecorator postSlug={post.slug ?? String(post.id)} />
 						{/* Post coda: chrome aligns to the prose reading column.
 						    Prose resolves max-w-[60ch] against Inter 18px (its
