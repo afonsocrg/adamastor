@@ -13,7 +13,7 @@
 import CalendarWithSkeleton from "@/app/(dashboard)/dashboard/calendar/CalendarWithSkeleton";
 import { EVENT_CATEGORIES, EVENT_CATEGORY_COLORS, type EventCategorySlug, isEventCategorySlug } from "@/lib/events/categories";
 import { cn } from "@/lib/utils";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -38,15 +38,23 @@ const CHIP_INACTIVE =
 	"border-navy-frame text-navy-tone hover:bg-navy-veil/40 hover:text-navy dark:border-navy-edge dark:text-navy-dim dark:hover:bg-navy-tint/[0.08] dark:hover:text-navy-lifted";
 
 export default function PublicEventsCalendar({ initialEvents, serverNow }: PublicEventsCalendarProps) {
-	const searchParams = useSearchParams();
 	const router = useRouter();
 	const pathname = usePathname();
 
-	const initialCategory = (() => {
-		const c = searchParams.get("category");
-		return c && isEventCategorySlug(c) ? (c as EventCategorySlug) : null;
-	})();
-	const [category, setCategory] = useState<EventCategorySlug | null>(initialCategory);
+	// Default to "all" so this component SERVER-RENDERS. Reading the deep-link
+	// via useSearchParams would force the whole subtree client-only (Suspense
+	// bail-out), which made the calendar skeleton render as a null fallback in
+	// the static HTML — so the section was injected on hydration and shoved the
+	// footer down (~0.57 CLS on cold load). With no useSearchParams, the
+	// skeleton ships in the static HTML and holds its height; the ?category=
+	// deep-link is applied just after mount below (a filter change, never a
+	// layout shift — the calendar's height is identical across categories).
+	const [category, setCategory] = useState<EventCategorySlug | null>(null);
+
+	useEffect(() => {
+		const c = new URLSearchParams(window.location.search).get("category");
+		if (c && isEventCategorySlug(c)) setCategory(c as EventCategorySlug);
+	}, []);
 
 	const filtered = useMemo(() => {
 		if (!category) return initialEvents;
@@ -80,7 +88,7 @@ export default function PublicEventsCalendar({ initialEvents, serverNow }: Publi
 		setCategory(next);
 		// Keep the URL shareable (?category=design) without a full navigation —
 		// replace() + scroll:false so the calendar doesn't jump.
-		const params = new URLSearchParams(Array.from(searchParams.entries()));
+		const params = new URLSearchParams(window.location.search);
 		if (next) params.set("category", next);
 		else params.delete("category");
 		const qs = params.toString();

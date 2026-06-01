@@ -11,7 +11,6 @@ import "@/app/(dashboard)/dashboard/calendar/calendar-custom.css";
 
 import { createPublicClient } from "@/lib/supabase/public";
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import PublicEventsCalendar from "./PublicEventsCalendar";
 
 export const revalidate = 3600;
@@ -94,12 +93,12 @@ export default async function PublicEventsCalendarPage() {
 				</p>
 			</header>
 
-			{/* PublicEventsCalendar reads ?category= via useSearchParams, so it
-			    needs a Suspense boundary to keep the route from de-opting to fully
-			    client-rendered. */}
-			<Suspense fallback={null}>
-				<PublicEventsCalendar initialEvents={calendarEvents} serverNow={now} />
-			</Suspense>
+			{/* PublicEventsCalendar is a client component but no longer uses
+			    useSearchParams (the ?category= deep-link is read from
+			    window.location after mount), so it server-renders here — shipping
+			    the calendar skeleton in the static HTML so it holds its height and
+			    doesn't shift the footer on hydration (the cold-load CLS fix). */}
+			<PublicEventsCalendar initialEvents={calendarEvents} serverNow={now} />
 		</div>
 	);
 }
