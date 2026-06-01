@@ -3,7 +3,7 @@
 import { EventCard } from "@/components/EventCard";
 import { CategoryNewsletterCta } from "@/components/category-newsletter-cta";
 import { EventCalendar } from "@/components/event-calendar";
-import { EVENT_CATEGORIES, type EventCategorySlug } from "@/lib/events/categories";
+import { EVENT_CATEGORIES, EVENT_CATEGORY_COLORS, type EventCategorySlug } from "@/lib/events/categories";
 import { buildEventsRoutePath } from "@/lib/events/route-slugs";
 import { cn } from "@/lib/utils";
 import { ArrowRightIcon, CalendarDays, Check, Copy, Mail, MessageCircle, Rss } from "lucide-react";
@@ -283,13 +283,16 @@ export default function EventsPageClient({
 		return handleChipClick(href, () => posthog.capture("category_filter", { city: lockedCity ?? "all", category }));
 	};
 
-	// Category pill chip: browseable lens. Active uses navy-tint, not cyan,
-	// so filters sit in the same light-mode highlight system as the homepage.
-	const categoryChipClass = (isActive: boolean) =>
+	// Category pill chip: the browseable topic lens, and the primary action on
+	// this page. Colour-coded to match the public calendar (EVENT_CATEGORY_COLORS):
+	// every chip carries its topic dot, and the active chip fills with the topic
+	// colour. Bigger tap target (py-2.5) than the city tabs because selecting a
+	// topic is the action we most want users to take.
+	const categoryChipClass = (isActive: boolean, activeColor: string) =>
 		cn(
-			"inline-flex items-center rounded-full border px-4 py-2 text-sm leading-none shrink-0 whitespace-nowrap transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+			"inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm leading-none shrink-0 whitespace-nowrap transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 			isActive
-				? "border-navy bg-navy-tint text-navy font-semibold dark:border-navy-tint/[0.45] dark:bg-navy-tint/[0.18] dark:text-navy-lifted"
+				? `border-transparent font-semibold ${activeColor}`
 				: "border-navy-frame text-navy-tone hover:text-navy hover:border-navy-tone dark:border-navy-edge dark:text-navy-dim/[0.7] dark:hover:text-navy-lifted",
 		);
 
@@ -397,28 +400,49 @@ export default function EventsPageClient({
 					) : null}
 				</header>
 				{categoryFilteringEnabled ? (
-					<nav
-						ref={categoryNavRef}
-						aria-label="Categories"
-						className="flex gap-2 overflow-x-auto -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-x-visible sm:-mx-0 sm:px-0"
-					>
-						{EVENT_CATEGORIES.map((category) => {
-							const isActive = activeHref === categoryHref(category.slug);
-							return (
-								<Link
-									key={category.slug}
-									href={isActive ? categoryHref(null) : categoryHref(category.slug)}
-									replace
-									scroll={false}
-									onClick={categoryClickHandler(isActive ? "all" : category.slug)}
-									aria-current={isActive ? "page" : undefined}
-									className={categoryChipClass(isActive)}
-								>
-									{category.name}
-								</Link>
-							);
-						})}
-					</nav>
+					// Topic band: a labelled, colour-coded control surface that reads
+					// as the page's primary action rather than quiet pills under the
+					// title. Stays below the H1 so the page title still leads (the
+					// editorial register), but its label + topic colours give it
+					// clear presence in the hierarchy.
+					<div className="space-y-2.5">
+						<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">
+							Browse by topic
+						</p>
+						{/* Scroll breakout: on mobile the row scrolls edge-to-edge with a
+						    right-edge fade hinting at more topics off-screen; at sm+ it
+						    wraps and the fade is hidden. */}
+						<div className="relative -mx-4 sm:mx-0">
+							<nav
+								ref={categoryNavRef}
+								aria-label="Categories"
+								className="flex gap-2.5 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-x-visible sm:px-0"
+							>
+								{EVENT_CATEGORIES.map((category) => {
+									const isActive = activeHref === categoryHref(category.slug);
+									const colors = EVENT_CATEGORY_COLORS[category.slug];
+									return (
+										<Link
+											key={category.slug}
+											href={isActive ? categoryHref(null) : categoryHref(category.slug)}
+											replace
+											scroll={false}
+											onClick={categoryClickHandler(isActive ? "all" : category.slug)}
+											aria-current={isActive ? "page" : undefined}
+											className={categoryChipClass(isActive, colors.chip)}
+										>
+											<span className={cn("h-2 w-2 rounded-full", colors.dot)} aria-hidden="true" />
+											{category.name}
+										</Link>
+									);
+								})}
+							</nav>
+							<div
+								className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent sm:hidden"
+								aria-hidden="true"
+							/>
+						</div>
+					</div>
 				) : null}
 
 				{/* Mobile: the calendar lives here, above the list, so the date
