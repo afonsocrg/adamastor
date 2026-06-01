@@ -57,16 +57,19 @@ export async function generateMetadata(props: CombinedEventsPageProps): Promise<
 		return { robots: { index: false, follow: false } };
 	}
 
+	// Combined routes are the highest thin-content risk in the matrix —
+	// most city × category combinations will be sparse. noindex when empty
+	// so Google sees only the meaningful subset. Fetch first so the count
+	// feeds the dynamic OG card (cache()-wrapped — no extra query).
+	const { events } = await fetchPublicEvents(resolved.city, resolved.category);
+
 	const metadata = buildEventsRouteMetadata({
 		city: resolved.city,
 		category: resolved.category,
 		pathname: `/events/${resolved.city}/${resolved.category}`,
+		eventCount: events.length,
 	});
 
-	// Combined routes are the highest thin-content risk in the matrix —
-	// most city × category combinations will be sparse. noindex when empty
-	// so Google sees only the meaningful subset.
-	const { events } = await fetchPublicEvents(resolved.city, resolved.category);
 	if (events.length === 0) return { ...metadata, robots: { index: false, follow: true } };
 	return metadata;
 }

@@ -25,6 +25,29 @@ export function normalizeEmail(email: string): string {
 	return email.trim().toLowerCase();
 }
 
+/**
+ * Count active (not-unsubscribed) subscribers opted into a category. Used as a
+ * pre-send guard so we never broadcast a category newsletter to an empty list.
+ *
+ * Returns `null` if the count can't be determined (DB error) — callers should
+ * treat null as "unknown, proceed" (fail-open): the Resend topic filter is the
+ * real recipient gate, so a failed count must not block a legitimate send.
+ */
+export async function countActiveCategorySubscribers(category: EventCategorySlug): Promise<number | null> {
+	const client = createServiceRoleClient();
+	const { count, error } = await client
+		.from("newsletter_subscriptions")
+		.select("email", { count: "exact", head: true })
+		.contains("categories", [category])
+		.is("unsubscribed_at", null);
+
+	if (error) {
+		console.error(`[newsletter] failed to count subscribers for "${category}"`, error);
+		return null;
+	}
+	return count ?? 0;
+}
+
 export async function getSubscriptionByEmail(email: string): Promise<NewsletterSubscription | null> {
 	const client = createServiceRoleClient();
 	const { data, error } = await client

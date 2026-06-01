@@ -35,8 +35,8 @@ export async function generateMetadata({ params }: EventsSlugPageProps): Promise
 	const { slug } = await params;
 
 	if (isKnownCitySlug(slug)) {
-		const metadata = buildEventsRouteMetadata({ city: slug, pathname: `/events/${slug}` });
 		const { events } = await fetchPublicEvents(slug, null);
+		const metadata = buildEventsRouteMetadata({ city: slug, pathname: `/events/${slug}`, eventCount: events.length });
 		// noindex thin pages — programmatic SEO best practice. The page still
 		// renders for direct visitors; Google just doesn't index it, which
 		// avoids dragging down site-wide quality signals via dozens of
@@ -46,8 +46,8 @@ export async function generateMetadata({ params }: EventsSlugPageProps): Promise
 	}
 
 	if (isKnownCategorySlug(slug)) {
-		const metadata = buildEventsRouteMetadata({ category: slug, pathname: `/events/${slug}` });
 		const { events } = await fetchPublicEvents(null, slug);
+		const metadata = buildEventsRouteMetadata({ category: slug, pathname: `/events/${slug}`, eventCount: events.length });
 		if (events.length === 0) return { ...metadata, robots: { index: false, follow: true } };
 		return metadata;
 	}

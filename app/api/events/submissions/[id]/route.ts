@@ -1,6 +1,11 @@
-import { sendSubmissionApprovedEmail, sendSubmissionRejectedEmail } from "@/lib/events/notifications";
+import {
+	notifyOrganisersOfSameDayClash,
+	sendSubmissionApprovedEmail,
+	sendSubmissionRejectedEmail,
+} from "@/lib/events/notifications";
 import { sanitizeEventCategorySlugs } from "@/lib/events/categories";
 import { BadRequestError, ForbiddenError, NotFoundError, handleError } from "@/lib/errors";
+import { capturePostHogEvent } from "@/lib/posthog-server";
 import { revalidateEventsListing } from "@/lib/revalidate-public";
 import { assertAuthenticated } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
@@ -163,6 +168,34 @@ export async function PATCH(request: NextRequest, routeParams: { params: Promise
 					}),
 				);
 			}
+
+			// Same-day clash alerts — only on a genuine pending→approved
+			// transition. Re-saving an already-live event (edits) must NOT
+			// re-fire, or organisers get re-spammed. Best-effort; never blocks
+			// the response or the approval itself.
+			if (existing.status !== "approved") {
+				waitUntil(
+					(async () => {
+						try {
+							const { data: assignments } = await supabase
+								.from("event_category_assignments")
+								.select("category_slug")
+								.eq("event_id", eventId);
+							const categorySlugs = (assignments ?? []).map((row) => row.category_slug as string);
+							await notifyOrganisersOfSameDayClash({
+								id: eventId,
+								title: finalTitle,
+								city: finalCity,
+								startTimeIso: finalStartTime,
+								url: (update.url as string | undefined) ?? null,
+								categorySlugs,
+							});
+						} catch (clashError) {
+							console.error("[/api/events/submissions/[id]] same-day clash notify failed", clashError);
+						}
+					})(),
+				);
+			}
 		} else if (isRejecting) {
 			if (submitterEmail) {
 				waitUntil(
@@ -174,6 +207,23 @@ export async function PATCH(request: NextRequest, routeParams: { params: Promise
 					}),
 				);
 			}
+		}
+
+		// Moderation activity — so we can see review throughput / approve-vs-reject
+		// rates in PostHog. Keyed to the reviewing admin; fire-and-forget.
+		if (isApproving || isRejecting) {
+			waitUntil(
+				capturePostHogEvent({
+					event: "event_submission_reviewed",
+					distinctId: profile.id,
+					properties: {
+						decision: isApproving ? "approve" : "reject",
+						event_id: eventId,
+						city: finalCity,
+						was_pending: existing.status === "pending",
+					},
+				}),
+			);
 		}
 
 		return NextResponse.json({ success: true });

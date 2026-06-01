@@ -20,6 +20,9 @@ const submissionSchema = z.object({
 	url: z.string().trim().min(1, "Event link is required").url("Please share a valid event link"),
 	bannerUrl: z.string().url("Banner URL must be a valid URL").optional().or(z.literal("")),
 	categorySlugs: z.array(z.string()).optional(),
+	// Opt-in: email this organiser if we later approve another event sharing
+	// their day + city + category. Persisted best-effort (see below).
+	notifySameDay: z.boolean().optional(),
 	submitterName: z.string().trim().min(1, "Name is required").max(120),
 	submitterEmail: z.string().trim().email("Please share a valid email"),
 	turnstileToken: z.string().optional(),
@@ -78,6 +81,13 @@ export async function POST(request: NextRequest) {
 
 		const cleanUrl = data.url && data.url.length > 0 ? data.url : null;
 		const cleanBannerUrl = data.bannerUrl && data.bannerUrl.length > 0 ? data.bannerUrl : null;
+		// Empty categories is a VALID, intentional state — many events (e.g. a
+		// marketing meetup) don't fit any of our five categories, and a wrong tag
+		// is worse than no tag: it would push the event into a category newsletter
+		// whose subscribers don't care about it. So we keep ONLY what the
+		// submitter/admin explicitly chose (the form offers keyword suggestions
+		// they can accept or clear) — no server-side auto-tagging that could
+		// mislabel. Better untagged than mistagged.
 		const categorySlugs = sanitizeEventCategorySlugs(data.categorySlugs ?? []);
 
 		const { duplicateCandidates, hasBlockingDuplicate } = await checkVisibleEventDuplicates(dedupClient, {
@@ -157,6 +167,24 @@ export async function POST(request: NextRequest) {
 				// Don't roll back the submission — the admin can fix categories
 				// during review. Losing the whole event over a category quirk
 				// would be a worse UX than landing it with no categories.
+			}
+		}
+
+		// Persist the same-day-alert opt-in as a separate best-effort update
+		// rather than a column in the insert above. If the notify_same_day
+		// migration hasn't been applied yet, the insert still succeeds and the
+		// opt-in simply stays dormant (logged) until the column exists.
+		// Migration: supabase/migrations/20260601000000_add_notify_same_day_to_events.sql
+		if (data.notifySameDay) {
+			const { error: notifyOptInError } = await adminClient
+				.from("events")
+				.update({ notify_same_day: true })
+				.eq("id", insertedEvent.id);
+			if (notifyOptInError) {
+				console.error(
+					"[/api/events/submissions] notify_same_day opt-in failed (is the migration applied?)",
+					notifyOptInError,
+				);
 			}
 		}
 

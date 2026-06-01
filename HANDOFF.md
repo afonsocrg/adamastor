@@ -1,79 +1,142 @@
-# Hand-off — 2026-05-31: Next 16 / React 19 upgrade + calendar, category palette, navy dark mode
+# Hand-off — 2026-06-01 (overnight): pre-release batch — 7 tasks advanced autonomously
 
-Committed as **`2d25c05`** on branch **`chore/next-16-react-19-spike`**. `pnpm typecheck` and `pnpm build` both green (next@16.2.6 / react@19.2.6). Working tree clean.
+Worked through your pre-release list while you were away (couldn't ask questions, so I made the judgement calls below and flagged every one). **All changes are on `main`, uncommitted** — `pnpm typecheck` ✅, `biome lint` on every touched file ✅, `pnpm test` ✅ (77 pass, 13 new), and every new route smoke-tested on the live dev server (all 200, OG renders real PNGs, no console/server errors). Nothing outward-facing was sent or deployed.
 
-This is the session-level summary. Deeper docs: [`docs/react-big-calendar.md`](docs/react-big-calendar.md) (new), [`docs/animations.md`](docs/animations.md), [`docs/design-system.md`](docs/design-system.md) (navy dark tokens + category-colours section).
+## ⚠️ Your decisions / actions before this ships
 
----
+1. **Apply the migration** `supabase/migrations/20260601000000_add_notify_same_day_to_events.sql` (dashboard SQL editor, your usual flow). The same-day-alert feature is **dormant until you do** — and by design **nothing breaks** if you forget: submissions still succeed, the opt-in just doesn't persist (logged), and the approval trigger no-ops. It "turns on" the moment the column exists.
+2. **LinkedIn hover — DEFERRED post-launch (2026-06-01).** Dev preview + `lib/linkedin-hover-styles.ts` deleted so nothing ships; ShareRow unchanged (no regression). Revisit the tint/ring/solid pick after launch — ask Claude to re-stage the 3 candidates.
+3. **Cloudflare cron — DEPLOYED 2026-06-01.** `adamastor-newsletter-cron` is live (trigger `0 8 * * MON`; `NEWSLETTER_CRON_SECRET` set on worker + Vercel; liveness verified). It **dry-runs** until you set `NEWSLETTER_CRON_ENABLED="true"` on Vercel, and its endpoint only exists once the app is pushed. Remaining: app push → confirm a dry-run → flip the enable flag for real sends.
+4. **Security — FIXED.** [`/api/sendNewsletter`](app/api/sendNewsletter/route.ts) is no longer open: it now requires `Authorization: Bearer ${NEWSLETTER_SEND_SECRET}` for **every** mode and **fails closed** (rejects all calls until the secret is set). **Action:** set `NEWSLETTER_SEND_SECRET` on the app before launch — sends (and the cron) won't work until you do. Shared timing-safe check in `lib/newsletter/internal-auth.ts`; cron route forwards the secret. Verified: no secret → 500, no/wrong Bearer → 401, correct Bearer → passes (then normal validation). `.env.example` documents it.
 
-## ⚠️ THE release decision — what framework version ships?
+## What landed, by task
 
-The whole session's work lives on `chore/next-16-react-19-spike`, **not on `main`**. The branch tangles two things in shared files (`styles/globals.css`, the layouts), so they can't be cleanly cherry-picked apart:
+- **① LinkedIn hover (3 styles)** — **DEFERRED post-launch (2026-06-01).** ShareRow is **unchanged** (the 3 styles were only ever staged, never applied — no regression). The dev preview route + `lib/linkedin-hover-styles.ts` were **deleted** so nothing half-baked ships. Re-stage the 3 candidates (tint = brand wash, ring = inset brand ring, solid = filled blue + lift; brand `#0A66C2` / dark `#70B5F9`) when you want to pick.
+- **② Dynamic OG per events route** — DONE. New `app/api/og/events/route.tsx` (1200×630, category colour rail + live count, graceful font fallback, more robust than the post OG). Wired through `buildEventsRouteMetadata` in [`lib/events/seo.ts`](lib/events/seo.ts), so `/events`, `/events/[city]`, `/events/[category]`, and city×category all get tailored cards. Live count threaded through each `generateMetadata` (no extra query — `fetchPublicEvents` is `cache()`-wrapped). Verified: `/events/design` → `og:image=…/api/og/events?title=Design+Events&category=design&count=…`.
+- **③ Public category big-calendar** — DONE. New `/events/calendar` (+ `?category=` deep-link). Reuses the dashboard's react-big-calendar verbatim (`CalendarWithSkeleton`/`CalendarTestClient`), read-only, with a category filter row. `app/(main)/events/calendar/{page.tsx,PublicEventsCalendar.tsx}`. **Not linked from anywhere yet** — add a nav/footer entry when you're happy with it.
+- **④ Same-day alert opt-in + wiring** — DONE in code (pending the migration in #1). Opt-in checkbox on the submit form → payload → API (best-effort persist) → `notifyOrganisersOfSameDayClash()` in [`notifications.ts`](lib/events/notifications.ts), fired from the approval route **only on a real pending→approved transition** (re-saving a live event won't re-spam). Uses your existing `event-same-day-alert.tsx` template. Clash = same Lisbon day + same city (online excluded) + ≥1 shared category; recipients deduped by email.
+- **⑤ Auto-tag** — auto-tagging stays a **client-side suggestion only**; no server-side auto-apply. (Reverted an earlier server-side "infer when empty" fallback per Malik: **empty is a valid, correct state** — a marketing meetup fits none of the five categories, and a *wrong* tag is worse than none because it pushes the event into a category newsletter whose subscribers don't care. Better untagged than mistagged.) `lib/events/categories.test.ts` (13 tests) locks the suggestion rules, including that no-signal text suggests nothing.
+- **⑥ PostHog tracking** — DONE. Added: `event_submission_completed` (client), `event_submission_reviewed` (server, approve/reject throughput), `newsletter_broadcast_sent` (server, real sends only), `event_same_day_alert_sent` (server), and `events_calendar_viewed` / `events_calendar_filtered` (new calendar).
+- **⑦ Cloudflare cron + worker** — **DEPLOYED 2026-06-01** (`adamastor-newsletter-cron`, trigger `0 8 * * MON` confirmed, secret set on worker + Vercel, liveness verified: no/wrong key → 401). Still **dry-runs** until `NEWSLETTER_CRON_ENABLED="true"` on Vercel, and its target endpoint only exists once the app is pushed. **Per-category only** — the weekly digest is sent **manually** by Carlos and the cron now *refuses* a no-category (digest) call. ⚠️ **Cron-day fix:** Cloudflare's weekday field is the Quartz scheme (`1`=**Sunday**, not Monday — verified against CF docs), so the schedule is now `0 8 * * MON` (was `0 8 * * 1`, which would have fired **Sunday**). Send guards added: a category email is **skipped** if it has **no events** in the window or **no opted-in subscribers** (counted from `newsletter_subscriptions`). Events window cut **10 → 7 days** so back-to-back weekly issues don't re-list the same events. Verified at runtime: per-category dry-run OK, digest call → 400, bad secret → 401.
 
-1. the **Next 16 / React 19 framework upgrade**, and
-2. a big slice of **design/UX work** (calendar redesign, navy dark mode, category palette, animations, error boundaries, the `app/(auth)/` route-group move).
-
-Two paths before launch:
-
-- **A — Harden and ship from this branch (React 19 / Next 16).** Build + typecheck are green; all features are validated at compile time. These are now the *latest stable majors*, not betas. Cost: React 19 is recent, and `lucide-react` / `react-day-picker` / `novel(tiptap)` emit peer warnings (harmless at runtime, but officially unsupported combos). Needs a full **runtime** QA pass.
-- **B — Revert framework to the safe 15.5 / 18.3 on `main`, keep the design work.** Lower framework risk, but the design/UX work is entangled with React 19 (error boundaries, `RouteTransitionFrame`), so disentangling is real surgery right before launch.
-
-**My recommendation: A, gated on a runtime QA pass.** The riskier move is the disentangling in B, not running a green React 19 build. Before merging to `main`, run [`docs/release-smoke-checklist.md`](docs/release-smoke-checklist.md) with focus on the three peer-warning surfaces: **the editor (novel/tiptap), auth (`app/(auth)/`), and the events calendar (react-day-picker)**. If any break, fall back to B. This is genuinely your call — flagging it loudly so it's a *decision*, not a default.
-
----
-
-## What landed (commit `2d25c05`, 82 files)
-
-- **Framework** — Next 15→16 (Turbopack is the default now; webpack is gated behind `--webpack`), React 18→19. React 19 fixes: `JSX.Element` global removed → `import { JSX }`. Branded `app/global-error.tsx` + `app/not-found.tsx`. Auth pages moved `app/login` + `app/signup` → **`app/(auth)/`** route group.
-- **Calendar** (admin big-calendar + the two events calendars) — migrated off neutral grays + legacy cyan onto the **navy ramp, light AND dark** (first surface of the navy dark-mode anchor). Directional slide/fade/blur on nav; opacity-hold mask over the month↔week view-switch reflow. Past-day washes, hover-reveal month previews, sibling fade, week current-time gradient.
-- **Category palette** — dedicated **seal-rainbow tints re-assigned by meaning**: Design=peach, Engineering=yellow, Startups=green, Product=cyan, AI=lavender (rose reserved for a 6th). Single source: `--cat-*` CSS custom properties (light + dark in one place) → consumed by calendar CSS, `EVENT_CATEGORY_COLORS`, and the newsletter email hex copy.
-- **Dark mode** — **navy now anchors dark mode** (`navy-lifted`/`dim`/`edge` from the email `C_DARK` ramp); cyan dark-anchor being phased out.
-- **Animations** — route transitions crossfade on **opacity only** (never translateY); blur masks microtransitions; `RouteTransitionFrame` + loading skeletons so fades land on real content.
-- **Docs** — new portable `docs/react-big-calendar.md`; reconciled the `scrollbar-gutter` drift in `animations.md`; design-system navy + category sections.
+Full prior context below.
 
 ---
 
-## Dependencies
+# Hand-off — 2026-05-31 (evening): React 19 / Next 16 — runtime QA done, MERGED to main
 
-- **Bumped:** `posthog-js` 1.376.4 → 1.376.5 (only no-risk update available).
-- **React / Next:** already on the latest majors (19.2.6 / 16.2.6) — nothing to do.
-- **Deferred — all breaking, do NOT bump before launch:**
+Release **Decision A executed.** `chore/next-16-react-19-spike` was **fast-forward-merged into `main`** (now at **`5a378d9`**). `pnpm typecheck` and `pnpm build` are green, and a full **runtime QA pass passed clean** (details below). `main` is byte-identical to the validated commit.
+
+**Two gates remain before the site is live** (see §2 and §3). Neither is done yet — by design, they're the *last* things before release.
+
+Deeper docs: [`docs/release-smoke-checklist.md`](docs/release-smoke-checklist.md), [`docs/react-big-calendar.md`](docs/react-big-calendar.md), [`docs/animations.md`](docs/animations.md), [`docs/design-system.md`](docs/design-system.md).
+
+---
+
+## 0. Dark-mode navy migration — DONE (2026-05-31, late session)
+
+Migrated the **whole site's** dark mode off the cyan anchor onto the navy `C_DARK` ramp (the email reference Malik considers flawless). Decision (Malik): **keep the flat surface model** — no layered canvas/card/veil ramp — so the navy-edge **border is what separates surfaces**; the hairline refinement was therefore the priority. Light mode is untouched by construction (every change is `.dark`-scoped or a `dark:` variant). Runtime-verified in Chrome DevTools dark emulation; console clean.
+
+**Foundation (the high-leverage part):**
+- `tailwind.config.ts` — added `navy.bright-dark` `#6DB7EA` (dark-mode link/kicker accent, from email `C_DARK.bright`). `navy.lifted/dim/edge` already existed.
+- `styles/globals.css` `.dark` — rewrote the shadcn vars to the navy ramp: bg/card/popover/sidebar = canvas `#0A1C24` (flat), `--foreground` = navy-lifted `#CFE4EF` (anti-halation vs pure white), `--muted-foreground` = navy-dim, `--border`/`--input` = navy-edge `#2C4F5E` (this one change makes **every** shadcn border + card legible), `--ring` = navy-tint, secondary/muted/accent fills = navy-veil `#15323F`. Also de-cyan'd the mobile tab bar and added a `.dark ::selection`.
+- `styles/prosemirror.css` — article-prose body/headings → navy-lifted, links → navy-bright-dark, counters/captions → navy-dim, bullets/blockquote rule → navy-tint, heading hairline → solid navy-edge.
+
+**Component sweep (~270 cyan class tokens across ~40 files, scripted 1:1):** `cyan-lifted→navy-lifted`, `cyan-dim→navy-dim`, `cyan-glow` borders→`navy-edge` (solid, opacity dropped) / links→`navy-bright-dark` / fills→`navy-tint`. Hand-fixed: active city-tab + category chips (strong-ink active = `navy-lifted`, not the link blue); 3 legacy raw-hex dashboard spots (event-type badge → navy; **pending-count badge `#04C9D8`→`orange-hue`** per the notification-badge rule; mailto link → link color); stock `cyan-50` "Published" status pill → navy pill **+ added the dark variant it was missing**; AddEventForm suggestion pills → navy.
+
+**Preserved (intentional):** Product event-category cyan (`--cat-product-*` + dot), `--novel-highlight-blue` editor swatch, all `components/email/*` (own system).
+
+**Verified computed values match `C_DARK` exactly:** link `#6DB7EA`, body `#CFE4EF`, hairline `#2C4F5E`, canvas `#0A1C24`.
+
+**Follow-up fix — aggressive white hairlines (same session, Malik-reported):** the migration missed dividers that hardcode `border-navy-frame` (the *light* near-white hairline `#E8F0F4`) with **no `dark:` companion** — they're not cyan, so the sweep didn't touch them, and they rendered near-white on the dark surface (the `--border` foundation fix only covers the bare `border` utility). Added `dark:border-navy-edge` (or `dark:divide-navy-edge`) to ~29 spots: Byline strap, the **PostTOC rail** (its active indicator stays `navy-lifted` so it pops against the now-dim rail), AuthorStrap/ReadNext/feedbackForm dividers + avatar/thumbnail rings, About section rules, Subscribe/Preferences forms + checkboxes, the dashboard sidebar (`nav-main` dividers/hovers, `dashboard-trigger` ⌘B chip, `nav-user` avatar fallbacks), and the admin calendar (`calendar-custom.css` month-header column dividers + active toolbar button). Rule going forward: **`border-navy-frame` must always carry a `dark:border-navy-edge` companion.** Verified the article byline + TOC + about compute to `rgb(44,79,94)`; typecheck green.
+
+**Done this session (were "pending"):**
+- ✅ `app/api/og/route.tsx` — OG share-card migrated to navy (bg `navy.veil #E1F2F9`, text `navy.shade`).
+- ✅ `docs/design-system.md` reconciled — Cyan section, the dark-anchor table, rule #8, the migration map, and the **MobileTabBar worked example** now show the navy values. **Product Management category cyan (`--cat-product-*`) explicitly documented as preserved** (it's category identity, not a dark anchor).
+
+**Still open / one deliberate non-expansion:**
+- **Dashboard dark-mode TEXT contrast (not a border issue).** The dashboard is "white surface, navy chrome" *by design* (design-system.md §Admin). In OS-dark it flips to the navy canvas, but base sidebar labels still use `text-navy-shade` (dark-on-dark) — a **pre-existing** gap, unrelated to the cyan/border work. Decision needed before any fix: **force the dashboard to light-only**, or do a dedicated full dark-support pass. I fixed only the near-white *borders/surfaces* there, deliberately not the base text, to avoid a half-done dark theme.
+
+---
+
+## 1. Runtime QA — DONE, all green (don't redo this)
+
+Drove the live dev server and exercised every surface the upgrade put at risk. **Zero console errors across the entire pass.** What was validated:
+
+| Surface | Package (peer status) | Result |
+|---|---|---|
+| Post editor | `novel` / tiptap 2.27 | Mounts (`.tiptap.ProseMirror`), accepts input, debounced draft-save to localStorage works, bubble menu (tippy.js) positions. ✓ |
+| Events calendar | `react-day-picker` 8.10.1 (peer warns ≤18) | Renders, custom `Day` component works, date filter applies + clears. ✓ |
+| Admin calendar | `react-big-calendar` 1.19.6 | Month + week views, 74 events, current-time auto-scroll fires. ✓ |
+| Icons | `lucide-react` 0.358 (peer warns ≤18) | Render across every page. ✓ |
+| Auth pages | `app/(auth)/` route-group move | `/login` + `/signup` forms render. ✓ |
+| Reading flow | — | Homepage (articles, pagination, subscribe, sidebar), full article body (intact), no hydration mismatches. ✓ |
+
+**Key de-risking finding:** the `findDOMNode` scare was a false alarm. `react-big-calendar@1.19.6` declares `react-dom: "… || ^19"` in its peerDeps — it *officially supports React 19*. The `findDOMNode` references are only in its standalone UMD `dist/*.js` (which inlines a copy of react-dom); the `lib/` build the app actually bundles never calls it. *Principle: grepping `node_modules/<pkg>/dist` misleads — the UMD bundle inlines deps; what matters is what `main`/`module` resolves to.*
+
+**Benign warnings observed (all pre-existing, none are React 19 regressions):**
+- Next.js `<Image>` aspect-ratio warning on the logo SVG (`adamastorLogotype.svg` — set `width:auto`/`height:auto` someday).
+- tippy.js dev-only keyboard-a11y note ("removed in production").
+- `[tiptap warn]: Invalid content… Unknown node type: undefined` — the new-post editor inits with `savedDraft` defaulting to `{}`, which isn't valid tiptap doc JSON. Falls back to empty doc; editor works. Optional fix: default to `{ type: "doc", content: [] }`.
+- PostHog's own recorder bundle logs an "outdated JSX transform" note — external, not our code.
+
+---
+
+## 2. GATE — post-merge mutating-flow QA (do this LAST, right before pushing)
+
+Not run yet (deliberately deferred). The runtime pass above covered rendering/interaction; this covers the server-action + external-API write paths. Run from [`docs/release-smoke-checklist.md`](docs/release-smoke-checklist.md):
+
+- **Subscription flow** — submit subscribe form, confirm success toast + welcome email + subscriber appears + PostHog `subscribed_newsletter` event. (Didn't reach the form this session — also **verify Turnstile behavior**: `TURNSTILE_SITE_KEY` is in env; an automated submit may be CAPTCHA-gated.)
+- **Event submissions flow** — submit → admin notification → approve & publish → appears on `/events` → approval email; then submit + reject with reason.
+- **Publishing & revalidation** — publish a test post → appears on `/`; edit title → updates; unpublish/delete → disappears.
+
+⚠️ **`.env.local` points at PRODUCTION Supabase / Resend / PostHog.** These flows create real records and send real email. Use **`delivered@resend.dev`** (per house QA rule — never `@example.com`), and **clean up after**: delete the test subscriber, reject/delete the test submission, unpublish/delete the test post. The checklist itself sanctions this create-then-delete loop.
+
+---
+
+## 3. GATE — push / production deploy (NOT done)
+
+- `main` is **ahead of `origin/main` by 70 commits**. `git push origin main` publishes all 70 and (Vercel-on-`main`) **triggers a production deploy**.
+- ~~**P0: SSL 526 on `www.adamastor.blog`.**~~ **RESOLVED 2026-06-01** (Malik, manually — `www` added as a domain on the Vercel project). Verified: `www` now `307`→`https://adamastor.blog/` over a valid Google Trust Services cert (`verify ok`, SAN covers `www`, exp. 2026-08-24); apex `200`; no residual 526.
+- Order of operations to release: §2 mutating QA green → `git push origin main` → watch the Vercel deploy → spot-check prod.
+
+---
+
+## 4. Carry-forward debt
+
+- **Temp scaffolding now on `main`:** `_tmp_fetch_post.ts` (repo root — no importers, **safe to delete now**); `components/email/_fixtures/post-175.ts` (still imported by `newsletter-template.tsx` `PreviewProps` — remove once that import is gone).
+- **`next-env.d.ts` flip-flops:** `next dev` rewrites the import to `./.next/dev/types/routes.d.ts`; `next build` wants `./.next/types/routes.d.ts`. Committed = the build variant. If a dev run dirties it, `git checkout -- next-env.d.ts`. Don't commit the dev variant.
+- **Mega-commit note:** `2d25c05` is the single entangled point for the whole upgrade + design slice if you ever need a granular revert.
+
+---
+
+## 5. Deferred dependency bumps — all breaking, do NOT touch before launch
 
 | Package | → | Why deferred |
 |---|---|---|
-| `tailwindcss` 3 → 4 | major | Known migration (config + engine rewrite); `tailwind-merge` 3 is TW4-only, keep both back |
-| `@tiptap/core` 2 → 3 + `tiptap-markdown` | major | `novel` editor pins tiptap 2; TipTap 3 is a blocker |
-| `react-day-picker` 8 → 10 | 2 majors | Drives the events calendar; v9 rewrote the API + needs date-fns 4 |
+| `tailwindcss` 3 → 4 | major | Config + engine rewrite; `tailwind-merge` 3 is TW4-only, keep both back |
+| `@tiptap/core` 2 → 3 + `tiptap-markdown` | major | `novel` pins tiptap 2; TipTap 3 is a blocker |
+| `react-day-picker` 8 → 10 | 2 majors | Drives `/events` calendar; v9 rewrote API + needs date-fns 4 |
 | `zod` 3 → 4 | major | Breaking validation API across the app |
-| `typescript` 5 → 6 | major | Just released; can surface new errors — not pre-launch |
-| `@supabase/ssr` 0.5 → 0.10 | breaking minors | **Auth-critical**; cookie handling changed — do not touch pre-launch |
-| `sonner` 2, `@vercel/blob` 2, `lucide-react` 1, `@biomejs/biome` 2, `@commitlint/*` 21, `@types/node` 25, `eventsource-parser` 3, `react-markdown` 10, `react-email` 6 | major | Defer; bundle into a post-launch dependency sweep |
-
-- **React 19 peer warnings** (harmless at runtime, watch in QA): `lucide-react` and `react-day-picker` want React ≤18; `@tiptap/pm` mismatch via novel.
+| `typescript` 5 → 6 | major | Just released; can surface new errors |
+| `@supabase/ssr` 0.5 → 0.10 | breaking minors | **Auth-critical**; cookie handling changed |
+| `sonner` 2, `@vercel/blob` 2, `lucide-react` 1, `@biomejs/biome` 2, `@commitlint/*` 21, `@types/node` 25, `eventsource-parser` 3, `react-markdown` 10, `react-email` 6 | major | Bundle into a post-launch dependency sweep |
 
 ---
 
-## Known debt / carry-forward
-
-- **Temp newsletter preview scaffolding is committed** (to keep a clean-checkout build green — `newsletter-template.tsx` imports `_fixtures/post-175`): `_tmp_fetch_post.ts` (repo root), `components/email/_fixtures/post-175.ts`. Remove once `PreviewProps` no longer imports the fixture; `_tmp_fetch_post.ts` has no importers and can go now.
-- **This was a bundled mega-commit** (82 files, ~5 workstreams) — the changes were genuinely entangled. If you ever need granular history for a revert, `2d25c05` is the single point.
-- **RESOLVED:** the old `lib/posts/related.ts:38` TS2352 error is gone — `pnpm typecheck` is now clean (fixed in the React 19 / tsconfig pass).
-
----
-
-## Remaining pre-release tickets (roughly priority-ordered)
+## 6. Remaining pre-release tickets (roughly priority-ordered)
 
 **P0**
-- SSL 526 on `www.adamastor.blog`.
+- ~~SSL 526 on `www.adamastor.blog`~~ — **RESOLVED 2026-06-01** (www added to the Vercel project; verified www→apex 307 over a valid cert). See §3.
 
 **Design / dark mode (the natural next push)**
-- **App-side dark-mode navy migration** — only the calendar is migrated. The product's own dark mode is still **cyan-anchored** (`cyan-lifted/glow/dim` via `dark:` classes in `app/(main)/layout.tsx`, `PreferencesPageClient.tsx`, etc.) and its `.dark` surfaces in `globals.css` aren't a clean ramp. Migrate to the `C_DARK`/navy ramp. Per `feedback_design_system_changes`, surface options before editing the design-system doc. Memory: `project_dark_mode_navy`.
-- **Redesign the email templates** to match the new article-page design system (the pre-launch punch-list's flagged next item).
+- ~~**App-side dark-mode navy migration**~~ — **DONE 2026-05-31 (see §0).** Whole site migrated off cyan to the navy `C_DARK` ramp; flat surfaces kept; borders refined. Residual: OG-image cyan-wash + a `docs/design-system.md` reconciliation pass (both noted in §0).
+- **Redesign email templates** to match the new article-page design system.
 
 **Events / email feature wiring**
-- **Same-day-alert** (`event-same-day-alert.tsx` is template-only): send helper in `lib/events/notifications.ts`; organiser opt-in field + `/preferences` UI + footer `manageUrl`; detection at approval = same category + same day + **same city, excluding online**. Memory: `project_same_day_alert_email`.
+- **Same-day-alert** (`event-same-day-alert.tsx` is template-only): send helper in `lib/events/notifications.ts`; organiser opt-in + `/preferences` UI + footer `manageUrl`; detection at approval = same category + same day + same city, excluding online.
 - Wire the category-welcome `latestEditionUrl` (falls back to homepage).
-- Run `normalizeEmojiLists` + `normalizeTypography` in the email path before `generateHTML` (docs/emails.md → "Known gap").
+- Run `normalizeEmojiLists` + `normalizeTypography` in the email path before `generateHTML`.
 
 **Launch hygiene**
 - Lighthouse baseline against `next build && next start`.
@@ -85,6 +148,6 @@ Two paths before launch:
 
 ## How to resume
 
-1. **Decide the release path above** (A: ship the branch after runtime QA, or B: revert framework).
-2. If A: run [`docs/release-smoke-checklist.md`](docs/release-smoke-checklist.md), focusing on editor / auth / calendar; then merge `chore/next-16-react-19-spike` → `main`.
-3. Calendar work: start from [`docs/react-big-calendar.md`](docs/react-big-calendar.md). Email: [`docs/emails.md`](docs/emails.md), `pnpm email` → :3001 (toggle dark via **OS dark mode**, not the moon icon).
+1. The framework upgrade is **done and on `main`**. Don't re-run the runtime QA in §1.
+2. When ready to release: run §2 mutating-flow QA (safe addresses, clean up after) → resolve §3 SSL 526 → `git push origin main` → verify the Vercel deploy.
+3. Email work: [`docs/emails.md`](docs/emails.md), `pnpm email` → :3001 (toggle dark via **OS dark mode**, not the moon icon).

@@ -30,6 +30,7 @@ import {
 } from "@/lib/user-identity";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRightIcon, CheckCircle2, Loader2 } from "lucide-react";
+import posthog from "posthog-js";
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -47,6 +48,7 @@ const formSchema = z
 		endTime: z.string().optional().or(z.literal("")),
 		city: z.string().min(1, "City is required"),
 		categorySlugs: z.array(z.string()),
+		notifySameDay: z.boolean(),
 		submitterName: z.string().trim().min(1, "Name is required"),
 		submitterEmail: z.string().trim().email("Please share a valid email"),
 		// Honeypot — must stay empty, but we don't surface an error so bots can't
@@ -124,6 +126,7 @@ export default function SubmitEventForm({
 			endTime: "",
 			city: "",
 			categorySlugs: [],
+			notifySameDay: false,
 			submitterName: "",
 			submitterEmail: initialSubmitterEmail,
 			website: "",
@@ -271,6 +274,7 @@ export default function SubmitEventForm({
 					url: values.url,
 					bannerUrl: values.bannerUrl,
 					categorySlugs: values.categorySlugs,
+					notifySameDay: values.notifySameDay,
 					submitterName: values.submitterName,
 					submitterEmail: values.submitterEmail,
 					turnstileToken,
@@ -292,6 +296,12 @@ export default function SubmitEventForm({
 			}
 
 			setSubmissionState({ kind: "success", title: values.title });
+			posthog.capture("event_submission_completed", {
+				city: values.city,
+				category_count: values.categorySlugs.length,
+				categories: values.categorySlugs,
+				notify_same_day: values.notifySameDay,
+			});
 			toast.success("Thanks — we've got your submission!");
 			saveIdentity({ name: values.submitterName, email: values.submitterEmail });
 			form.reset({
@@ -303,6 +313,7 @@ export default function SubmitEventForm({
 				endTime: "",
 				city: "",
 				categorySlugs: [],
+				notifySameDay: false,
 				submitterName: "",
 				submitterEmail: initialSubmitterEmail,
 				website: "",
@@ -318,10 +329,10 @@ export default function SubmitEventForm({
 
 	if (submissionState.kind === "success") {
 		return (
-			<div className="rounded-lg border border-navy-frame dark:border-cyan-glow/[0.18] p-8 flex flex-col items-start gap-4">
+			<div className="rounded-lg border border-navy-frame dark:border-navy-edge p-8 flex flex-col items-start gap-4">
 				<CheckCircle2 className="h-10 w-10 text-green-hue" aria-hidden="true" />
 				<div className="space-y-2">
-					<h2 className="text-2xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+					<h2 className="text-2xl font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 						Thanks — we got "{submissionState.title}"
 					</h2>
 					<p className="text-base leading-relaxed text-muted-foreground">
@@ -332,7 +343,7 @@ export default function SubmitEventForm({
 					type="button"
 					variant="outline"
 					onClick={() => setSubmissionState({ kind: "idle" })}
-					className="rounded-lg border-navy text-navy hover:bg-navy-wash hover:text-navy dark:border-cyan-lifted dark:text-cyan-lifted"
+					className="rounded-lg border-navy text-navy hover:bg-navy-wash hover:text-navy dark:border-navy-lifted dark:text-navy-lifted"
 				>
 					Submit another event
 				</Button>
@@ -341,7 +352,7 @@ export default function SubmitEventForm({
 	}
 
 	return (
-		<div className="md:rounded-lg md:border md:border-navy-frame md:dark:border-cyan-glow/[0.18] md:p-6">
+		<div className="md:rounded-lg md:border md:border-navy-frame md:dark:border-navy-edge md:p-6">
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
 					<FormField
@@ -391,7 +402,7 @@ export default function SubmitEventForm({
 										variant="outline"
 										onClick={() => handleScrape()}
 										disabled={isScraping || isSubmitting || field.value.trim().length === 0}
-										className="rounded-lg border-navy text-navy hover:bg-navy-wash hover:text-navy dark:border-cyan-lifted dark:text-cyan-lifted"
+										className="rounded-lg border-navy text-navy hover:bg-navy-wash hover:text-navy dark:border-navy-lifted dark:text-navy-lifted"
 									>
 										{isScraping ? (
 											<>
@@ -534,8 +545,34 @@ export default function SubmitEventForm({
 						</>
 					)}
 
+					<FormField
+						control={form.control}
+						name="notifySameDay"
+						render={({ field }) => (
+							<FormItem className="flex flex-row items-start gap-3 rounded-lg border border-navy-frame p-4 dark:border-navy-edge">
+								<FormControl>
+									<input
+										type="checkbox"
+										checked={field.value}
+										onChange={(e) => field.onChange(e.target.checked)}
+										className="mt-0.5 h-4 w-4 shrink-0 rounded border border-navy-tone accent-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40"
+									/>
+								</FormControl>
+								<div className="space-y-1 leading-none">
+									<FormLabel className="cursor-pointer font-medium">
+										Tell me if another event lands on my day
+									</FormLabel>
+									<FormDescription>
+										We'll email you if we later approve another in-person event in the same city and category on the
+										same day, so you can coordinate, cross-promote, or adjust.
+									</FormDescription>
+								</div>
+							</FormItem>
+						)}
+					/>
+
 					<div className="space-y-1">
-						<h3 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Your details</h3>
+						<h3 className="text-sm font-semibold text-navy dark:text-navy-lifted">Your details</h3>
 						<p className="text-sm text-muted-foreground">So we can reach out if we need any clarifications.</p>
 						{isPrefilledNow && (
 							<p className="text-xs text-muted-foreground">
@@ -543,7 +580,7 @@ export default function SubmitEventForm({
 								<button
 									type="button"
 									onClick={handleNotYou}
-									className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted dark:hover:text-cyan"
+									className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-navy-lifted dark:hover:text-cyan"
 								>
 									Not you?
 								</button>

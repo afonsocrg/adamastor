@@ -15,8 +15,8 @@ export const revalidate = 3600;
 const ROUTE_PATH = "/events";
 
 export async function generateMetadata(): Promise<Metadata> {
-	const metadata = buildEventsRouteMetadata({ pathname: ROUTE_PATH });
 	const { events } = await fetchPublicEvents();
+	const metadata = buildEventsRouteMetadata({ pathname: ROUTE_PATH, eventCount: events.length });
 	// The base route never goes "thin" — it always shows everything we have —
 	// but we honour the noindex pattern for consistency in case the DB is empty.
 	if (events.length === 0) {

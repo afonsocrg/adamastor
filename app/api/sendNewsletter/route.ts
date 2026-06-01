@@ -34,7 +34,10 @@ import { NewsletterTemplate } from "@/components/email/newsletter-template";
 import { EVENT_CATEGORIES, type EventCategorySlug, isEventCategorySlug } from "@/lib/events/categories";
 import { buildPreferencesUrl } from "@/lib/newsletter/preferences-url";
 import { getAllSubscribersSegmentId, getDigestSegmentId } from "@/lib/newsletter/segments";
+import { verifyInternalSecret } from "@/lib/newsletter/internal-auth";
+import { countActiveCategorySubscribers } from "@/lib/newsletter/subscriptions";
 import { getCategoryTopicEnvName, getCategoryTopicId } from "@/lib/newsletter/topics";
+import { capturePostHogEvent } from "@/lib/posthog-server";
 import { createClient } from "@/lib/supabase/server";
 import { convertPostContentForEmail } from "@/lib/tiptap-to-html";
 import { render } from "@react-email/components";
@@ -49,7 +52,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // when you actually want the email in front of human eyes.
 const DEFAULT_TEST_EMAIL = "delivered@resend.dev";
 const DEFAULT_TEST_POST_ID = "147";
-const EVENTS_WINDOW_DAYS = 10;
+// One week. Matches the weekly send cadence so consecutive issues don't overlap
+// and re-list the same events. (Was 10 days, which double-listed ~3 days of
+// events across back-to-back weekly emails.)
+const EVENTS_WINDOW_DAYS = 7;
 
 interface EventRow {
 	id: number | string;
@@ -62,6 +68,17 @@ interface EventRow {
 }
 
 export async function POST(request: NextRequest) {
+	// Auth gate. This route can broadcast to the entire subscriber list, so it
+	// requires the shared NEWSLETTER_SEND_SECRET (Authorization: Bearer …) for
+	// EVERY mode — including test sends, which can still hit an arbitrary
+	// address. Fails closed: if the secret isn't configured, nothing gets in.
+	// The cron route (/api/cron/send-newsletter) forwards this secret when it
+	// delegates here; manual QA passes it as a Bearer header.
+	const auth = verifyInternalSecret(request, process.env.NEWSLETTER_SEND_SECRET, "NEWSLETTER_SEND_SECRET");
+	if (!auth.ok) {
+		return Response.json({ error: auth.error }, { status: auth.status });
+	}
+
 	try {
 		const body = await request.json();
 		const {
@@ -265,6 +282,23 @@ export async function POST(request: NextRequest) {
 			: `Adamastor: ${postTitleForSubject ?? "This week"}`;
 
 		if (broadcast && targetSegmentId) {
+			// Per-category broadcast guards: don't send a category email that
+			// would land empty or reach nobody. (The digest is exempt — it's the
+			// manual editorial send and always carries the article.)
+			if (category) {
+				if (events.length === 0) {
+					console.log(`⏭️ Skipping ${category.slug}: no events in the next ${EVENTS_WINDOW_DAYS} days.`);
+					return Response.json({ success: true, skipped: true, reason: "no_events", category: category.slug });
+				}
+				// null = couldn't determine (DB hiccup) → fail open and let the
+				// Resend topic filter be the final gate. 0 = genuinely nobody opted in.
+				const subscriberCount = await countActiveCategorySubscribers(category.slug);
+				if (subscriberCount === 0) {
+					console.log(`⏭️ Skipping ${category.slug}: no opted-in subscribers.`);
+					return Response.json({ success: true, skipped: true, reason: "no_subscribers", category: category.slug });
+				}
+			}
+
 			console.log(
 				`📣 BROADCAST: ${category ? `category=${category.slug}` : "digest"} → segment ${targetSegmentId}${targetTopicId ? ` topic ${targetTopicId}` : ""}`,
 			);
@@ -299,6 +333,19 @@ export async function POST(request: NextRequest) {
 			}
 
 			console.log("📨 Broadcast sent successfully!");
+
+			// Product visibility: record every real send (not test sends) so the
+			// newsletter cadence + reach shows up alongside the rest of the funnel.
+			await capturePostHogEvent({
+				event: "newsletter_broadcast_sent",
+				distinctId: "newsletter-system",
+				properties: {
+					product: category ? "per_category_events" : "weekly_digest",
+					category: category?.slug ?? null,
+					broadcast_id: broadcastData.id,
+					event_count: events.length,
+				},
+			});
 
 			return Response.json({
 				success: true,

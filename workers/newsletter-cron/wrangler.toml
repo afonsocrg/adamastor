@@ -1,0 +1,26 @@
+name = "adamastor-newsletter-cron"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+
+# Cloudflare cron expressions run in UTC. ⚠️ Cloudflare's weekday field uses the
+# Quartz scheme — 1 = SUNDAY, 2 = Monday … 7 = Saturday — NOT standard Unix cron
+# (where 1 = Monday). So `* * * * 1` would fire on SUNDAY. We use the `MON`
+# abbreviation, which Cloudflare's own docs recommend to avoid exactly this
+# off-by-one. This fires every Monday at 08:00 UTC (≈09:00 Lisbon; UTC doesn't
+# track DST, so the local time shifts by an hour across the year).
+# https://developers.cloudflare.com/workers/configuration/cron-triggers/#supported-cron-expressions
+[triggers]
+crons = ["0 8 * * MON"]
+
+[vars]
+# Non-secret config. Base URL of the deployed Next app.
+APP_URL = "https://adamastor.blog"
+
+# Comma-separated category slugs to broadcast each run. One email per slug.
+# Leave empty and the worker sends NOTHING — the weekly digest is sent manually
+# by Carlos and the endpoint refuses a no-category (digest) call.
+NEWSLETTER_CATEGORIES = "ai,software-engineering,design,product,startups-fundraising"
+
+# NEWSLETTER_CRON_SECRET is a SECRET — never put it here. Set it with:
+#   wrangler secret put NEWSLETTER_CRON_SECRET
+# and set the SAME value as an env var on the Next app (Vercel).

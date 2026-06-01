@@ -18,6 +18,33 @@ export interface EventsRouteSeoInput {
 	category?: EventCategorySlug | null;
 	/** Canonical pathname for this route (e.g. "/events/lisboa/design"). */
 	pathname: string;
+	/**
+	 * Live count of upcoming events on this route, when the caller already has
+	 * it (every events page fetches it for the noindex check). Surfaced on the
+	 * dynamic OG card ("12 upcoming events"). Omit and the card shows a generic
+	 * sub-line instead.
+	 */
+	eventCount?: number | null;
+}
+
+/**
+ * Build the URL for the dynamic OG image of an events route. Relative on
+ * purpose — Next resolves it against `metadataBase` (set in app/layout.tsx) for
+ * both openGraph and twitter. The renderer lives at app/api/og/events/route.tsx.
+ */
+function buildEventsOgImageUrl({
+	title,
+	category,
+	count,
+}: {
+	title: string;
+	category?: EventCategorySlug | null;
+	count?: number | null;
+}): string {
+	const params = new URLSearchParams({ title });
+	if (category) params.set("category", category);
+	if (typeof count === "number" && Number.isFinite(count)) params.set("count", String(count));
+	return `/api/og/events?${params.toString()}`;
 }
 
 /**
@@ -184,7 +211,7 @@ export function eventsRouteCalendarPath({
  * notification-stream consumers (Slack, Telegram, IFTTT), iCal for
  * calendar-subscription consumers (Google Calendar, Apple Calendar).
  */
-export function buildEventsRouteMetadata({ city, category, pathname }: EventsRouteSeoInput): Metadata {
+export function buildEventsRouteMetadata({ city, category, pathname, eventCount }: EventsRouteSeoInput): Metadata {
 	const { title, description } = getEventsRouteTitleAndDescription({ city, category });
 
 	const canonical = pathname;
@@ -194,6 +221,7 @@ export function buildEventsRouteMetadata({ city, category, pathname }: EventsRou
 	const feedTitle = `Adamastor — ${title} (RSS)`;
 	const calendarPath = eventsRouteCalendarPath({ city, category });
 	const calendarTitle = `Adamastor — ${title} (iCal)`;
+	const ogImage = buildEventsOgImageUrl({ title, category, count: eventCount });
 
 	return {
 		title: fullTitle,
@@ -211,13 +239,13 @@ export function buildEventsRouteMetadata({ city, category, pathname }: EventsRou
 			url: ogUrl,
 			type: "website",
 			siteName: SITE_NAME,
-			images: [{ url: SOCIAL_PREVIEW, width: 1200, height: 630, alt: title }],
+			images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
 		},
 		twitter: {
 			card: "summary_large_image",
 			title: fullTitle,
 			description,
-			images: [SOCIAL_PREVIEW],
+			images: [ogImage],
 		},
 	};
 }
