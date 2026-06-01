@@ -10,7 +10,6 @@ import {
 } from "@/lib/events/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import EventsPageClient from "../EventsPageClient";
 
 export const revalidate = 3600;
@@ -47,7 +46,11 @@ export async function generateMetadata({ params }: EventsSlugPageProps): Promise
 
 	if (isKnownCategorySlug(slug)) {
 		const { events } = await fetchPublicEvents(null, slug);
-		const metadata = buildEventsRouteMetadata({ category: slug, pathname: `/events/${slug}`, eventCount: events.length });
+		const metadata = buildEventsRouteMetadata({
+			category: slug,
+			pathname: `/events/${slug}`,
+			eventCount: events.length,
+		});
 		if (events.length === 0) return { ...metadata, robots: { index: false, follow: true } };
 		return metadata;
 	}
@@ -80,14 +83,12 @@ export default async function EventsSlugPage({ params }: EventsSlugPageProps) {
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema markup
 					dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
 				/>
-				<Suspense fallback={null}>
-					<EventsPageClient
-						initialEvents={events}
-						categoryFilteringEnabled={categoryFilteringEnabled}
-						lockedFilter={{ city: slug }}
-						intro={intro}
-					/>
-				</Suspense>
+				<EventsPageClient
+					initialEvents={events}
+					categoryFilteringEnabled={categoryFilteringEnabled}
+					lockedFilter={{ city: slug }}
+					intro={intro}
+				/>
 			</>
 		);
 	}
@@ -111,14 +112,12 @@ export default async function EventsSlugPage({ params }: EventsSlugPageProps) {
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema markup
 					dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
 				/>
-				<Suspense fallback={null}>
-					<EventsPageClient
-						initialEvents={events}
-						categoryFilteringEnabled={categoryFilteringEnabled}
-						lockedFilter={{ category: slug }}
-						intro={intro}
-					/>
-				</Suspense>
+				<EventsPageClient
+					initialEvents={events}
+					categoryFilteringEnabled={categoryFilteringEnabled}
+					lockedFilter={{ category: slug }}
+					intro={intro}
+				/>
 			</>
 		);
 	}

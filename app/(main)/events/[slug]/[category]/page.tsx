@@ -10,7 +10,6 @@ import {
 } from "@/lib/events/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import EventsPageClient from "../../EventsPageClient";
 
 export const revalidate = 3600;
@@ -101,14 +100,12 @@ export default async function CombinedEventsPage(props: CombinedEventsPageProps)
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema markup
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
 			/>
-			<Suspense fallback={null}>
-				<EventsPageClient
-					initialEvents={events}
-					categoryFilteringEnabled={categoryFilteringEnabled}
-					lockedFilter={{ city: resolved.city, category: resolved.category }}
-					intro={intro}
-				/>
-			</Suspense>
+			<EventsPageClient
+				initialEvents={events}
+				categoryFilteringEnabled={categoryFilteringEnabled}
+				lockedFilter={{ city: resolved.city, category: resolved.category }}
+				intro={intro}
+			/>
 		</>
 	);
 }

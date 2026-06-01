@@ -7,7 +7,6 @@ import {
 	getEventsRouteIntro,
 } from "@/lib/events/seo";
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import EventsPageClient from "./EventsPageClient";
 
 export const revalidate = 3600;
@@ -43,13 +42,7 @@ export default async function EventsPage() {
 				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD schema markup
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
 			/>
-			<Suspense fallback={null}>
-				<EventsPageClient
-					initialEvents={events}
-					categoryFilteringEnabled={categoryFilteringEnabled}
-					intro={intro}
-				/>
-			</Suspense>
+			<EventsPageClient initialEvents={events} categoryFilteringEnabled={categoryFilteringEnabled} intro={intro} />
 		</>
 	);
 }
