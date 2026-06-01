@@ -210,7 +210,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 								</li>
 								<li>
 									<Link
-										href="https://x.com/meetAdamastor"
+										href="https://x.com/adamastorHQ"
 										rel="me noopener"
 										target="_blank"
 										className={FOOTER_LINK_WITH_ICON}

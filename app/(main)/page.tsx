@@ -56,7 +56,7 @@ function buildHomepageJsonLd(posts: BlogPostListing[]) {
 					"@type": "ImageObject",
 					url: `${SITE_URL}/adamastorLogotype.svg`,
 				},
-				sameAs: ["https://x.com/meetAdamastor", "https://www.linkedin.com/company/adamastor-magazine/"],
+				sameAs: ["https://x.com/adamastorHQ", "https://www.linkedin.com/company/adamastor-magazine/"],
 			},
 			{
 				"@type": "WebSite",

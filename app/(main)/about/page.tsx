@@ -45,7 +45,7 @@ const aboutPageJsonLd = {
 			"Software Engineering",
 			"Artificial Intelligence",
 		],
-		sameAs: ["https://x.com/meetAdamastor", "https://www.linkedin.com/company/adamastor-magazine/"],
+		sameAs: ["https://x.com/adamastorHQ", "https://www.linkedin.com/company/adamastor-magazine/"],
 		founder: [
 			{
 				"@type": "Person",
