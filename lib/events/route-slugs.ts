@@ -38,6 +38,37 @@ if (collidingSlugs.length > 0) {
 	);
 }
 
+/**
+ * Inverse of buildEventsRoutePath: given the route segments below /events
+ * (as returned by useSelectedLayoutSegments), recover the active city +
+ * category. Position is NOT assumed — we classify each segment by whether it's
+ * a known city or category slug, so a single-segment route (/events/design or
+ * /events/lisboa) resolves correctly. Unknown segments (calendar, submit,
+ * edit, individual-event slugs) leave both null.
+ */
+export function parseEventsSegments(segments: string[]): {
+	city: string | null;
+	category: EventCategorySlug | null;
+} {
+	let city: string | null = null;
+	let category: EventCategorySlug | null = null;
+	for (const segment of segments) {
+		if (!city && isKnownCitySlug(segment)) city = segment;
+		else if (!category && isKnownCategorySlug(segment)) category = segment;
+	}
+	return { city, category };
+}
+
+/**
+ * True when the segments describe a browsable filter route (the base /events,
+ * or any combination of known city/category slugs) rather than a sibling page
+ * under /events that happens to share the layout (calendar, submit, an event's
+ * edit screen). The persistent filter bar renders only on filter routes.
+ */
+export function isEventsFilterRoute(segments: string[]): boolean {
+	return segments.length === 0 || segments.every((segment) => isKnownCitySlug(segment) || isKnownCategorySlug(segment));
+}
+
 export type EventsRouteFilter =
 	| { kind: "none" }
 	| { kind: "city"; city: string }
