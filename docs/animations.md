@@ -45,7 +45,7 @@ Current implementations:
 | Surface | File | Pattern |
 |---|---|---|
 | Site section nav | `components/navbar-sections.tsx` | Horizontal active rail + clipped active text layer |
-| Events city tabs | `app/(main)/events/EventsPageClient.tsx` | Horizontal active rail |
+| Events city tabs | `app/(main)/events/EventsLayoutShell.tsx` | Horizontal active rail — lives in the route **layout** so it persists across filter navigations (see § Route content settle) |
 | Post table of contents | `app/(main)/posts/[id]/PostTOC.tsx` | Vertical active rail |
 
 ## Text masks
@@ -69,9 +69,23 @@ Rules:
 - Do not use native shared-element View Transitions for article titles until the source and destination layouts have been visually validated.
 - Use `180ms cubic-bezier(0.215,0.61,0.355,1)` (ease-out — content is entering).
 - **Crossfade on `opacity` only: `opacity: 0 → 1`. Never `translateY` (or any transform) for route transitions.** A vertical slide implies the page physically moved between two places; it didn't. A crossfade reads as the same editorial surface settling in. Opacity is the default — and the only — channel for page-to-page motion.
-- A crossfade can flash blank if the new route paints slowly. The route segment's `loading.tsx` skeleton is load-bearing here: it fills the data-fetch gap so the fade lands on real content, not an empty frame. Never ship a `RouteTransitionFrame` route without one.
+- A crossfade can flash blank if the new route paints slowly. A `loading.tsx` skeleton can fill that gap — but it is **not** mandatory, and on a cached route it backfires. See § "Skeletons are a bet" below.
+- A keyed `RouteTransitionFrame` remounts its whole subtree on key change — **including nested layouts.** When a section has a persistent nested layout that must survive intra-section navigation (e.g. `/events`, whose city-tab row lives in `EventsLayoutShell` and must not remount on every filter click), collapse that section to a single transition key so the frame doesn't tear the layout down. `RouteTransitionFrame` keys all of `/events/*` as one key; those in-section swaps run their own local crossfade (`route-content-enter` keyed on the pathname inside `EventsLayoutShell`).
 - Do not animate the first direct page load; animate only client-side route changes after hydration.
 - Disable entirely for `prefers-reduced-motion: reduce`.
+
+### Skeletons are a bet (`loading.tsx` vs CLS)
+
+A route's `loading.tsx` skeleton trades a blank screen for a placeholder — a bet that the data is slow enough that *something sooner* beats *the real thing slightly later*. On a **cached ISR route the bet is always a loss**: the content is already in the cached response (served instantly, stale-while-revalidate), so the skeleton just streams a short placeholder that the taller real content then swaps in for — a layout shift, paid on every load.
+
+`/events` reloaded at **CLS 0.41** for exactly this reason. The route is ISR (cache HIT), but the async page + `loading.tsx` baked a "skeleton → content" *stream* into the cached HTML; the short skeleton painted first, then the real list replaced it and shoved the footer down (the footer was the sole CLS culprit). Removing `loading.tsx` (and the now-inert `<Suspense fallback={null}>` wrappers in the three events `page.tsx` files) made the page render its content in one shot — **CLS 0.41 → 0**, and LCP dropped sharply too (no streaming overhead).
+
+Rules:
+
+- **Ship `loading.tsx` only for genuinely slow or uncached routes** (auth-gated, dynamic, heavy first-byte work — e.g. the dashboard calendar, which additionally geometry-matches its skeleton; see [`react-big-calendar-loading-stability.md`](./react-big-calendar-loading-stability.md)).
+- **Omit it for cached ISR content routes** so the cached HTML *is* the final content and the footer sits at its real position from first paint.
+- A skeleton whose height can't match the (variable) real content shifts *something*: a short skeleton → tall content pushes the footer down; a tall skeleton → short content pulls it up. No single skeleton height is right for every state, which is why "serve content directly" wins for fast routes.
+- If you do keep a skeleton, its first-painted geometry must match the final UI, or you've only traded a blank frame for a layout shift.
 
 ## Microtransitions
 

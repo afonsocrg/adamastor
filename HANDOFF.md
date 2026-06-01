@@ -1,3 +1,19 @@
+# Hand-off — 2026-06-01 (post-launch): /events filter smoothness + topic band + reload CLS
+
+Three `/events` polish changes this session — **all pushed to `origin/main` and prod-verified** with Chrome DevTools.
+
+1. **Filter UI no longer remounts on chip clicks** (`147d5ee`). Each filter chip is a different route segment, so the whole `EventsPageClient` (city tabs, category chips, calendar, list) was torn down + rebuilt on every click — the "jarring flash." Fix: the city tab row now lives in a persistent route layout (`app/(main)/events/layout.tsx` → `EventsLayoutShell.tsx`), reading the active filter from the URL via `useSelectedLayoutSegments`. Second root cause: `RouteTransitionFrame` (in `(main)/layout.tsx`) keyed its crossfade wrapper on the full pathname, which remounts nested layouts too — it now collapses `/events/*` to one stable transition key. Verified: city nav node survives both category + city navigation; underline slides between cities; deep-linked `/events/{city}/{category}` resolves both active states server-side.
+
+2. **Category chips → a colored "topic band"** (`8c7d8a8`). Promoted the category filter from quiet navy pills to a labeled, color-coded band ("Browse by topic" eyebrow + per-topic dot + topic-colored active fill, matching the calendar's `EVENT_CATEGORY_COLORS`), bigger tap targets, mobile scroll-fade. Kept below the H1 (editorial voice). **⚠️ Open design-system question for Malik** — this crosses a documented principle (`docs/design-system.md` § Event category colours, ~line 246: the colored `--cat-*` chips tag *"what kind of event this is"*, **distinct from** the navy-tint *filter* chips that tag *"what am I filtering by"*). The colored band merges those two. Per the standing "surface, don't auto-edit design-system.md" rule, the doc was left unchanged; decide whether to (a) update the doc to bless category-colored filter chips, or (b) revert the filter chips to navy-tint. (Minor: `design-system.md` ~line 1279 still points the events route only at `EventsPageClient.tsx` — it's now also `layout.tsx` + `EventsLayoutShell.tsx`.)
+
+3. **Reload CLS 0.41 → 0** (`74aa333`). `/events` is ISR (cache HIT) but streamed a `loading.tsx` skeleton then swapped in the taller content on every reload → footer shift + "content not loaded" flash. Deleted `app/(main)/events/loading.tsx` + the inert `<Suspense fallback={null}>` wrappers so the cached HTML *is* the final content. Prod: **CLS 0.41 → 0.00, LCP 1829ms → 154ms.** Principle written up in `docs/animations.md` § "Skeletons are a bet."
+
+**Docs updated:** `docs/animations.md` (city-tab rail now in the layout, the `loading.tsx`-vs-CLS principle, the `/events` transition-key collapse). `docs/design-system.md` deliberately left for Malik's call — see #2.
+
+**Possible follow-ups (not done):** site-wide CLS sweep for the same `loading.tsx`-on-cached-route pattern (homepage feed, dashboard); the View Transitions API height-morph for the filter list shrink (global flag, deferred); real mobile-device QA pass.
+
+---
+
 # Hand-off — 2026-06-01 (post-launch): polish batch + follow-ups
 
 Site is **launched** (commits `d4f826a` + `d95a0c1` on `origin/main`, prod deploy verified). This batch is post-launch polish — **committed but NOT pushed** (done while Malik was away; left ready for him to push).
