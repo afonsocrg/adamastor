@@ -63,7 +63,7 @@ export default function PostHero({ kind, title, author, publishedAt, publishedAt
 						{baseKicker}
 					</p>
 					{weekLabel && (
-						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-navy-dim/75">
+						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone dark:text-navy-dim">
 							{weekLabel}
 						</p>
 					)}

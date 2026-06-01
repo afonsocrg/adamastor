@@ -30,6 +30,8 @@ import {
 
 import type { JSONContent } from "novel";
 
+import { stripEmptyLinkMarks } from "@/lib/posts/content";
+
 /**
  * Extensions array matching your editor configuration
  *
@@ -64,7 +66,7 @@ export function tiptapToHtml(content: JSONContent): string {
 	try {
 		// generateHTML is the core TipTap function that converts JSON → HTML
 		// It needs the same extensions your editor uses to properly render each node type
-		const html = generateHTML(content, emailExtensions);
+		const html = generateHTML(stripEmptyLinkMarks(content), emailExtensions);
 		return html;
 	} catch (error) {
 		console.error("Error converting TipTap content to HTML:", error);

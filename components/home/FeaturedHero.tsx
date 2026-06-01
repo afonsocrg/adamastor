@@ -85,7 +85,7 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 					    byline cluster below. */}
 					<p className={`text-[11px] font-semibold uppercase tracking-[0.14em] md:text-xs ${kickerColor}`}>{label}</p>
 					{weekLabel && (
-						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-navy-dim/75">
+						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone dark:text-navy-dim">
 							{weekLabel}
 						</p>
 					)}
@@ -114,7 +114,7 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 						{roleLine && (
 							<p className="max-w-[44ch] text-xs leading-snug text-navy-tone dark:text-navy-dim">{roleLine}</p>
 						)}
-						<p className="mt-0.5 text-xs text-navy-tone/80 dark:text-navy-dim/80">
+						<p className="mt-0.5 text-xs text-navy-tone dark:text-navy-dim">
 							<time dateTime={post.created_at}>{formatDate(post.created_at)}</time> · {readingMinutes} min read
 						</p>
 					</div>

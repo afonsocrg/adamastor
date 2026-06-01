@@ -4,7 +4,7 @@ import PostPreview from "@/components/tailwind/post-preview";
 import { ContextMenu, ContextMenuTrigger } from "@/components/tailwind/ui/context-menu";
 import { formatDate } from "@/lib/datetime";
 import { buildArticleJsonLd, buildBreadcrumbListJsonLd } from "@/lib/events/seo";
-import { estimateReadingMinutes, extractTiptapText } from "@/lib/posts/content";
+import { estimateReadingMinutes, extractTiptapText, stripEmptyLinkMarks } from "@/lib/posts/content";
 import { extractHeadings } from "@/lib/posts/headings";
 import { getDisplayTitle, getPostKind } from "@/lib/posts/kind";
 import { getRecentOpinionPosts } from "@/lib/posts/related";
@@ -159,7 +159,7 @@ export default async function PostPage({ params }: PostPageProps) {
 							publishedAtIso={post.created_at}
 							readingMinutes={readingMinutes}
 						/>
-						<PostPreview initialContent={post.content} />
+						<PostPreview initialContent={stripEmptyLinkMarks(post.content)} />
 						<ArticleLinkDecorator postSlug={post.slug ?? String(post.id)} />
 						{/* Post coda: chrome aligns to the prose reading column.
 						    Prose resolves max-w-[60ch] against Inter 18px (its

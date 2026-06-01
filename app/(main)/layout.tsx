@@ -110,6 +110,11 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 									</Link>
 								</li>
 								<li>
+									<Link href="/events/calendar" className={FOOTER_LINK}>
+										Events calendar
+									</Link>
+								</li>
+								<li>
 									<Link href="/events/product" className={FOOTER_LINK}>
 										Product Management events in Portugal
 									</Link>

@@ -25,6 +25,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const entries: MetadataRoute.Sitemap = [
 		{ url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1.0 },
 		{ url: `${SITE_URL}/events`, changeFrequency: "daily", priority: 0.9 },
+		// Public events calendar (big-calendar view, filterable by category).
+		{ url: `${SITE_URL}/events/calendar`, changeFrequency: "daily", priority: 0.7 },
 		// Organiser-acquisition surface — submits feed the editorial queue
 		// behind the public events listing. Indexable so organisers searching
 		// "submit event Portugal" / "list event Lisbon" can find it.

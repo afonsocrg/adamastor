@@ -60,7 +60,7 @@ function RiverCard({ post }: RiverCardProps) {
 							{label}
 						</p>
 						{weekLabel && (
-							<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-navy-dim/75">
+							<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone dark:text-navy-dim">
 								{weekLabel}
 							</p>
 						)}
@@ -71,7 +71,7 @@ function RiverCard({ post }: RiverCardProps) {
 					<p className="max-w-[58ch] text-[0.98rem] leading-[1.55] text-navy-tone line-clamp-3 dark:text-navy-dim sm:line-clamp-2 sm:text-base sm:leading-[1.6]">
 						{contentPreview}
 					</p>
-					<p className="text-[0.85rem] leading-6 text-navy-tone/80 dark:text-navy-dim/80">
+					<p className="text-[0.85rem] leading-6 text-navy-tone dark:text-navy-dim">
 						{authorName ? (
 							<>
 								{authorName} <span aria-hidden="true">·</span>{" "}
@@ -98,6 +98,10 @@ interface PostRiverProps {
 export default function PostRiver({ currentPage, posts, totalPages }: PostRiverProps) {
 	return (
 		<div className="space-y-2">
+			{/* sr-only section heading: gives crawlers, AI parsers, and screen
+			    readers a real H2 between the page H1 and the card H3s (fixes the
+			    skipped heading level) with no visible change to the feed. */}
+			<h2 className="sr-only">Articles</h2>
 			<div className="flex flex-col">
 				{posts.map((post) => (
 					<RiverCard key={post.id} post={post} />
