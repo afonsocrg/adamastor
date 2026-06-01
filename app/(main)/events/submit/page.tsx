@@ -1,8 +1,10 @@
 import { getUserProfile } from "@/lib/supabase/authentication";
 import { createClient } from "@/lib/supabase/server";
 import { getTurnstileSiteKey } from "@/lib/turnstile";
+import { ArrowRightIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import SubmitEventForm from "./SubmitEventForm";
 import SubmitTitle from "./SubmitTitle";
 
@@ -46,6 +48,19 @@ export default async function SubmitEventPage() {
 					Adamastor curates the events worth knowing about in Portugal’s tech and startup scene. Tell us about yours and
 					we’ll review it within a couple of hours.
 				</p>
+				<div className="space-y-1 pt-1">
+					<p className="text-sm text-muted-foreground">
+						Don’t go head-to-head with a similar event on the same night. Check what’s already scheduled in your city
+						first.
+					</p>
+					<Link
+						href="/events/calendar"
+						className="-mx-2 -my-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-base font-semibold text-navy transition-colors hover:bg-navy-wash dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
+					>
+						Plan your event
+						<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />
+					</Link>
+				</div>
 			</header>
 
 			{/* Trust strip: three real faces + reassurance copy. Soft

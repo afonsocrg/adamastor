@@ -549,7 +549,7 @@ export default function SubmitEventForm({
 						control={form.control}
 						name="notifySameDay"
 						render={({ field }) => (
-							<FormItem className="flex flex-row items-start gap-3 rounded-lg border border-navy-frame p-4 dark:border-navy-edge">
+							<FormItem className="flex flex-row items-start gap-3 space-y-0 rounded-lg border border-navy-frame p-4 dark:border-navy-edge">
 								<FormControl>
 									<input
 										type="checkbox"
@@ -558,11 +558,11 @@ export default function SubmitEventForm({
 										className="mt-0.5 h-4 w-4 shrink-0 rounded border border-navy-tone accent-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40"
 									/>
 								</FormControl>
-								<div className="space-y-1 leading-none">
-									<FormLabel className="cursor-pointer font-medium">
+								<div className="space-y-1">
+									<FormLabel className="cursor-pointer font-medium leading-snug">
 										Tell me if another event lands on my day
 									</FormLabel>
-									<FormDescription>
+									<FormDescription className="leading-snug">
 										We'll email you if we later approve another in-person event in the same city and category on the
 										same day, so you can coordinate, cross-promote, or adjust.
 									</FormDescription>
