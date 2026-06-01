@@ -445,8 +445,12 @@ export default function About() {
 				</p>
 				<ul className="grid gap-8 sm:grid-cols-3">
 					{masthead.map((person) => (
-						<li key={person.name} className="space-y-3">
-							<div className="overflow-hidden rounded-md border border-navy-frame dark:border-navy-edge">
+						// Mobile: a compact horizontal card — a small square portrait beside
+						// the name + bio — so the masthead isn't three near-full-width squares
+						// stacked (~2,300px tall on a phone). At sm+ it returns to the original
+						// 3-up grid of large square duotone portraits.
+						<li key={person.name} className="flex gap-4 sm:block sm:space-y-3">
+							<div className="w-24 shrink-0 overflow-hidden rounded-md border border-navy-frame dark:border-navy-edge sm:w-full">
 								<Image
 									alt={person.name}
 									src={person.img}
@@ -456,7 +460,7 @@ export default function About() {
 									style={{ filter: "url(#duotone-navy-portrait)" }}
 								/>
 							</div>
-							<div className="space-y-3">
+							<div className="min-w-0 space-y-2 sm:space-y-3">
 								<div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
 									<p className="text-lg font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 										{person.name}
