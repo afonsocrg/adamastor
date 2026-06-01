@@ -10,7 +10,15 @@ import { ArrowRightIcon, CalendarDays, Check, Copy, Mail, MessageCircle, Rss } f
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { type MouseEvent as ReactMouseEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+	Fragment,
+	type MouseEvent as ReactMouseEvent,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useTransition,
+} from "react";
 import { toast } from "sonner";
 
 const EVENTS_TIMEZONE = "Europe/Lisbon";
@@ -355,6 +363,50 @@ export default function EventsPageClient({
 		</div>
 	);
 
+	// Newsletter subscribe — the page's primary conversion. Rendered twice for
+	// responsive prominence (mirrors renderCalendarCard): mid-feed on mobile
+	// (after the first day group, so it's found without scrolling past the whole
+	// list to the bottom) and in the desktop sticky rail. A FILLED navy-veil card
+	// rather than the quiet outline it used to be, so it reads as a deliberate
+	// ask instead of chrome — navy-veil is the always-on surface tier, so it
+	// gains weight without claiming the navbar's one gold pill. Category routes
+	// get the contextual email-capture CTA; the base route links to /subscribe.
+	const renderSubscribe = (visibilityClass?: string) =>
+		lockedCategory ? (
+			<div className={visibilityClass}>
+				<CategoryNewsletterCta categorySlug={lockedCategory} categoryName={formatCategoryLabel(lockedCategory)} />
+			</div>
+		) : (
+			<div
+				className={cn(
+					// Filled navy-veil surface (von Restorff isolation): a solid card amid
+					// outlined calendar + event cards is what makes the eye land here. p-6
+					// + text-lg are deliberate weight — generous space reads as "important."
+					"rounded-md bg-navy-veil p-6 dark:bg-navy-tint/[0.06] dark:ring-1 dark:ring-navy-edge",
+					visibilityClass,
+				)}
+			>
+				<Mail className="h-6 w-6 text-navy dark:text-navy-lifted" aria-hidden="true" />
+				<h2 className="mt-3 text-lg font-bold tracking-tight text-navy [text-wrap:balance] dark:text-navy-lifted">
+					Never miss an event again
+				</h2>
+				<p className="mt-2 text-sm leading-relaxed text-navy dark:text-navy-dim">
+					The events worth showing up to in Portugal. Sent weekly, in the topics you pick.
+				</p>
+				{/* Button hierarchy: the page's primary conversion deserves a real button,
+				    not a tertiary text link. Outlined navy pill that fills on hover —
+				    clearly clickable, but navy (never gold: the navbar owns the one gold
+				    pill). Matches the coda's "Add to Google Calendar" secondary button. */}
+				<Link
+					href="/subscribe"
+					className="mt-4 inline-flex items-center gap-2 rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-white dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-lifted dark:hover:text-navy"
+				>
+					Get the picks
+					<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />
+				</Link>
+			</div>
+		);
+
 	// 5:3 ratio (8-col grid) so the sidebar has room for the calendar's 7-day
 	// grid; lg:gap-20 (80px) for editorial breathing room. The H1 + dek live
 	// INSIDE the events column so the sidebar top aligns with the H1 baseline,
@@ -503,54 +555,60 @@ export default function EventsPageClient({
 							</div>
 						)
 					) : (
-						eventsByDay.map(([dateKey, dayEvents]) => {
+						eventsByDay.map(([dateKey, dayEvents], dayIndex) => {
 							// Two-tone day header — primary lead ("Tomorrow" /
 							// "26 May") in navy weight, weekday secondary in
 							// muted text. See getEventDateParts above.
 							const dateParts = getEventDateParts(dayEvents[0].start_time, hasHydrated);
 							return (
-								<section key={dateKey} className="space-y-0 md:space-y-4">
-									{!selectedDate && (
-										// `relative` so the navy-tint dot can anchor onto
-										// the parent column's navy-frame rail. Dot
-										// lives on the day header, not on every
-										// event — matches Luma's pattern of marking
-										// day transitions visually.
-										<h2 className="sticky top-0 z-10 bg-background py-3 text-base flex gap-2 items-baseline relative">
-											<span
-												aria-hidden="true"
-												className="absolute left-[-1rem] md:left-[-2rem] top-[1.25rem] h-2 w-2 -translate-x-1/2 rounded-full bg-navy-tint"
-											/>
-											<time dateTime={dateKey} className="font-semibold text-navy dark:text-navy-lifted">
-												{dateParts.primary}
-											</time>
-											{dateParts.secondary ? (
-												<span className="text-navy-tone dark:text-navy-dim">{dateParts.secondary}</span>
-											) : null}
-										</h2>
-									)}
+								<Fragment key={dateKey}>
+									<section className="space-y-0 md:space-y-4">
+										{!selectedDate && (
+											// `relative` so the navy-tint dot can anchor onto
+											// the parent column's navy-frame rail. Dot
+											// lives on the day header, not on every
+											// event — matches Luma's pattern of marking
+											// day transitions visually.
+											<h2 className="sticky top-0 z-10 bg-background py-3 text-base flex gap-2 items-baseline relative">
+												<span
+													aria-hidden="true"
+													className="absolute left-[-1rem] md:left-[-2rem] top-[1.25rem] h-2 w-2 -translate-x-1/2 rounded-full bg-navy-tint"
+												/>
+												<time dateTime={dateKey} className="font-semibold text-navy dark:text-navy-lifted">
+													{dateParts.primary}
+												</time>
+												{dateParts.secondary ? (
+													<span className="text-navy-tone dark:text-navy-dim">{dateParts.secondary}</span>
+												) : null}
+											</h2>
+										)}
 
-									{dayEvents.map((event) => (
-										<EventCard
-											key={event.id}
-											event={event}
-											onEventClick={() => {
-												setHasClickedEvent(true);
-												posthog.capture("event_clicked", {
-													event_id: event.id,
-													event_title: event.title,
-													event_city: event.city,
-													event_date: event.start_time,
-													position_in_list: filteredEvents.indexOf(event),
-													has_date_filter: !!selectedDate,
-													city_filter: lockedCity ?? "all",
-													category_filter: lockedCategory ?? "all",
-												});
-											}}
-											onDelete={handleDeleteEvent}
-										/>
-									))}
-								</section>
+										{dayEvents.map((event) => (
+											<EventCard
+												key={event.id}
+												event={event}
+												onEventClick={() => {
+													setHasClickedEvent(true);
+													posthog.capture("event_clicked", {
+														event_id: event.id,
+														event_title: event.title,
+														event_city: event.city,
+														event_date: event.start_time,
+														position_in_list: filteredEvents.indexOf(event),
+														has_date_filter: !!selectedDate,
+														city_filter: lockedCity ?? "all",
+														category_filter: lockedCategory ?? "all",
+													});
+												}}
+												onDelete={handleDeleteEvent}
+											/>
+										))}
+									</section>
+									{/* Mobile only: surface the subscribe ask right after the first day
+								    of events — caught while the reader is engaged, not buried at the
+								    very bottom. Desktop keeps it in the sticky rail. */}
+									{dayIndex === 0 && renderSubscribe("lg:hidden")}
+								</Fragment>
 							);
 						})
 					)}
@@ -582,7 +640,13 @@ export default function EventsPageClient({
 								// reachable feed URL either way; localhost would never resolve.
 								const SITE_URL = "https://adamastor.blog";
 								const absoluteIcsUrl = `${SITE_URL}${icsHref}`;
-								const googleCalUrl = `https://www.google.com/calendar/render?cid=${encodeURIComponent(absoluteIcsUrl)}`;
+								// Google Calendar's add-by-URL deep-link only SUBSCRIBES to an external
+								// feed when the cid uses the webcal:// scheme — an https:// ICS URL
+								// silently no-ops (the prior bug: nothing got added). Swap the scheme and
+								// target the canonical calendar.google.com host (www.google.com just
+								// redirects there).
+								const webcalIcsUrl = absoluteIcsUrl.replace(/^https:\/\//, "webcal://");
+								const googleCalUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalIcsUrl)}`;
 								// Uses Malik's piara.li URL shortener (Cloudflare Worker, KV-backed) so
 								// the real phone number isn't exposed in page source. The `eos` worker
 								// forwards inbound query params to the destination, so appending
@@ -747,10 +811,10 @@ export default function EventsPageClient({
 				    (events first; calendar + newsletter ask after). */}
 			<div className="order-2 lg:col-span-3">
 				<aside className="flex flex-col gap-6 lg:sticky lg:top-4">
-					{/* Calendar gets the same outlined-card treatment as the
-						    subscribe block below so the sidebar reads as a stack
-						    of twin editorial modules. Desktop-only here: the mobile
-						    copy is rendered inline above the events list. */}
+					{/* Calendar stays an outlined card; the subscribe below is a filled
+						    navy-veil surface, so the rail reads as "supporting tool + primary
+						    action", not twin modules. Desktop-only here — the mobile calendar
+						    renders inline above the list, the mobile subscribe mid-feed. */}
 					{renderCalendarCard("hidden lg:block")}
 
 					{/* Subscribe block: when browsing a specific category, offer
@@ -760,26 +824,7 @@ export default function EventsPageClient({
 						    outlined navy block, orange reserved for the arrow tip
 						    as the warmth accent. Never competes with H1 or active
 						    chip for attention. */}
-					{lockedCategory ? (
-						<CategoryNewsletterCta categorySlug={lockedCategory} categoryName={formatCategoryLabel(lockedCategory)} />
-					) : (
-						<div className="rounded-md border border-navy-frame p-5 dark:border-navy-edge">
-							<Mail className="h-6 w-6 text-navy dark:text-navy-lifted" aria-hidden="true" />
-							<h2 className="mt-3 text-[1.0625rem] font-bold tracking-tight text-navy [text-wrap:balance] dark:text-navy-lifted">
-								Never miss an event again
-							</h2>
-							<p className="mt-2 text-sm leading-relaxed text-navy-tone dark:text-navy-dim">
-								The events worth showing up to in Portugal. Sent weekly, in the topics you pick.
-							</p>
-							<Link
-								href="/subscribe"
-								className="-mx-2 -my-1 mt-4 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
-							>
-								Get the picks
-								<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />
-							</Link>
-						</div>
-					)}
+					{renderSubscribe("hidden lg:block")}
 				</aside>
 			</div>
 		</div>
