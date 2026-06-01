@@ -113,9 +113,9 @@ export const metadata: Metadata = {
 
 const sectionLabel = "text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone";
 const sectionHeading =
-	"text-2xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] md:text-3xl [text-wrap:balance]";
+	"text-2xl font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)] md:text-3xl [text-wrap:balance]";
 const editorialLink =
-	"font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted dark:decoration-cyan-glow/40 dark:hover:decoration-cyan-lifted";
+	"font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-navy-lifted dark:decoration-navy-tint/40 dark:hover:decoration-navy-lifted";
 
 // Muted reference link — for quiet inline URLs inside small-text contexts
 // (masthead bios, author straps, captions). Editorial-print convention: a
@@ -124,7 +124,7 @@ const editorialLink =
 // doesn't dominate. Hover deepens to navy via colour transition; the dotted
 // underline tracks text colour, so no explicit decoration colour is needed.
 const mutedLink =
-	"text-navy-tone underline decoration-dotted decoration-2 underline-offset-4 transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted";
+	"text-navy-tone underline decoration-dotted decoration-2 underline-offset-4 transition-colors hover:text-navy dark:text-navy-dim dark:hover:text-navy-lifted";
 
 // Co-founders, masthead-style. Each person gets a role list plus a short bio
 // that surfaces the credibility the role lines can't quite carry — Carlos's
@@ -274,10 +274,10 @@ export default function About() {
 				before the mythological metaphor unfolds.
 			*/}
 			<section className="space-y-5">
-				<h1 className="text-4xl font-bold tracking-tight leading-tight text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] md:text-5xl [text-wrap:balance]">
+				<h1 className="text-4xl font-bold tracking-tight leading-tight text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)] md:text-5xl [text-wrap:balance]">
 					About Adamastor
 				</h1>
-				<p className="max-w-[44ch] text-xl font-bold italic leading-snug text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] md:text-2xl">
+				<p className="max-w-[44ch] text-xl font-bold italic leading-snug text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] md:text-2xl">
 					A weekly read on Portugal’s startup scene.
 				</p>
 				<div className="space-y-5 pt-3 text-base leading-relaxed text-foreground md:text-lg [&_p]:max-w-[65ch]">
@@ -309,14 +309,14 @@ export default function About() {
 				pitch surface yet — the existing carlos@adamastor.blog in "Get in
 				touch" handles guest-piece inbound).
 			*/}
-			<section className="space-y-8 border-t border-navy-frame pt-12">
+			<section className="space-y-8 border-t border-navy-frame dark:border-navy-edge pt-12">
 				<header className="space-y-2">
 					<p className={sectionLabel}>Editorial</p>
 					<h2 className={sectionHeading}>What We Publish</h2>
 				</header>
 				<div className="grid gap-10 md:grid-cols-2">
 					<article className="space-y-3">
-						<h3 className="text-xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
+						<h3 className="text-xl font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
 							Adamastor Weekly
 						</h3>
 						<p className="max-w-[55ch] text-base leading-relaxed text-foreground">
@@ -330,7 +330,7 @@ export default function About() {
 						</Link>
 					</article>
 					<article className="space-y-3">
-						<h3 className="text-xl font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
+						<h3 className="text-xl font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
 							Opinion
 						</h3>
 						<p className="max-w-[55ch] text-base leading-relaxed text-foreground">
@@ -364,7 +364,7 @@ export default function About() {
 				Hardcoded here because it's editorial positioning, not a
 				machine-shared list.
 			*/}
-			<section className="space-y-6 border-t border-navy-frame pt-12">
+			<section className="space-y-6 border-t border-navy-frame dark:border-navy-edge pt-12">
 				<header className="space-y-2">
 					<p className={sectionLabel}>Our Beats</p>
 					<h2 className={sectionHeading}>What We Cover</h2>
@@ -374,7 +374,7 @@ export default function About() {
 				</p>
 				<dl className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
 					<div className="space-y-1">
-						<dt className="text-lg font-semibold text-navy dark:text-cyan-lifted [text-wrap:balance]">
+						<dt className="text-lg font-semibold text-navy dark:text-navy-lifted [text-wrap:balance]">
 							The ecosystem as a living community
 						</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
@@ -383,20 +383,20 @@ export default function About() {
 						</dd>
 					</div>
 					<div className="space-y-1">
-						<dt className="text-lg font-semibold text-navy dark:text-cyan-lifted [text-wrap:balance]">Decentralization</dt>
+						<dt className="text-lg font-semibold text-navy dark:text-navy-lifted [text-wrap:balance]">Decentralization</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
 							Guimarães, Fundão, Algarve, Braga, Coimbra, Aveiro. The regional ecosystems building distributed
 							innovation beyond Lisbon and Porto.
 						</dd>
 					</div>
 					<div className="space-y-1">
-						<dt className="text-lg font-semibold text-navy dark:text-cyan-lifted [text-wrap:balance]">Founder craft</dt>
+						<dt className="text-lg font-semibold text-navy dark:text-navy-lifted [text-wrap:balance]">Founder craft</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
 							Resilience, honest feedback, co-founder selection, and the work of building under pressure.
 						</dd>
 					</div>
 					<div className="space-y-1">
-						<dt className="text-lg font-semibold text-navy dark:text-cyan-lifted [text-wrap:balance]">
+						<dt className="text-lg font-semibold text-navy dark:text-navy-lifted [text-wrap:balance]">
 							Capital, research, and early-stage support
 						</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
@@ -405,14 +405,14 @@ export default function About() {
 						</dd>
 					</div>
 					<div className="space-y-1">
-						<dt className="text-lg font-semibold text-navy dark:text-cyan-lifted [text-wrap:balance]">Policy and European scale</dt>
+						<dt className="text-lg font-semibold text-navy dark:text-navy-lifted [text-wrap:balance]">Policy and European scale</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
 							EU Inc, the Digital Enterprise Wallet, defense tech, immigration. The institutional work that lets
 							Portuguese companies grow beyond their borders.
 						</dd>
 					</div>
 					<div className="space-y-1">
-						<dt className="text-lg font-semibold text-navy dark:text-cyan-lifted [text-wrap:balance]">
+						<dt className="text-lg font-semibold text-navy dark:text-navy-lifted [text-wrap:balance]">
 							AI and digital transformation
 						</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
@@ -433,7 +433,7 @@ export default function About() {
 				AboutPage schema above expose the same people in
 				machine-readable form for AI citation.
 			*/}
-			<section className="space-y-6 border-t border-navy-frame pt-12">
+			<section className="space-y-6 border-t border-navy-frame dark:border-navy-edge pt-12">
 				<header className="space-y-2">
 					<p className={sectionLabel}>The Masthead</p>
 					<h2 className={sectionHeading}>Who Runs Adamastor</h2>
@@ -446,7 +446,7 @@ export default function About() {
 				<ul className="grid gap-8 sm:grid-cols-3">
 					{masthead.map((person) => (
 						<li key={person.name} className="space-y-3">
-							<div className="overflow-hidden rounded-md border border-navy-frame">
+							<div className="overflow-hidden rounded-md border border-navy-frame dark:border-navy-edge">
 								<Image
 									alt={person.name}
 									src={person.img}
@@ -458,7 +458,7 @@ export default function About() {
 							</div>
 							<div className="space-y-3">
 								<div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-									<p className="text-lg font-bold text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+									<p className="text-lg font-bold text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 										{person.name}
 									</p>
 									<div className="flex items-center gap-3 translate-y-[2px]">
@@ -471,7 +471,7 @@ export default function About() {
 													rel="noopener noreferrer"
 													target="_blank"
 													aria-label={link.label}
-													className="-m-1 p-1 text-navy-tone transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted"
+													className="-m-1 p-1 text-navy-tone transition-colors hover:text-navy dark:text-navy-dim dark:hover:text-navy-lifted"
 												>
 													<Icon className="h-4 w-4" aria-hidden="true" />
 												</Link>
@@ -497,7 +497,7 @@ export default function About() {
 				matches the footer so analytics can split footer-driven cross-clicks
 				from About-page ones.
 			*/}
-			<section className="space-y-6 border-t border-navy-frame pt-12">
+			<section className="space-y-6 border-t border-navy-frame dark:border-navy-edge pt-12">
 				<header className="space-y-2">
 					<p className={sectionLabel}>Wider Network</p>
 					<h2 className={sectionHeading}>Curated with the Community</h2>
@@ -560,14 +560,14 @@ export default function About() {
 				footer ask — gives the secondary conversion a consistent home
 				across the site.
 			*/}
-			<section className="space-y-6 border-t border-navy-frame pt-12">
+			<section className="space-y-6 border-t border-navy-frame dark:border-navy-edge pt-12">
 				<header className="space-y-2">
 					<p className={sectionLabel}>Get in Touch</p>
 					<h2 className={sectionHeading}>Pitches, Tips, and Submissions</h2>
 				</header>
 				<dl className="grid gap-4 sm:grid-cols-2">
-					<div className="space-y-2 rounded-lg border border-navy-frame p-5">
-						<dt className="text-base font-semibold text-navy dark:text-cyan-lifted">Editorial</dt>
+					<div className="space-y-2 rounded-lg border border-navy-frame dark:border-navy-edge p-5">
+						<dt className="text-base font-semibold text-navy dark:text-navy-lifted">Editorial</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
 							Send story pitches, contributions, and tips to{" "}
 							<a href={`mailto:${EDITORIAL_EMAIL}`} className={editorialLink}>
@@ -576,14 +576,14 @@ export default function About() {
 							. Carlos reads every one.
 						</dd>
 					</div>
-					<div className="space-y-2 rounded-lg border border-navy-frame p-5">
-						<dt className="text-base font-semibold text-navy dark:text-cyan-lifted">Events</dt>
+					<div className="space-y-2 rounded-lg border border-navy-frame dark:border-navy-edge p-5">
+						<dt className="text-base font-semibold text-navy dark:text-navy-lifted">Events</dt>
 						<dd className="text-base leading-relaxed text-muted-foreground">
 							Organising a meetup, conference, or workshop in Portugal?
 						</dd>
 						<Link
 							href="/events/submit"
-							className="-mx-2 -my-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-base font-semibold text-navy transition-colors hover:bg-navy-wash dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06]"
+							className="-mx-2 -my-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-base font-semibold text-navy transition-colors hover:bg-navy-wash dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
 						>
 							Submit your event
 							<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />

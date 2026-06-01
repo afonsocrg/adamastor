@@ -177,7 +177,7 @@ export default function EditEventClient({ event, initialCategorySlugs }: EditEve
 					<ArrowLeft className="h-4 w-4 mr-2" />
 					Back to Events
 				</Button>
-				<h1 className="text-2xl font-bold text-[#104357] dark:text-cyan-lifted">Edit Event</h1>
+				<h1 className="text-2xl font-bold text-[#104357] dark:text-navy-lifted">Edit Event</h1>
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -440,7 +440,7 @@ export default function EditEventClient({ event, initialCategorySlugs }: EditEve
 												return (
 													<span
 														key={slug}
-														className="inline-flex items-center rounded-full bg-[#DFF6F8] px-2.5 py-0.5 text-xs font-medium text-[#104357] dark:bg-[#04C9D8]/10 dark:text-cyan-lifted"
+														className="inline-flex items-center rounded-full bg-navy-veil px-2.5 py-0.5 text-xs font-medium text-navy dark:bg-navy-tint/[0.1] dark:text-navy-lifted"
 													>
 														{category.name}
 													</span>

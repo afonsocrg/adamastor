@@ -20,8 +20,8 @@ export async function GET(request: Request) {
 			style={{
 				display: "flex",
 				fontSize: 105,
-				color: "#056166",
-				background: "#DFF6F8",
+				color: "#104357", // navy.shade
+				background: "#E1F2F9", // navy.veil — soft navy wash (was cyan-wash #DFF6F8)
 				width: "100%",
 				height: "100%",
 				paddingTop: 0,

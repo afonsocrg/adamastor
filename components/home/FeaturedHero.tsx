@@ -59,7 +59,7 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 	const displayTitle = getDisplayTitle(post.title);
 	const weekLabel = getWeekLabel(post.title);
 	const label = getFeedCardLabel(kind);
-	const kickerColor = kind === "opinion" ? "text-orange-hue" : "text-navy-bright dark:text-cyan-glow";
+	const kickerColor = kind === "opinion" ? "text-orange-hue" : "text-navy-bright dark:text-navy-bright-dark";
 	const readingMinutes = estimateReadingMinutes(post.content);
 	const lede = getLede(post.content);
 	const href = `/posts/${post.slug ?? post.id}`;
@@ -71,10 +71,10 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 	const showPortrait = Boolean(author?.image_url);
 
 	return (
-		<article className="group border-b border-navy-frame pb-10 dark:border-cyan-glow/[0.12]">
+		<article className="group border-b border-navy-frame pb-10 dark:border-navy-edge">
 			<Link
 				href={href}
-				className="block rounded-sm transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:-mx-4 sm:px-4 sm:py-2 sm:hover:bg-navy-veil/40 dark:sm:hover:bg-cyan-glow/[0.04]"
+				className="block rounded-sm transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:-mx-4 sm:px-4 sm:py-2 sm:hover:bg-navy-veil/40 dark:sm:hover:bg-navy-tint/[0.04]"
 			>
 				<div className="flex items-center justify-between gap-3">
 					{/* Two-pillar kicker accent (publication-wide): Weekly carries
@@ -85,16 +85,16 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 					    byline cluster below. */}
 					<p className={`text-[11px] font-semibold uppercase tracking-[0.14em] md:text-xs ${kickerColor}`}>{label}</p>
 					{weekLabel && (
-						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-cyan-dim/75">
+						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-navy-dim/75">
 							{weekLabel}
 						</p>
 					)}
 				</div>
-				<h2 className="mt-4 text-[1.75rem] font-bold leading-[1.12] tracking-tight text-navy [text-wrap:balance] [font-family:var(--font-lora-bold)] transition-colors duration-150 ease-out group-hover:underline dark:text-cyan-lifted md:mt-5 md:text-[2.25rem] md:leading-[1.08]">
+				<h2 className="mt-4 text-[1.75rem] font-bold leading-[1.12] tracking-tight text-navy [text-wrap:balance] [font-family:var(--font-lora-bold)] transition-colors duration-150 ease-out group-hover:underline dark:text-navy-lifted md:mt-5 md:text-[2.25rem] md:leading-[1.08]">
 					{displayTitle}
 				</h2>
 				{lede && (
-					<p className="mt-4 max-w-[60ch] text-base leading-[1.6] text-navy-tone dark:text-cyan-dim md:mt-5 md:text-lg md:leading-[1.55]">
+					<p className="mt-4 max-w-[60ch] text-base leading-[1.6] text-navy-tone dark:text-navy-dim md:mt-5 md:text-lg md:leading-[1.55]">
 						{lede}
 					</p>
 				)}
@@ -106,19 +106,19 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 							width={64}
 							height={64}
 							priority
-							className="h-14 w-14 shrink-0 rounded-full border border-navy-frame object-cover md:h-16 md:w-16"
+							className="h-14 w-14 shrink-0 rounded-full border border-navy-frame dark:border-navy-edge object-cover md:h-16 md:w-16"
 						/>
 					) : null}
 					<div className="min-w-0 text-sm leading-snug">
-						{author?.name && <p className="font-semibold text-navy dark:text-cyan-lifted">By {author.name}</p>}
+						{author?.name && <p className="font-semibold text-navy dark:text-navy-lifted">By {author.name}</p>}
 						{roleLine && (
-							<p className="max-w-[44ch] text-xs leading-snug text-navy-tone dark:text-cyan-dim">{roleLine}</p>
+							<p className="max-w-[44ch] text-xs leading-snug text-navy-tone dark:text-navy-dim">{roleLine}</p>
 						)}
-						<p className="mt-0.5 text-xs text-navy-tone/80 dark:text-cyan-dim/80">
+						<p className="mt-0.5 text-xs text-navy-tone/80 dark:text-navy-dim/80">
 							<time dateTime={post.created_at}>{formatDate(post.created_at)}</time> · {readingMinutes} min read
 						</p>
 					</div>
-					<span className="ml-auto inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-navy dark:text-cyan-lifted">
+					<span className="ml-auto inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-navy dark:text-navy-lifted">
 						Read
 						<ArrowRightIcon
 							className="h-4 w-4 text-orange-hue transition-transform duration-150 ease-out group-hover:translate-x-0.5"

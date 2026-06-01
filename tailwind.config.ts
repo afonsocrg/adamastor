@@ -101,7 +101,8 @@ const config = {
   				shade: '#104357',    // typography anchor (body text, headlines)
   				// Saturated zone — distinct higher chroma (link colour):
   				'bright-deep': '#0F5091',  // L=0.41 C=0.15 h=253. Inline link colour on hover (two-axis: colour deepens + border thickens).
-  				bright: '#1C6EB4',         // L=0.51 C=0.15 h=252. Inline link colour at rest. Higher chroma than the rest of the navy ramp — reads as "interactive" without leaving the navy neighbourhood. Dark-mode analogue: cyan.glow.
+  				bright: '#1C6EB4',         // L=0.51 C=0.15 h=252. Inline link colour at rest. Higher chroma than the rest of the navy ramp — reads as "interactive" without leaving the navy neighbourhood. Dark-mode analogue: navy.bright-dark.
+  				'bright-dark': '#6DB7EA',  // dark-mode link / kicker accent (lifts navy.bright for legibility on dark; ≈6.7:1 on the dark surface). From the email C_DARK.bright ramp — replaces the cyan-glow link anchor.
   				tone: '#4D7689',     // secondary text, labels, dim hover
   				tint: '#A7E1FC',     // soft blue fills — THE light-mode highlight accent (selected chips, calendar selected day, list bullets, blockquote hairline, focus outlines)
   				// Atmospheric / wash zone — three variants, ordered by pigment:

@@ -308,17 +308,17 @@ mark[style] > strong {
 	}
 }
 
-/* Dark mode counterparts — cyan-lifted is the navy analogue per the design
- * system's dark-mode anchor scheme. */
+/* Dark mode counterparts — navy-lifted (#CFE4EF) carries dark-mode headings,
+ * the design system's navy dark-anchor (2026-05-31, off the cyan anchor). */
 .dark .article-prose h1,
 .dark .article-prose h2,
 .dark .article-prose h3 {
-	color: rgb(227, 242, 247); /* cyan-lifted */
+	color: rgb(207, 228, 239); /* navy-lifted */
 }
 
 .dark .article-prose h1,
 .dark .article-prose h2 {
-	border-top-color: rgba(76, 228, 240, 0.12); /* cyan-glow @ 12% */
+	border-top-color: rgb(44, 79, 94); /* navy-edge (solid) */
 }
 
 /*
@@ -336,7 +336,7 @@ mark[style] > strong {
   --tw-prose-bullets: rgb(167, 225, 252); /* navy-tint */
   --tw-prose-captions: rgb(77, 118, 137); /* navy-tone */
   --tw-prose-code: rgb(16, 67, 87);
-  --tw-prose-pre-code: rgb(227, 242, 247); /* cyan-lifted */
+  --tw-prose-pre-code: rgb(207, 228, 239); /* navy-lifted */
 
   /* Inline link palette — mirrors `navy.bright` / `navy.bright-deep` in
    * tailwind.config.ts. Defined here (scoped to .article-prose) because
@@ -405,11 +405,11 @@ mark[style] > strong {
 }
 
 .dark .article-prose {
-  --tw-prose-body: rgb(227, 242, 247); /* cyan-lifted */
-  --tw-prose-bold: rgb(227, 242, 247);
-  --tw-prose-counters: rgb(158, 210, 225); /* cyan-dim */
-  --tw-prose-bullets: rgba(76, 228, 240, 0.4); /* cyan-glow @ 40% */
-  --tw-prose-captions: rgb(158, 210, 225);
+  --tw-prose-body: rgb(207, 228, 239); /* navy-lifted */
+  --tw-prose-bold: rgb(207, 228, 239);
+  --tw-prose-counters: rgb(143, 179, 194); /* navy-dim */
+  --tw-prose-bullets: rgb(167, 225, 252); /* navy-tint */
+  --tw-prose-captions: rgb(143, 179, 194);
 }
 
 /*
@@ -615,24 +615,24 @@ mark[style] > strong {
   }
 }
 
-/* Dark-mode counterpart. cyan-glow stands in as the navy.bright analogue
- * — a bright cyan reads as "interactive" against the dark background the
- * same way navy.bright reads as a link against white. */
+/* Dark-mode counterpart. navy.bright-dark (#6DB7EA) is the dark analogue of
+ * navy.bright — a lifted blue that reads as "interactive" against the dark
+ * background the same way navy.bright reads as a link against white. */
 .dark .article-prose a {
-  color: rgb(76, 228, 240); /* cyan-glow */
-  border-bottom-color: rgb(76, 228, 240);
+  color: rgb(109, 183, 234); /* navy-bright-dark */
+  border-bottom-color: rgb(109, 183, 234);
 }
 
 .dark .article-prose a:hover,
 .dark .article-prose a:focus-visible {
-  color: rgb(120, 240, 245); /* cyan-glow lifted further */
-  border-bottom-color: rgb(120, 240, 245);
+  color: rgb(143, 203, 242); /* navy bright-deep, lifted */
+  border-bottom-color: rgb(143, 203, 242);
 }
 
 .dark .article-prose blockquote {
-  color: rgb(227, 242, 247); /* cyan-lifted */
+  color: rgb(207, 228, 239); /* navy-lifted */
 }
 
 .dark .article-prose blockquote::before {
-  background-color: rgba(76, 228, 240, 0.4); /* cyan-glow @ 40% — navy-tint analogue */
+  background-color: rgb(167, 225, 252); /* navy-tint */
 }

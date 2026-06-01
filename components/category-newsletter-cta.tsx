@@ -81,19 +81,19 @@ export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNe
 	}
 
 	return (
-		<aside className="rounded-md border border-navy-frame p-5 dark:border-cyan-glow/[0.18]">
-			<h2 className="text-[1.0625rem] font-bold tracking-tight text-navy [text-wrap:balance] dark:text-cyan-lifted">
+		<aside className="rounded-md border border-navy-frame p-5 dark:border-navy-edge">
+			<h2 className="text-[1.0625rem] font-bold tracking-tight text-navy [text-wrap:balance] dark:text-navy-lifted">
 				{greetingFirstName ? `${headingPhrase}, ${greetingFirstName}` : headingPhrase}
 			</h2>
-			<p className="mt-2 text-sm leading-relaxed text-navy-tone dark:text-cyan-dim">{description}</p>
+			<p className="mt-2 text-sm leading-relaxed text-navy-tone dark:text-navy-dim">{description}</p>
 			<form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-2">
 				{isPrefilledNow && (
-					<p className="text-xs text-navy-tone dark:text-cyan-dim">
+					<p className="text-xs text-navy-tone dark:text-navy-dim">
 						Pre-filled from your last visit.{" "}
 						<button
 							type="button"
 							onClick={handleNotYou}
-							className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted dark:hover:text-cyan"
+							className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-navy-lifted dark:hover:text-cyan"
 						>
 							Not you?
 						</button>
@@ -113,7 +113,7 @@ export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNe
 				<button
 					type="submit"
 					disabled={!canSubmit}
-					className="-mx-2 -my-1 inline-flex items-center gap-2 self-start rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06] disabled:opacity-50 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					className="-mx-2 -my-1 inline-flex items-center gap-2 self-start rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06] disabled:opacity-50 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 				>
 					Subscribe
 					<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />

@@ -75,9 +75,9 @@ export default function AuthorStrap({ author }: AuthorStrapProps) {
 	const bio = author.bio?.trim();
 
 	return (
-		<aside className="border-t border-navy-frame pt-10">
+		<aside className="border-t border-navy-frame dark:border-navy-edge pt-10">
 			<DuotonePortraitFilter />
-			<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+			<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">
 				About the author
 			</p>
 			<div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
@@ -87,13 +87,13 @@ export default function AuthorStrap({ author }: AuthorStrapProps) {
 						alt={author.name}
 						width={144}
 						height={144}
-						className="h-32 w-32 shrink-0 rounded-md border border-navy-frame object-cover sm:h-36 sm:w-36"
+						className="h-32 w-32 shrink-0 rounded-md border border-navy-frame dark:border-navy-edge object-cover sm:h-36 sm:w-36"
 						style={{ filter: "url(#duotone-navy-portrait)" }}
 					/>
 				) : null}
 				<div className="space-y-3">
 					<div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-						<h2 className="text-2xl font-bold leading-tight tracking-tight text-navy dark:text-cyan-lifted md:text-[1.75rem]">
+						<h2 className="text-2xl font-bold leading-tight tracking-tight text-navy dark:text-navy-lifted md:text-[1.75rem]">
 							{author.name}
 						</h2>
 						{icons.length > 0 && (
@@ -105,7 +105,7 @@ export default function AuthorStrap({ author }: AuthorStrapProps) {
 										target="_blank"
 										rel="noopener noreferrer"
 										aria-label={`${author.name} on ${social.label}`}
-										className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-tone transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted"
+										className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-tone transition-colors hover:text-navy dark:text-navy-dim dark:hover:text-navy-lifted"
 									>
 										<social.Icon className="h-4 w-4" aria-hidden="true" />
 										{social.label}
@@ -115,7 +115,7 @@ export default function AuthorStrap({ author }: AuthorStrapProps) {
 						)}
 					</div>
 					{bio && (
-						<p className="max-w-[55ch] text-base leading-relaxed text-navy-tone dark:text-cyan-dim">{bio}</p>
+						<p className="max-w-[55ch] text-base leading-relaxed text-navy-tone dark:text-navy-dim">{bio}</p>
 					)}
 				</div>
 			</div>

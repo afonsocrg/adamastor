@@ -141,7 +141,7 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 	return (
 		<>
 			<header className="space-y-3 pb-2 pt-2">
-				<h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight text-navy [text-wrap:pretty] dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 					{initial.firstName ? `Hi ${initial.firstName} — manage your subscriptions` : "Manage your subscriptions"}
 				</h1>
 				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
@@ -149,15 +149,15 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 				</p>
 			</header>
 
-			<aside className="rounded-lg bg-navy-veil/40 p-5 dark:bg-cyan-glow/[0.04]">
+			<aside className="rounded-lg bg-navy-veil/40 p-5 dark:bg-navy-tint/[0.04]">
 				<p className="text-sm leading-snug md:leading-relaxed text-muted-foreground">
 					Weekly emails — we send only what you pick below. One click any time to unsubscribe.
 				</p>
 			</aside>
 
-			<div className="space-y-6 md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-cyan-glow/[0.18]">
+			<div className="space-y-6 md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-navy-edge">
 				<section className="space-y-4">
-					<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Weekly Digest</h2>
+					<h2 className="text-sm font-semibold text-navy dark:text-navy-lifted">Weekly Digest</h2>
 					<div className="flex items-start gap-3">
 						<Image
 							src="/carlos.jpeg"
@@ -173,22 +173,22 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 								href="https://www.linkedin.com/in/carlosresende47/"
 								target="_blank"
 								rel="noopener"
-								className="inline-flex items-center gap-1 font-medium text-navy hover:underline dark:text-cyan-lifted"
+								className="inline-flex items-center gap-1 font-medium text-navy hover:underline dark:text-navy-lifted"
 							>
 								<LinkedInIcon className="h-3.5 w-3.5" aria-hidden="true" />
 								LinkedIn
 							</a>
 						</p>
 					</div>
-					<label className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-cyan-glow/[0.18]">
+					<label className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-navy-edge">
 						<input
 							type="checkbox"
-							className="mt-1 h-4 w-4 rounded border-navy-frame accent-[#104357]"
+							className="mt-1 h-4 w-4 rounded border-navy-frame dark:border-navy-edge accent-[#104357]"
 							checked={digest}
 							onChange={(e) => setDigest(e.target.checked)}
 						/>
 						<span className="flex-1 space-y-1">
-							<span className="block text-sm font-semibold leading-tight text-navy dark:text-cyan-lifted">
+							<span className="block text-sm font-semibold leading-tight text-navy dark:text-navy-lifted">
 								Adamastor Weekly
 							</span>
 							<span className="block text-sm text-muted-foreground">
@@ -201,7 +201,7 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 
 				<section className="space-y-4">
 					<div className="space-y-1">
-						<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Topics to Follow</h2>
+						<h2 className="text-sm font-semibold text-navy dark:text-navy-lifted">Topics to Follow</h2>
 						<p className="text-sm text-muted-foreground">
 							Each week we round up events happening across Portugal in the topics you pick. Choose one or many.
 						</p>
@@ -213,16 +213,16 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 						{EVENT_CATEGORIES.map((category) => (
 							<label
 								key={category.slug}
-								className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-cyan-glow/[0.18]"
+								className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-navy-edge"
 							>
 								<input
 									type="checkbox"
-									className="mt-1 h-4 w-4 rounded border-navy-frame accent-[#104357]"
+									className="mt-1 h-4 w-4 rounded border-navy-frame dark:border-navy-edge accent-[#104357]"
 									checked={categories.has(category.slug)}
 									onChange={() => toggleCategory(category.slug)}
 								/>
 								<span className="flex-1 space-y-1">
-									<span className="block text-sm font-medium leading-tight text-navy dark:text-cyan-lifted">
+									<span className="block text-sm font-medium leading-tight text-navy dark:text-navy-lifted">
 										{category.name}
 									</span>
 									<span className="block text-sm text-muted-foreground">{category.description}</span>
@@ -253,7 +253,7 @@ export function PreferencesForm({ initial }: { initial: InitialPreferences }) {
 							<button
 								type="button"
 								disabled={saving}
-								className="text-sm text-navy-tone underline-offset-4 transition-colors hover:text-navy hover:underline disabled:opacity-50 dark:text-navy-wash dark:hover:text-cyan-lifted"
+								className="text-sm text-navy-tone underline-offset-4 transition-colors hover:text-navy hover:underline disabled:opacity-50 dark:text-navy-wash dark:hover:text-navy-lifted"
 							>
 								Unsubscribe from everything
 							</button>
@@ -330,7 +330,7 @@ export function RequestLinkForm() {
 	if (done) {
 		return (
 			<header className="space-y-3 pb-2 pt-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300 motion-safe:ease-out">
-				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 					Check your inbox
 				</h1>
 				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
@@ -349,7 +349,7 @@ export function RequestLinkForm() {
 			aria-hidden={leaving}
 		>
 			<header className="space-y-3 pb-2 pt-2">
-				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 					Manage your subscriptions
 				</h1>
 				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
@@ -358,7 +358,7 @@ export function RequestLinkForm() {
 				</p>
 			</header>
 
-			<div className="md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-cyan-glow/[0.18]">
+			<div className="md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-navy-edge">
 				<form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
 					<Input
 						type="email"

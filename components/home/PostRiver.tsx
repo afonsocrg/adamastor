@@ -45,33 +45,33 @@ function RiverCard({ post }: RiverCardProps) {
 	const authorName = firstAuthorName(post.authors);
 
 	return (
-		<article className="group border-b border-navy-frame last:border-b-0 dark:border-cyan-glow/[0.12]">
+		<article className="group border-b border-navy-frame last:border-b-0 dark:border-navy-edge">
 			<Link
 				href={`/posts/${post.slug ?? post.id}`}
-				className="flex flex-col rounded-sm py-5 transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:-mx-4 sm:px-4 sm:hover:bg-navy-veil/40 dark:sm:hover:bg-cyan-glow/[0.04]"
+				className="flex flex-col rounded-sm py-5 transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:-mx-4 sm:px-4 sm:hover:bg-navy-veil/40 dark:sm:hover:bg-navy-tint/[0.04]"
 			>
 				<section className="space-y-2.5">
 					<div className="flex items-center justify-between gap-3">
 						<p
 							className={`text-[11px] font-semibold uppercase tracking-[0.14em] md:text-xs ${
-								kind === "opinion" ? "text-orange-hue" : "text-navy-bright dark:text-cyan-glow"
+								kind === "opinion" ? "text-orange-hue" : "text-navy-bright dark:text-navy-bright-dark"
 							}`}
 						>
 							{label}
 						</p>
 						{weekLabel && (
-							<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-cyan-dim/75">
+							<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-navy-dim/75">
 								{weekLabel}
 							</p>
 						)}
 					</div>
-					<h3 className="text-[1.22rem] font-bold leading-[1.22] text-navy [text-wrap:pretty] transition-colors duration-150 ease-out group-hover:underline dark:text-cyan-lifted sm:text-[1.55rem] sm:leading-[1.18]">
+					<h3 className="text-[1.22rem] font-bold leading-[1.22] text-navy [text-wrap:pretty] transition-colors duration-150 ease-out group-hover:underline dark:text-navy-lifted sm:text-[1.55rem] sm:leading-[1.18]">
 						{displayTitle}
 					</h3>
-					<p className="max-w-[58ch] text-[0.98rem] leading-[1.55] text-navy-tone line-clamp-3 dark:text-cyan-dim sm:line-clamp-2 sm:text-base sm:leading-[1.6]">
+					<p className="max-w-[58ch] text-[0.98rem] leading-[1.55] text-navy-tone line-clamp-3 dark:text-navy-dim sm:line-clamp-2 sm:text-base sm:leading-[1.6]">
 						{contentPreview}
 					</p>
-					<p className="text-[0.85rem] leading-6 text-navy-tone/80 dark:text-cyan-dim/80">
+					<p className="text-[0.85rem] leading-6 text-navy-tone/80 dark:text-navy-dim/80">
 						{authorName ? (
 							<>
 								{authorName} <span aria-hidden="true">·</span>{" "}
@@ -110,18 +110,18 @@ export default function PostRiver({ currentPage, posts, totalPages }: PostRiverP
 						{currentPage > 1 ? (
 							<Link
 								href={getPageHref(currentPage - 1)}
-								className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-navy-veil/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-cyan-glow/[0.18] dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06]"
+								className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-navy-veil/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-navy-edge dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
 							>
 								Newer articles
 							</Link>
 						) : (
-							<span className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy-tone/50 dark:border-cyan-glow/[0.12] dark:text-cyan-dim/50">
+							<span className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy-tone/50 dark:border-navy-edge dark:text-navy-dim/50">
 								Newer articles
 							</span>
 						)}
 					</div>
 
-					<div className="text-sm text-navy-tone dark:text-cyan-dim">
+					<div className="text-sm text-navy-tone dark:text-navy-dim">
 						Page {currentPage} of {totalPages}
 					</div>
 
@@ -129,12 +129,12 @@ export default function PostRiver({ currentPage, posts, totalPages }: PostRiverP
 						{currentPage < totalPages ? (
 							<Link
 								href={getPageHref(currentPage + 1)}
-								className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-navy-veil/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-cyan-glow/[0.18] dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06]"
+								className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-navy-veil/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-navy-edge dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
 							>
 								Older articles
 							</Link>
 						) : (
-							<span className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy-tone/50 dark:border-cyan-glow/[0.12] dark:text-cyan-dim/50">
+							<span className="inline-flex items-center rounded-md border border-navy-frame px-3 py-2 text-sm font-medium text-navy-tone/50 dark:border-navy-edge dark:text-navy-dim/50">
 								Older articles
 							</span>
 						)}

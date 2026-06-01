@@ -271,7 +271,7 @@ export default function SubscribePageClient() {
 	if (done) {
 		return (
 			<header className="space-y-4 pb-2 pt-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300 motion-safe:ease-out">
-				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 					{wasNewSubscription ? "You’re in" : "Welcome back"}
 				</h1>
 				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
@@ -291,7 +291,7 @@ export default function SubscribePageClient() {
 				<div className="pt-2">
 					<Link
 						href="/events"
-						className="inline-flex items-center rounded-lg border border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy-wash dark:border-cyan-lifted dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.08]"
+						className="inline-flex items-center rounded-lg border border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy-wash dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-tint/[0.08]"
 					>
 						Browse upcoming events
 						<ArrowRightIcon className="ml-2 h-4 w-4" aria-hidden="true" />
@@ -310,7 +310,7 @@ export default function SubscribePageClient() {
 			aria-hidden={leaving}
 		>
 			<header className="space-y-3 pb-2 pt-2">
-				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+				<h1 className="text-2xl md:text-3xl font-bold leading-tight tracking-tight text-navy [text-wrap:pretty] dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 					{greetingFirstName ? `Subscribe to Adamastor, ${greetingFirstName}` : "Subscribe to Adamastor"}
 				</h1>
 				<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
@@ -322,7 +322,7 @@ export default function SubscribePageClient() {
 			<form
 				id="subscribe-form"
 				onSubmit={handleSubmit}
-				className="space-y-6 md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-cyan-glow/[0.18]"
+				className="space-y-6 md:rounded-lg md:border md:border-navy-frame md:p-6 md:dark:border-navy-edge"
 			>
 				{isPrefilledNow && (
 					<p className="text-xs text-muted-foreground">
@@ -330,7 +330,7 @@ export default function SubscribePageClient() {
 						<button
 							type="button"
 							onClick={handleNotYou}
-							className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted dark:hover:text-cyan"
+							className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-navy-lifted dark:hover:text-cyan"
 						>
 							Not you?
 						</button>
@@ -368,7 +368,7 @@ export default function SubscribePageClient() {
 				</div>
 
 				<section className="space-y-4">
-					<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Weekly Digest</h2>
+					<h2 className="text-sm font-semibold text-navy dark:text-navy-lifted">Weekly Digest</h2>
 					<div className="flex items-start gap-3">
 						<Image
 							src="/carlos.jpeg"
@@ -384,22 +384,22 @@ export default function SubscribePageClient() {
 								href="https://www.linkedin.com/in/carlosresende47/"
 								target="_blank"
 								rel="noopener"
-								className="inline-flex items-center gap-1 font-medium text-navy hover:underline dark:text-cyan-lifted"
+								className="inline-flex items-center gap-1 font-medium text-navy hover:underline dark:text-navy-lifted"
 							>
 								<LinkedInIcon className="h-3.5 w-3.5" aria-hidden="true" />
 								LinkedIn
 							</a>
 						</p>
 					</div>
-					<label className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-cyan-glow/[0.18]">
+					<label className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-navy-edge">
 						<input
 							type="checkbox"
-							className="mt-1 h-4 w-4 rounded border-navy-frame accent-[#104357]"
+							className="mt-1 h-4 w-4 rounded border-navy-frame dark:border-navy-edge accent-[#104357]"
 							checked={digest}
 							onChange={(e) => setDigest(e.target.checked)}
 						/>
 						<span className="flex-1 space-y-1">
-							<span className="block text-sm font-semibold leading-tight text-navy dark:text-cyan-lifted">
+							<span className="block text-sm font-semibold leading-tight text-navy dark:text-navy-lifted">
 								Adamastor Weekly
 							</span>
 							<span className="block text-sm text-muted-foreground">
@@ -412,7 +412,7 @@ export default function SubscribePageClient() {
 
 				<section className="space-y-4">
 					<div className="space-y-1">
-						<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Topics to Follow</h2>
+						<h2 className="text-sm font-semibold text-navy dark:text-navy-lifted">Topics to Follow</h2>
 						<p className="text-sm text-muted-foreground">
 							Each week we round up events happening across Portugal in the topics you pick. Choose one or many —
 							or skip and stick with the digest.
@@ -425,16 +425,16 @@ export default function SubscribePageClient() {
 						{EVENT_CATEGORIES.map((category) => (
 							<label
 								key={category.slug}
-								className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-cyan-glow/[0.18]"
+								className="flex cursor-pointer items-start gap-3 rounded-md border border-navy-frame p-4 transition-colors hover:bg-navy-wash/40 dark:border-navy-edge"
 							>
 								<input
 									type="checkbox"
-									className="mt-1 h-4 w-4 rounded border-navy-frame accent-[#104357]"
+									className="mt-1 h-4 w-4 rounded border-navy-frame dark:border-navy-edge accent-[#104357]"
 									checked={categories.has(category.slug)}
 									onChange={() => toggleCategory(category.slug)}
 								/>
 								<span className="flex-1 space-y-1">
-									<span className="block text-sm font-medium leading-tight text-navy dark:text-cyan-lifted">
+									<span className="block text-sm font-medium leading-tight text-navy dark:text-navy-lifted">
 										{category.name}
 									</span>
 									<span className="block text-sm text-muted-foreground">{category.description}</span>
@@ -472,9 +472,9 @@ export default function SubscribePageClient() {
 			</form>
 		</div>
 		<AlertDialog open={!!navIntent} onOpenChange={(open) => { if (!open) setNavIntent(null); }}>
-			<AlertDialogContent className="border-navy-frame dark:border-cyan-glow/[0.18]">
+			<AlertDialogContent className="border-navy-frame dark:border-navy-edge">
 				<AlertDialogHeader>
-					<AlertDialogTitle className="text-2xl font-bold leading-tight text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+					<AlertDialogTitle className="text-2xl font-bold leading-tight text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 						Save your picks first?
 					</AlertDialogTitle>
 					<AlertDialogDescription className="text-sm md:text-base leading-snug md:leading-relaxed text-muted-foreground [text-wrap:pretty]">
@@ -486,7 +486,7 @@ export default function SubscribePageClient() {
 				<AlertDialogFooter className="gap-2">
 					<AlertDialogAction
 						onClick={confirmNavAway}
-						className="mt-2 inline-flex h-auto items-center justify-center bg-transparent px-2 py-1 text-sm font-medium text-muted-foreground underline-offset-4 hover:bg-transparent hover:text-navy hover:underline dark:hover:text-cyan-lifted sm:mt-0"
+						className="mt-2 inline-flex h-auto items-center justify-center bg-transparent px-2 py-1 text-sm font-medium text-muted-foreground underline-offset-4 hover:bg-transparent hover:text-navy hover:underline dark:hover:text-navy-lifted sm:mt-0"
 					>
 						Leave anyway
 					</AlertDialogAction>
@@ -501,10 +501,10 @@ export default function SubscribePageClient() {
 			<div
 				role="region"
 				aria-label="Subscribe action"
-				className="fixed inset-x-0 bottom-0 z-40 border-t border-navy-frame bg-background/95 shadow-[0_-1px_4px_-2px_rgba(8,41,58,0.05)] backdrop-blur-sm dark:border-cyan-glow/[0.18] motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-300 motion-safe:ease-out"
+				className="fixed inset-x-0 bottom-0 z-40 border-t border-navy-frame bg-background/95 shadow-[0_-1px_4px_-2px_rgba(8,41,58,0.05)] backdrop-blur-sm dark:border-navy-edge motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-300 motion-safe:ease-out"
 			>
 				<div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-					<p className="truncate text-xs font-medium text-navy dark:text-cyan-lifted">{selectionSummary}</p>
+					<p className="truncate text-xs font-medium text-navy dark:text-navy-lifted">{selectionSummary}</p>
 					<Button
 						type="submit"
 						form="subscribe-form"

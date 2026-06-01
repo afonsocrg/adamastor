@@ -73,21 +73,21 @@ export function EventCard({ event, onEventClick, onDelete }: EventCardProps) {
 						// Clean white at rest, navy-veil hover. This shares the
 						// homepage river-card interaction without turning event
 						// rows into boxed cards.
-						className="flex flex-col rounded-md p-4 transition-colors duration-150 ease hover:bg-navy-veil/40 dark:hover:bg-cyan-glow/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
+						className="flex flex-col rounded-md p-4 transition-colors duration-150 ease hover:bg-navy-veil/40 dark:hover:bg-navy-tint/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none"
 					>
 						<section className="w-full space-y-2">
-							<h3 className="text-lg md:text-xl font-bold leading-tight text-navy [text-wrap:pretty] dark:text-cyan-lifted decoration-navy-tint decoration-2 underline-offset-4 group-hover:underline">
+							<h3 className="text-lg md:text-xl font-bold leading-tight text-navy [text-wrap:pretty] dark:text-navy-lifted decoration-navy-tint decoration-2 underline-offset-4 group-hover:underline">
 								{event.title}
 							</h3>
 							{/* Metadata strip — time leads (most scannable for "what's
 							    happening tonight"), then city. Bullet separator.
 							    tabular-nums keeps times column-aligned across cards. */}
-							<p className="text-sm leading-5 text-navy-tone dark:text-cyan-dim">
+							<p className="text-sm leading-5 text-navy-tone dark:text-navy-dim">
 								<span className="tabular-nums">{TIME_FORMATTER.format(new Date(event.start_time))}</span>
 								<span aria-hidden="true"> · </span>
 								<span>{formatCity(event.city)}</span>
 							</p>
-							<p className="line-clamp-2 max-w-[58ch] text-sm md:text-base leading-5 md:leading-relaxed text-navy-tone dark:text-cyan-dim">
+							<p className="line-clamp-2 max-w-[58ch] text-sm md:text-base leading-5 md:leading-relaxed text-navy-tone dark:text-navy-dim">
 								{event.description}
 							</p>
 						</section>

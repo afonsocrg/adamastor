@@ -97,12 +97,12 @@ export default async function PostPreviewPage({ params }: PreviewPageProps) {
 						    chrome, not an alert. Edit link gives editors a one-click
 						    way back to the editor from a visual review. */}
 						<div className="flex items-center justify-between gap-3 rounded-md border border-orange-hue/30 bg-orange-hue/[0.06] px-4 py-2 text-sm">
-							<span className="font-medium text-navy dark:text-cyan-lifted">
+							<span className="font-medium text-navy dark:text-navy-lifted">
 								Preview mode · {post.is_public ? "Published" : "Draft"}
 							</span>
 							<Link
 								href={`/dashboard/posts/${post.id}/edit`}
-								className="inline-flex items-center gap-1 font-semibold text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted"
+								className="inline-flex items-center gap-1 font-semibold text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-navy-lifted"
 							>
 								Edit
 								<ArrowRightIcon className="h-3.5 w-3.5 text-orange-hue" aria-hidden="true" />

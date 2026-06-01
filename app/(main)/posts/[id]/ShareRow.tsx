@@ -17,7 +17,7 @@ interface ShareRowProps {
 // feel like wasted chrome. Icon stays 16×16 in both; only the surrounding
 // hit-area scales.
 const iconButton =
-	"inline-flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-navy-tone transition-colors hover:bg-navy-veil/40 hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 dark:text-cyan-dim dark:hover:bg-cyan-glow/[0.06] dark:hover:text-cyan-lifted";
+	"inline-flex h-11 w-11 sm:h-9 sm:w-9 items-center justify-center rounded-full text-navy-tone transition-colors hover:bg-navy-veil/40 hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 dark:text-navy-dim dark:hover:bg-navy-tint/[0.06] dark:hover:text-navy-lifted";
 
 export default function ShareRow({ className }: ShareRowProps) {
 	const [copied, setCopied] = useState(false);

@@ -169,7 +169,7 @@ export default function ReviewSubmissionClient({ event, initialCategorySlugs }: 
 		<div className="space-y-6">
 			<header className="space-y-2">
 				<div className="flex items-center gap-3 flex-wrap">
-					<h2 className="text-xl font-semibold text-[#104357] dark:text-cyan-lifted">Review submission</h2>
+					<h2 className="text-xl font-semibold text-[#104357] dark:text-navy-lifted">Review submission</h2>
 					{event.status === "pending" ? (
 						<Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">Pending</Badge>
 					) : event.status === "approved" ? (
@@ -182,7 +182,7 @@ export default function ReviewSubmissionClient({ event, initialCategorySlugs }: 
 					<div>
 						<strong>Submitted by:</strong> {event.submitter_name ?? "—"}{" "}
 						{event.submitter_email ? (
-							<a className="text-[#04C9D8] underline" href={`mailto:${event.submitter_email}`}>
+							<a className="text-navy-bright underline dark:text-navy-bright-dark" href={`mailto:${event.submitter_email}`}>
 								{event.submitter_email}
 							</a>
 						) : null}

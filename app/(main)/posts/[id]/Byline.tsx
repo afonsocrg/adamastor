@@ -68,16 +68,16 @@ export default function Byline({ kind, author, publishedAt, publishedAtIso, read
 		<Link
 			href={nameHref}
 			{...nameLinkProps}
-			className="font-[575] text-navy hover:underline hover:decoration-navy-tint hover:decoration-2 hover:underline-offset-4 dark:text-cyan-lifted"
+			className="font-[575] text-navy hover:underline hover:decoration-navy-tint hover:decoration-2 hover:underline-offset-4 dark:text-navy-lifted"
 		>
 			{author.name}
 		</Link>
 	) : (
-		<span className="font-[575] text-navy dark:text-cyan-lifted">{author.name}</span>
+		<span className="font-[575] text-navy dark:text-navy-lifted">{author.name}</span>
 	);
 
 	return (
-		<div className="border-y border-navy-frame">
+		<div className="border-y border-navy-frame dark:border-navy-edge">
 			{/* Two-zone strap, one concern per zone — the byline's job is to
 			    keep "who's speaking" from blurring into "reader tooling".
 
@@ -97,16 +97,16 @@ export default function Byline({ kind, author, publishedAt, publishedAtIso, read
 					<AvatarFallback className="text-sm font-medium text-navy">{initials(author.name)}</AvatarFallback>
 				</Avatar>
 				<div className="flex flex-col gap-1.5 leading-snug">
-					<p className="text-[15px] text-navy dark:text-cyan-lifted">{nameNode}</p>
+					<p className="text-[15px] text-navy dark:text-navy-lifted">{nameNode}</p>
 					{tag && (
-						<p className="max-w-[44ch] text-[14px] font-normal text-navy-tone dark:text-cyan-dim hyphens-manual">
+						<p className="max-w-[44ch] text-[14px] font-normal text-navy-tone dark:text-navy-dim hyphens-manual">
 							{tag}
 						</p>
 					)}
 				</div>
 			</div>
-			<div className="flex flex-col gap-2 border-t border-navy-frame py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
-				<p className="text-[13px] text-navy-tone dark:text-cyan-dim">
+			<div className="flex flex-col gap-2 border-t border-navy-frame dark:border-navy-edge py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+				<p className="text-[13px] text-navy-tone dark:text-navy-dim">
 					<time dateTime={publishedAtIso}>{publishedAt}</time>{" "}
 					<span aria-hidden="true">·</span> {readingMinutes} min read
 				</p>

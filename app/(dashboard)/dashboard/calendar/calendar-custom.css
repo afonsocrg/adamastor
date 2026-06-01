@@ -149,7 +149,7 @@
 /* This makes the border appear again in the monthly view */
 .rbc-month-header .rbc-header + .rbc-header {
 	@apply border-l;
-	@apply border-navy-frame;
+	@apply border-navy-frame dark:border-navy-edge;
 }
 
 /* Header cells (weekday names) */
@@ -571,7 +571,7 @@
 
 .rbc-toolbar button:active,
 .rbc-toolbar button.rbc-active {
-	@apply bg-navy-tint text-navy border-navy-frame shadow-none;
+	@apply bg-navy-tint text-navy border-navy-frame dark:border-navy-tint shadow-none;
 	@apply hover:opacity-80 !bg-navy-tint !text-navy;
 }
 

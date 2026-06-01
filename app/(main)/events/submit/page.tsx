@@ -51,7 +51,7 @@ export default async function SubmitEventPage() {
 			{/* Trust strip: three real faces + reassurance copy. Soft
 			    navy-wash wash distinguishes it from the outlined form
 			    module below without competing for visual weight. */}
-			<aside className="flex flex-col sm:flex-row items-start gap-4 rounded-lg bg-navy-veil/40 p-5 dark:bg-cyan-glow/[0.04]">
+			<aside className="flex flex-col sm:flex-row items-start gap-4 rounded-lg bg-navy-veil/40 p-5 dark:bg-navy-tint/[0.04]">
 				<div className="flex shrink-0 -space-x-2">
 					<Image
 						src="/afonso.jpeg"
@@ -76,13 +76,13 @@ export default async function SubmitEventPage() {
 					/>
 				</div>
 				<div className="space-y-1">
-					<h2 className="text-sm font-semibold text-navy dark:text-cyan-lifted">Reviewed by Afonso, Carlos & Malik</h2>
+					<h2 className="text-sm font-semibold text-navy dark:text-navy-lifted">Reviewed by Afonso, Carlos & Malik</h2>
 					<p className="text-sm leading-snug md:leading-relaxed text-muted-foreground">
 						The three of us read every submission and get back to you within a couple of hours. Questions before you
 						submit?{" "}
 						<a
 							href="mailto:hello@adamastor.blog"
-							className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted dark:hover:text-cyan transition-colors"
+							className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-navy-lifted dark:hover:text-cyan transition-colors"
 						>
 							Get in touch
 						</a>

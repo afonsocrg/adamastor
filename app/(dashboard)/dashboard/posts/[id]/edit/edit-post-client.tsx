@@ -189,7 +189,7 @@ export default function EditPostClient({ post }: EditPostClientProps) {
               onChange={(e) => {
                 setTitleState(e.target.value);
               }}
-              className="title-input w-full resize-none overflow-hidden rounded-md border-0 bg-transparent p-0 text-3xl font-bold text-[#104357] placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-cyan-lifted dark:placeholder:text-neutral-600"
+              className="title-input w-full resize-none overflow-hidden rounded-md border-0 bg-transparent p-0 text-3xl font-bold text-[#104357] placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:text-navy-lifted dark:placeholder:text-neutral-600"
               style={{
                 // Prevent layout shift by setting a min-height
                 minHeight: "48px",

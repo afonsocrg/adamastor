@@ -20,10 +20,10 @@ const DEFAULT_DEK =
 export default function Masthead({ heading = DEFAULT_HEADING, dek = DEFAULT_DEK }: MastheadProps) {
 	return (
 		<header className="space-y-3 pb-2 pt-2">
-			<h1 className="text-xl md:text-2xl font-bold tracking-tight leading-tight text-navy [text-wrap:balance] [font-family:var(--font-lora-bold)] dark:text-cyan-lifted">
+			<h1 className="text-xl md:text-2xl font-bold tracking-tight leading-tight text-navy [text-wrap:balance] [font-family:var(--font-lora-bold)] dark:text-navy-lifted">
 				{heading}
 			</h1>
-			<p className="text-sm md:text-base leading-snug md:leading-relaxed text-navy-tone max-w-[60ch] [text-wrap:pretty] dark:text-cyan-dim">
+			<p className="text-sm md:text-base leading-snug md:leading-relaxed text-navy-tone max-w-[60ch] [text-wrap:pretty] dark:text-navy-dim">
 				{dek}
 			</p>
 		</header>

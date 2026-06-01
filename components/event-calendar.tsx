@@ -139,7 +139,7 @@ function EventCalendarMobileStrip({
 
 	return (
 		<div className="lg:hidden p-3 space-y-3">
-			<div className="text-base font-bold text-navy dark:text-cyan-lifted">{monthLabel}</div>
+			<div className="text-base font-bold text-navy dark:text-navy-lifted">{monthLabel}</div>
 			<div className="relative -mx-3">
 				<div
 					ref={scrollRef}
@@ -176,15 +176,15 @@ function EventCalendarMobileStrip({
 									// Active day: the WHOLE card is the highlighted rectangle —
 									// weekday cap + numeral together on one navy-tint fill,
 									// matching the admin big-calendar's weekly-view header block.
-									isActive && "bg-navy-tint dark:bg-cyan-glow/[0.18]",
-									!isActive && hasEvent && "hover:bg-navy-veil/40 dark:hover:bg-cyan-glow/[0.08]",
+									isActive && "bg-navy-tint dark:bg-navy-tint/[0.18]",
+									!isActive && hasEvent && "hover:bg-navy-veil/40 dark:hover:bg-navy-tint/[0.08]",
 									!hasEvent && "cursor-default",
 								)}
 							>
 								{/* Weekday cap — muted, letter-spaced kicker; stays navy-tone
 								    whether or not the card is highlighted (as in the admin
 								    week header). */}
-								<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] leading-none text-navy-tone dark:text-cyan-dim">
+								<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] leading-none text-navy-tone dark:text-navy-dim">
 									{weekday}
 								</span>
 								{/* Numeral — Lora Bold on the active day (the emphasis face
@@ -193,9 +193,9 @@ function EventCalendarMobileStrip({
 								<span
 									className={cn(
 										"mt-1.5 text-lg leading-none tabular-nums transition-colors",
-										isActive && "font-bold text-navy [font-family:var(--font-lora-bold)] dark:text-cyan-lifted",
-										!isActive && hasEvent && "font-semibold text-navy dark:text-cyan-lifted",
-										!isActive && !hasEvent && "font-semibold text-navy-tone/50 dark:text-cyan-dim/45",
+										isActive && "font-bold text-navy [font-family:var(--font-lora-bold)] dark:text-navy-lifted",
+										!isActive && hasEvent && "font-semibold text-navy dark:text-navy-lifted",
+										!isActive && !hasEvent && "font-semibold text-navy-tone/50 dark:text-navy-dim/45",
 									)}
 								>
 									{day.getDate()}
@@ -204,7 +204,7 @@ function EventCalendarMobileStrip({
 									aria-hidden="true"
 									className={cn(
 										"mt-1.5 h-1.5 w-1.5 rounded-full",
-										hasEvent ? (isActive ? "bg-navy dark:bg-cyan" : "bg-navy dark:bg-cyan-lifted") : "bg-transparent",
+										hasEvent ? (isActive ? "bg-navy dark:bg-navy-tint" : "bg-navy dark:bg-navy-lifted") : "bg-transparent",
 									)}
 								/>
 							</button>
@@ -219,7 +219,7 @@ function EventCalendarMobileStrip({
 						type="button"
 						aria-label="Scroll to earlier days"
 						onClick={() => scrollByPage(-1)}
-						className="absolute inset-y-0 left-0 flex w-12 items-center justify-start pl-1 bg-gradient-to-r from-background via-background to-transparent text-navy-tone transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-md"
+						className="absolute inset-y-0 left-0 flex w-12 items-center justify-start pl-1 bg-gradient-to-r from-background via-background to-transparent text-navy-tone transition-colors hover:text-navy dark:text-navy-dim dark:hover:text-navy-lifted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-md"
 					>
 						<ChevronLeft className="h-5 w-5" aria-hidden="true" />
 					</button>
@@ -232,7 +232,7 @@ function EventCalendarMobileStrip({
 						type="button"
 						aria-label="Scroll to later days"
 						onClick={() => scrollByPage(1)}
-						className="absolute inset-y-0 right-0 flex w-12 items-center justify-end pr-1 bg-gradient-to-l from-background via-background to-transparent text-navy-tone transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-md"
+						className="absolute inset-y-0 right-0 flex w-12 items-center justify-end pr-1 bg-gradient-to-l from-background via-background to-transparent text-navy-tone transition-colors hover:text-navy dark:text-navy-dim dark:hover:text-navy-lifted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:rounded-md"
 					>
 						<ChevronRight className="h-5 w-5" aria-hidden="true" />
 					</button>
@@ -329,15 +329,15 @@ function EventCalendar({
 					// Active day (today-when-nothing-selected, or the selected day):
 					// navy-tint rectangle fill + Lora Bold numeral (set on the number
 					// span below) — the admin big-calendar's signature today pill.
-					isActive && "bg-navy-tint font-bold text-navy dark:bg-cyan-glow/[0.18] dark:text-cyan-lifted",
+					isActive && "bg-navy-tint font-bold text-navy dark:bg-navy-tint/[0.18] dark:text-navy-lifted",
 					// Event day (not the active day): navy text, navy-veil hover —
 					// mirrors the rest of the page's interaction model. Today falls
 					// here once another day is selected.
 					!isActive &&
 						hasEvent &&
-						"font-medium text-navy hover:bg-navy-veil/40 dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.08]",
+						"font-medium text-navy hover:bg-navy-veil/40 dark:text-navy-lifted dark:hover:bg-navy-tint/[0.08]",
 					// Non-event day: muted, non-interactive.
-					!isActive && !hasEvent && "text-navy-tone/50 dark:text-cyan-dim/45",
+					!isActive && !hasEvent && "text-navy-tone/50 dark:text-navy-dim/45",
 					hasEvent && "cursor-pointer",
 					!hasEvent && "cursor-default",
 				)}
@@ -362,8 +362,8 @@ function EventCalendar({
 				{hasEvent && (
 					<div
 						className={cn(
-							"absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-navy dark:bg-cyan-lifted",
-							isActive && "bg-navy dark:bg-cyan",
+							"absolute bottom-0.5 h-1.5 w-1.5 rounded-full bg-navy dark:bg-navy-lifted",
+							isActive && "bg-navy dark:bg-navy-tint",
 						)}
 					/>
 				)}
@@ -394,7 +394,7 @@ function EventCalendar({
 					months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
 					month: "space-y-4 w-full",
 					caption: "flex justify-center pt-1 relative items-center mb-6",
-					caption_label: "font-bold text-base absolute left-2 text-navy dark:text-cyan-lifted",
+					caption_label: "font-bold text-base absolute left-2 text-navy dark:text-navy-lifted",
 					nav: "space-x-1 flex items-center",
 					nav_button: cn(
 						buttonVariants({ variant: "ghost" }),
@@ -402,7 +402,7 @@ function EventCalendar({
 						// so the chevrons and the days share one hover language —
 						// a background fill, not an opacity fade. Muted-navy resting
 						// icon darkens to navy on hover.
-						"h-7 w-7 rounded-md p-0 text-navy-tone transition-colors duration-150 ease hover:bg-navy-veil/40 hover:text-navy dark:text-cyan-dim dark:hover:bg-cyan-glow/[0.08] dark:hover:text-cyan-lifted",
+						"h-7 w-7 rounded-md p-0 text-navy-tone transition-colors duration-150 ease hover:bg-navy-veil/40 hover:text-navy dark:text-navy-dim dark:hover:bg-navy-tint/[0.08] dark:hover:text-navy-lifted",
 					),
 					nav_button_previous: "absolute right-8",
 					nav_button_next: "absolute right-1",
@@ -413,7 +413,7 @@ function EventCalendar({
 					// site uses for "UPCOMING" / "SUBSCRIBE". (Formatter still emits
 					// "Mon"; `uppercase` renders it "MON".)
 					head_cell:
-						"flex-1 text-center uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim rounded-md font-semibold text-[0.625rem]",
+						"flex-1 text-center uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim rounded-md font-semibold text-[0.625rem]",
 					row: "flex w-full mt-2",
 					cell: "h-9 flex-1 text-center text-sm p-0 relative rounded-md transition-colors duration-150 ease",
 					day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
@@ -422,8 +422,8 @@ function EventCalendar({
 						"bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
 					day_today: "bg-accent text-accent-foreground",
 					day_outside:
-						"day-outside text-navy-tone/45 aria-selected:bg-accent/50 aria-selected:text-navy-tone dark:text-cyan-dim/40",
-					day_disabled: "text-navy-tone/45 dark:text-cyan-dim/40",
+						"day-outside text-navy-tone/45 aria-selected:bg-accent/50 aria-selected:text-navy-tone dark:text-navy-dim/40",
+					day_disabled: "text-navy-tone/45 dark:text-navy-dim/40",
 					day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
 					day_hidden: "invisible",
 					...classNames,

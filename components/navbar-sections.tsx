@@ -11,9 +11,9 @@ const SECTIONS = [
 ] as const;
 
 const SECTION_LINK_CLASS = "-mb-px border-b-2 py-3 text-sm font-semibold uppercase tracking-[0.18em] transition-colors";
-const INACTIVE_SECTION_CLASS = "border-transparent text-navy-tone hover:text-navy dark:hover:text-cyan-lifted";
-const ACTIVE_SECTION_CLASS = "border-navy text-navy dark:border-cyan-lifted dark:text-cyan-lifted";
-const ACTIVE_TEXT_CLASS = "border-transparent text-navy dark:text-cyan-lifted";
+const INACTIVE_SECTION_CLASS = "border-transparent text-navy-tone hover:text-navy dark:hover:text-navy-lifted";
+const ACTIVE_SECTION_CLASS = "border-navy text-navy dark:border-navy-lifted dark:text-navy-lifted";
+const ACTIVE_TEXT_CLASS = "border-transparent text-navy dark:text-navy-lifted";
 
 export default function NavbarSections() {
 	const pathname = usePathname() ?? "/";
@@ -69,7 +69,7 @@ export default function NavbarSections() {
 	}, [measureActiveTab]);
 
 	return (
-		<div className="hidden md:block border-b border-navy-frame dark:border-cyan-glow/[0.12]">
+		<div className="hidden md:block border-b border-navy-frame dark:border-navy-edge">
 			<div className="max-w-6xl mx-auto px-4 md:px-8">
 				<nav ref={trackRef} aria-label="Sections" className="relative flex flex-wrap items-center gap-x-8 gap-y-1">
 					{SECTIONS.map((section, index) => {
@@ -111,7 +111,7 @@ export default function NavbarSections() {
 					<span
 						aria-hidden="true"
 						className={cn(
-							"pointer-events-none absolute bottom-[-1px] left-0 h-0.5 w-px origin-left bg-navy dark:bg-cyan-lifted [transition:transform_220ms_cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none",
+							"pointer-events-none absolute bottom-[-1px] left-0 h-0.5 w-px origin-left bg-navy dark:bg-navy-lifted [transition:transform_220ms_cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none",
 							hasMeasured ? "opacity-100" : "opacity-0",
 						)}
 						style={{

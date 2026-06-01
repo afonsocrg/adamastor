@@ -13,7 +13,7 @@ import type { ReactNode } from "react";
 // per-instance className duplication to enforce the editorial publication
 // register the rest of the footer establishes.
 const FOOTER_HEADING = "text-xs font-semibold uppercase tracking-[0.18em] text-navy-tone";
-const FOOTER_LINK = "inline-block py-1.5 text-navy transition-colors hover:underline dark:text-cyan-lifted";
+const FOOTER_LINK = "inline-block py-1.5 text-navy transition-colors hover:underline dark:text-navy-lifted";
 const FOOTER_LINK_WITH_ICON = `${FOOTER_LINK} inline-flex items-center gap-2`;
 const FOOTER_NAV = "space-y-3 min-w-0";
 const FOOTER_LIST = "space-y-2 text-sm";
@@ -41,19 +41,19 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 			        tracking register so the footer reads as a publication
 			        index, not a sitemap dump.
 			    (3) Copyright strap on a quiet bottom row. */}
-			<footer className="mt-12 border-t border-navy-frame dark:border-cyan-glow/[0.12]">
+			<footer className="mt-12 border-t border-navy-frame dark:border-navy-edge">
 				<div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
 					<p className="text-sm text-muted-foreground">Organising an event in Portugal?</p>
 					<Link
 						href="/events/submit"
-						className="-mx-2 -my-1 mt-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-base font-semibold text-navy transition-colors hover:bg-navy-wash dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06]"
+						className="-mx-2 -my-1 mt-1 inline-flex items-center gap-2 rounded-md px-2 py-1 text-base font-semibold text-navy transition-colors hover:bg-navy-wash dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
 					>
 						Get your event listed
 						<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />
 					</Link>
 				</div>
 
-				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
+				<div className="border-t border-navy-frame dark:border-navy-edge">
 					<div className="max-w-6xl mx-auto grid grid-cols-1 gap-8 px-4 py-10 md:grid-cols-4 md:gap-12 md:px-8">
 						<div>
 							{/* Inlined SVG (not <Image>) so the paths are stylable for the
@@ -76,7 +76,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 						<nav aria-label="Browse Events" className={FOOTER_NAV}>
 							<Link
 								href="/events"
-								className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-cyan-lifted`}
+								className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-navy-lifted`}
 							>
 								Browse Events
 							</Link>
@@ -192,7 +192,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 						<nav aria-label="Follow Us" className={FOOTER_NAV}>
 							<Link
 								href="/subscribe"
-								className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-cyan-lifted`}
+								className={`${FOOTER_HEADING} block transition-colors hover:text-navy dark:hover:text-navy-lifted`}
 							>
 								Follow Us
 							</Link>
@@ -230,23 +230,23 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 					</div>
 				</div>
 
-				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
+				<div className="border-t border-navy-frame dark:border-navy-edge">
 					<div className="max-w-6xl mx-auto px-4 py-6 md:px-8">
 						<Link
 							href="/about"
-							className="block text-center text-base font-bold italic text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] transition-colors hover:underline underline-offset-4 decoration-navy-tint decoration-2 dark:decoration-cyan-glow/[0.4]"
+							className="block text-center text-base font-bold italic text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] transition-colors hover:underline underline-offset-4 decoration-navy-tint decoration-2 dark:decoration-navy-tint/[0.4]"
 						>
 							Only You Know Who You Can Be
 						</Link>
 					</div>
 				</div>
 
-				<div className="border-t border-navy-frame dark:border-cyan-glow/[0.12]">
+				<div className="border-t border-navy-frame dark:border-navy-edge">
 					<div className="max-w-6xl mx-auto flex items-center justify-between gap-3 px-4 py-4 md:px-8">
 						<p className="text-xs text-muted-foreground">© 2026 Adamastor</p>
 						<Link
 							href="/about"
-							className="inline-block py-1.5 text-xs text-muted-foreground transition-colors hover:text-navy hover:underline dark:hover:text-cyan-lifted"
+							className="inline-block py-1.5 text-xs text-muted-foreground transition-colors hover:text-navy hover:underline dark:hover:text-navy-lifted"
 						>
 							About us
 						</Link>

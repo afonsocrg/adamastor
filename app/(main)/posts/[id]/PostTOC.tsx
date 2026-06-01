@@ -214,10 +214,10 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 				    aria-label stays "Article contents" — terser and reads
 				    better as a landmark name to screen readers than the
 				    visible editorial label would. */}
-				<p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+				<p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">
 					In this article
 				</p>
-				<ol ref={listRef} className="relative border-l border-navy-frame [&>li+li]:mt-2">
+				<ol ref={listRef} className="relative border-l border-navy-frame dark:border-navy-edge [&>li+li]:mt-2">
 					{headings.map((heading) => {
 						const isActive = heading.slug === activeSlug;
 						return (
@@ -234,10 +234,10 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 									className={cn(
 										"-ml-px block border-l py-0.5 pl-3 text-sm leading-snug transition-colors",
 										isActive && !hasMeasuredActiveLine
-											? "border-navy font-[575] text-navy dark:border-cyan-lifted dark:text-cyan-lifted"
+											? "border-navy font-[575] text-navy dark:border-navy-lifted dark:text-navy-lifted"
 											: isActive
-												? "border-transparent font-[575] text-navy dark:text-cyan-lifted"
-												: "border-transparent text-navy-tone hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted",
+												? "border-transparent font-[575] text-navy dark:text-navy-lifted"
+												: "border-transparent text-navy-tone hover:text-navy dark:text-navy-dim dark:hover:text-navy-lifted",
 									)}
 								>
 									{heading.text}
@@ -248,7 +248,7 @@ export default function PostTOC({ headings, className, alignTo }: PostTOCProps) 
 					<span
 						aria-hidden="true"
 						className={cn(
-							"pointer-events-none absolute left-0 top-0 h-px w-px origin-top bg-navy dark:bg-cyan-lifted [transition:transform_220ms_cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none",
+							"pointer-events-none absolute left-0 top-0 h-px w-px origin-top bg-navy dark:bg-navy-lifted [transition:transform_220ms_cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none",
 							hasMeasuredActiveLine ? "opacity-100" : "opacity-0",
 						)}
 						style={{

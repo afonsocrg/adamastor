@@ -165,7 +165,7 @@ function NewsletterSection({ postId, postTitle }: NewsletterSectionProps) {
 
 	return (
 		<div className="mt-6 pt-6">
-			<h3 className="text-xl font-semibold text-[#104357] dark:text-cyan-lifted mb-4">Newsletter</h3>
+			<h3 className="text-xl font-semibold text-[#104357] dark:text-navy-lifted mb-4">Newsletter</h3>
 
 			<Tabs defaultValue="test" className="w-full">
 				<TabsList className="grid w-full grid-cols-2">
@@ -312,8 +312,8 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 												<Badge
 													className={
 														post.is_public
-															? "bg-cyan-50 text-cyan-600 border-cyan-200"
-															: "bg-amber-50 text-amber-600 border-amber-200"
+															? "bg-navy-tint/50 text-navy border-navy-tint dark:bg-navy-tint/[0.15] dark:text-navy-lifted dark:border-navy-tint/[0.3]"
+															: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-400/10 dark:text-amber-300 dark:border-amber-400/30"
 													}
 													variant={post.is_public ? "outline" : "secondary"}
 												>
@@ -339,7 +339,7 @@ export function PostsTableClient({ posts, emptyMessage, showAuthor = false }: Po
 									</SheetTrigger>
 									<SheetContent className="sm:max-w-[800px]">
 										<SheetHeader>
-											<SheetTitle className="text-2xl font-bold text-[#104357] dark:text-cyan-lifted flex gap-2 items-center">
+											<SheetTitle className="text-2xl font-bold text-[#104357] dark:text-navy-lifted flex gap-2 items-center">
 												{post.title}
 											</SheetTitle>
 											<SheetDescription>Published {formatRelativeDate(post.created_at)}</SheetDescription>

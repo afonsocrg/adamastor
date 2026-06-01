@@ -18,8 +18,8 @@ interface EventDateBadgeProps {
 }
 
 const TONE_FILL: Record<NonNullable<EventDateBadgeProps["tone"]>, string> = {
-	surface: "bg-navy-veil dark:bg-cyan-glow/[0.06]",
-	highlight: "bg-navy-tint dark:bg-cyan-glow/[0.18]",
+	surface: "bg-navy-veil dark:bg-navy-tint/[0.06]",
+	highlight: "bg-navy-tint dark:bg-navy-tint/[0.18]",
 };
 
 /**
@@ -42,10 +42,10 @@ export function EventDateBadge({ weekday, day, dateTime, tone = "surface", class
 				className,
 			)}
 		>
-			<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+			<span className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">
 				{weekday}
 			</span>
-			<span className="mt-1 text-lg font-bold text-navy [font-family:var(--font-lora-bold)] [font-variant-numeric:tabular-nums] dark:text-cyan-lifted">
+			<span className="mt-1 text-lg font-bold text-navy [font-family:var(--font-lora-bold)] [font-variant-numeric:tabular-nums] dark:text-navy-lifted">
 				{day}
 			</span>
 		</time>

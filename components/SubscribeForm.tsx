@@ -120,16 +120,16 @@ export function SubscribeForm({ kind }: SubscribeFormProps) {
 
 	return (
 		<>
-			<section className="border-t border-navy-frame pt-10" data-subscribe-region>
-				<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">Subscribe</p>
-				<h2 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] md:text-[1.75rem]">
+			<section className="border-t border-navy-frame dark:border-navy-edge pt-10" data-subscribe-region>
+				<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">Subscribe</p>
+				<h2 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-navy dark:text-navy-lifted [text-wrap:balance] md:text-[1.75rem]">
 					{heading}
 				</h2>
-				<p className="mt-3 max-w-[55ch] text-base leading-relaxed text-navy-tone dark:text-cyan-dim">{dek}</p>
+				<p className="mt-3 max-w-[55ch] text-base leading-relaxed text-navy-tone dark:text-navy-dim">{dek}</p>
 
 				{done ? (
 					<div className="mt-6 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300">
-						<p className="text-base font-medium text-navy dark:text-cyan-lifted">
+						<p className="text-base font-medium text-navy dark:text-navy-lifted">
 							You’re in. The next edition lands in your inbox.
 						</p>
 					</div>
@@ -187,11 +187,11 @@ export function SubscribeForm({ kind }: SubscribeFormProps) {
 
 			{showStickyBar && (
 				<section
-					className="fixed inset-x-0 bottom-0 z-40 border-t border-navy-frame bg-white/95 shadow-[0_-1px_4px_-2px_rgba(8,41,58,0.05)] backdrop-blur-sm motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-300 motion-safe:ease-out dark:bg-navy-deep/90"
+					className="fixed inset-x-0 bottom-0 z-40 border-t border-navy-frame dark:border-navy-edge bg-white/95 shadow-[0_-1px_4px_-2px_rgba(8,41,58,0.05)] backdrop-blur-sm motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-300 motion-safe:ease-out dark:bg-navy-deep/90"
 					aria-label="Subscribe"
 				>
 					<div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-8">
-						<p className="text-xs font-medium text-navy dark:text-cyan-lifted">{stickyLabel}</p>
+						<p className="text-xs font-medium text-navy dark:text-navy-lifted">{stickyLabel}</p>
 						<Button
 							type="button"
 							onClick={() => {

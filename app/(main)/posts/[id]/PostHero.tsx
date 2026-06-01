@@ -29,7 +29,7 @@ export default function PostHero({ kind, title, author, publishedAt, publishedAt
 	// navy.bright brand-blue; Opinion carries the warm orange "named voice"
 	// accent. Same system on the homepage river + featured hero, so a reader
 	// who scans a kicker on `/` meets the same colour when they land here.
-	const kickerColor = kind === "opinion" ? "text-orange-hue" : "text-navy-bright dark:text-cyan-glow";
+	const kickerColor = kind === "opinion" ? "text-orange-hue" : "text-navy-bright dark:text-navy-bright-dark";
 
 	// Length-responsive H1 sizing. Short titles get the full editorial 48px
 	// punch; longer titles compress so they don't wrap past 2-3 lines inside
@@ -63,13 +63,13 @@ export default function PostHero({ kind, title, author, publishedAt, publishedAt
 						{baseKicker}
 					</p>
 					{weekLabel && (
-						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-cyan-dim/75">
+						<p className="shrink-0 text-[0.78rem] font-medium tracking-[0.04em] text-navy-tone/75 dark:text-navy-dim/75">
 							{weekLabel}
 						</p>
 					)}
 				</div>
 				<h1
-					className={`text-[1.9375rem] font-bold leading-tight tracking-tight text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] ${h1DesktopSize}`}
+					className={`text-[1.9375rem] font-bold leading-tight tracking-tight text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance] ${h1DesktopSize}`}
 				>
 					{displayTitle}
 				</h1>

@@ -89,9 +89,9 @@ export default async function EventSubmissionsPage() {
 		<div className="w-full mx-auto p-6 space-y-8">
 			<header className="space-y-2">
 				<div className="flex items-center gap-3">
-					<h2 className="text-xl font-semibold text-[#104357] dark:text-cyan-lifted">Event submissions</h2>
+					<h2 className="text-xl font-semibold text-[#104357] dark:text-navy-lifted">Event submissions</h2>
 					{pending.length > 0 ? (
-						<Badge className="bg-[#04C9D8] text-white hover:bg-[#04C9D8]">{pending.length} pending</Badge>
+						<Badge className="bg-orange-hue text-white hover:bg-orange-hue">{pending.length} pending</Badge>
 					) : null}
 				</div>
 				<p className="text-sm text-muted-foreground">
@@ -124,7 +124,7 @@ export default async function EventSubmissionsPage() {
 								{pending.map((row) => (
 									<TableRow key={row.id}>
 										<TableCell className="max-w-[260px]">
-											<div className="font-medium text-[#104357] dark:text-cyan-lifted truncate">{row.title}</div>
+											<div className="font-medium text-[#104357] dark:text-navy-lifted truncate">{row.title}</div>
 											<div className="text-xs text-muted-foreground">{formatCity(row.city)}</div>
 										</TableCell>
 										<TableCell>
@@ -169,7 +169,7 @@ export default async function EventSubmissionsPage() {
 								{recent.map((row) => (
 									<TableRow key={row.id}>
 										<TableCell className="max-w-[260px]">
-											<div className="font-medium text-[#104357] dark:text-cyan-lifted truncate">{row.title}</div>
+											<div className="font-medium text-[#104357] dark:text-navy-lifted truncate">{row.title}</div>
 											<div className="text-xs text-muted-foreground">{formatCity(row.city)}</div>
 										</TableCell>
 										<TableCell>

@@ -352,10 +352,10 @@ export default function EventsPageClient({
 		cn(
 			"inline-flex items-center text-sm leading-6 pb-1 shrink-0 whitespace-nowrap transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:rounded",
 			isActive && !hasMeasuredCityUnderline
-				? "font-semibold text-navy dark:text-cyan-glow border-b-2 border-navy dark:border-cyan-glow"
+				? "font-semibold text-navy dark:text-navy-lifted border-b-2 border-navy dark:border-navy-lifted"
 				: isActive
-					? "font-semibold text-navy dark:text-cyan-glow border-b-2 border-transparent"
-					: "text-navy-tone hover:text-navy dark:text-cyan-dim/[0.7] dark:hover:text-cyan-lifted border-b-2 border-transparent",
+					? "font-semibold text-navy dark:text-navy-lifted border-b-2 border-transparent"
+					: "text-navy-tone hover:text-navy dark:text-navy-dim/[0.7] dark:hover:text-navy-lifted border-b-2 border-transparent",
 		);
 
 	// Category pill chip: browseable lens. Active uses navy-tint, not cyan,
@@ -364,8 +364,8 @@ export default function EventsPageClient({
 		cn(
 			"inline-flex items-center rounded-full border px-4 py-2 text-sm leading-none shrink-0 whitespace-nowrap transition-colors duration-150 ease motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 			isActive
-				? "border-navy bg-navy-tint text-navy font-semibold dark:border-cyan/[0.4] dark:bg-cyan/[0.12] dark:text-cyan-glow"
-				: "border-navy-frame text-navy-tone hover:text-navy hover:border-navy-tone dark:border-cyan-glow/[0.15] dark:text-cyan-dim/[0.7] dark:hover:text-cyan-lifted",
+				? "border-navy bg-navy-tint text-navy font-semibold dark:border-navy-tint/[0.45] dark:bg-navy-tint/[0.18] dark:text-navy-lifted"
+				: "border-navy-frame text-navy-tone hover:text-navy hover:border-navy-tone dark:border-navy-edge dark:text-navy-dim/[0.7] dark:hover:text-navy-lifted",
 		);
 
 	// Handle calendar date click
@@ -410,11 +410,11 @@ export default function EventsPageClient({
 	// the breakpoint-appropriate copy shown; EventCalendar hides its own
 	// non-matching half (strip vs month grid) internally.
 	const renderCalendarCard = (visibilityClass?: string) => (
-		<div className={cn("rounded-md border border-navy-frame p-2 dark:border-cyan-glow/[0.18]", visibilityClass)}>
+		<div className={cn("rounded-md border border-navy-frame p-2 dark:border-navy-edge", visibilityClass)}>
 			<EventCalendar eventDates={eventDates} onDateClick={handleDateClick} selectedDate={selectedDate} />
-			<div className="px-2 pb-2 space-y-2 text-xs leading-5 text-navy-tone dark:text-cyan-dim">
+			<div className="px-2 pb-2 space-y-2 text-xs leading-5 text-navy-tone dark:text-navy-dim">
 				<div className="flex items-center gap-2">
-					<div className="h-2 w-2 rounded-full bg-navy dark:bg-cyan-lifted" />
+					<div className="h-2 w-2 rounded-full bg-navy dark:bg-navy-lifted" />
 					<span>Days with events (click to filter)</span>
 				</div>
 				{selectedDate && (
@@ -445,7 +445,7 @@ export default function EventsPageClient({
 			<nav
 				ref={cityNavRef}
 				aria-label="City"
-				className="overflow-x-auto -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-x-visible sm:-mx-0 sm:px-0 border-b border-navy-frame dark:border-cyan-glow/[0.12]"
+				className="overflow-x-auto -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-x-visible sm:-mx-0 sm:px-0 border-b border-navy-frame dark:border-navy-edge"
 			>
 				<div
 					ref={cityTrackRef}
@@ -481,7 +481,7 @@ export default function EventsPageClient({
 					<span
 						aria-hidden="true"
 						className={cn(
-							"pointer-events-none absolute bottom-[-1px] left-0 h-0.5 w-px origin-left bg-navy dark:bg-cyan-glow [transition:transform_220ms_cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none",
+							"pointer-events-none absolute bottom-[-1px] left-0 h-0.5 w-px origin-left bg-navy dark:bg-navy-lifted [transition:transform_220ms_cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-none",
 							hasMeasuredCityUnderline ? "opacity-100" : "opacity-0",
 						)}
 						style={{
@@ -512,7 +512,7 @@ export default function EventsPageClient({
 					    list. Keeping the header pure lets the H1 actually
 					    act as a page title. */}
 					<header className="space-y-3 pb-2 pt-2">
-						<h1 className="text-xl md:text-2xl font-bold tracking-tight leading-tight text-navy [text-wrap:balance] dark:text-cyan-lifted [font-family:var(--font-lora-bold)]">
+						<h1 className="text-xl md:text-2xl font-bold tracking-tight leading-tight text-navy [text-wrap:balance] dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 							{selectedDate
 								? `Events for ${formatEventDate(selectedDate, hasHydrated)}`
 								: lockedCategory && lockedCity
@@ -529,7 +529,7 @@ export default function EventsPageClient({
 						</h1>
 
 						{intro && !selectedDate ? (
-							<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-navy-tone [text-wrap:pretty] dark:text-cyan-dim">
+							<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-navy-tone [text-wrap:pretty] dark:text-navy-dim">
 								{intro}
 							</p>
 						) : null}
@@ -565,27 +565,27 @@ export default function EventsPageClient({
 					{renderCalendarCard("lg:hidden")}
 
 					{selectedDate ? (
-						<div className="flex items-center justify-between rounded-md bg-navy-veil/40 dark:bg-cyan-glow/[0.06] px-4 py-2 text-sm">
-							<span className="text-navy dark:text-cyan-lifted">
+						<div className="flex items-center justify-between rounded-md bg-navy-veil/40 dark:bg-navy-tint/[0.06] px-4 py-2 text-sm">
+							<span className="text-navy dark:text-navy-lifted">
 								Filtering by <span className="font-semibold">{formatEventDate(selectedDate, hasHydrated)}</span>
 							</span>
 							<button
 								type="button"
 								onClick={clearFilter}
-								className="-mx-2 -my-1 rounded-md px-2 py-1 text-navy-tone transition-colors hover:bg-navy-veil/40 hover:text-navy dark:text-cyan-dim/[0.7] dark:hover:bg-cyan-glow/[0.04] dark:hover:text-cyan-lifted"
+								className="-mx-2 -my-1 rounded-md px-2 py-1 text-navy-tone transition-colors hover:bg-navy-veil/40 hover:text-navy dark:text-navy-dim/[0.7] dark:hover:bg-navy-tint/[0.04] dark:hover:text-navy-lifted"
 							>
 								Clear
 							</button>
 						</div>
 					) : null}
 
-					<div className="border-l border-navy-frame dark:border-cyan-glow/[0.12] pl-4 md:pl-8 space-y-6 md:space-y-10">
+					<div className="border-l border-navy-frame dark:border-navy-edge pl-4 md:pl-8 space-y-6 md:space-y-10">
 						{filteredEvents.length === 0 ? (
 							selectedDate ? (
 								// Date-filter empty state: user has applied a filter,
 								// just needs to clear it. Dashed border = "transient
 								// filter result" not "the page is empty."
-								<div className="rounded-md border border-dashed border-navy-frame dark:border-cyan-glow/[0.18] px-6 py-10 text-center text-base leading-relaxed text-navy-tone dark:text-cyan-dim">
+								<div className="rounded-md border border-dashed border-navy-frame dark:border-navy-edge px-6 py-10 text-center text-base leading-relaxed text-navy-tone dark:text-navy-dim">
 									No events found for {formatEventDate(selectedDate, hasHydrated)}
 								</div>
 							) : (
@@ -594,8 +594,8 @@ export default function EventsPageClient({
 								// here are either looking for events OR are potential
 								// organisers. Turn the gap into an organiser-acquisition
 								// prompt instead of a dead "no results" message.
-								<div className="rounded-md border border-navy-frame bg-navy-veil/40 dark:border-cyan-glow/[0.12] dark:bg-cyan-glow/[0.04] px-6 py-10 text-center">
-									<h2 className="text-lg font-bold tracking-tight text-navy dark:text-cyan-lifted">
+								<div className="rounded-md border border-navy-frame bg-navy-veil/40 dark:border-navy-edge dark:bg-navy-tint/[0.04] px-6 py-10 text-center">
+									<h2 className="text-lg font-bold tracking-tight text-navy dark:text-navy-lifted">
 										{lockedCategory && lockedCity
 											? `No upcoming ${formatCategoryLabel(lockedCategory)} events in ${formatCityLabel(lockedCity)}`
 											: lockedCategory
@@ -604,11 +604,11 @@ export default function EventsPageClient({
 													? `No upcoming events in ${formatCityLabel(lockedCity)}`
 													: "No upcoming events"}
 									</h2>
-									<p className="mt-3 text-base leading-relaxed text-navy-tone dark:text-cyan-dim">
+									<p className="mt-3 text-base leading-relaxed text-navy-tone dark:text-navy-dim">
 										Organising one?{" "}
 										<Link
 											href="/events/submit"
-											className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-cyan-lifted dark:decoration-cyan-glow/[0.4] dark:hover:decoration-cyan-glow transition-colors"
+											className="font-medium text-navy underline underline-offset-4 decoration-navy-tint decoration-2 hover:decoration-navy dark:text-navy-lifted dark:decoration-navy-tint/[0.4] dark:hover:decoration-navy-tint transition-colors"
 										>
 											Submit it
 										</Link>{" "}
@@ -635,11 +635,11 @@ export default function EventsPageClient({
 													aria-hidden="true"
 													className="absolute left-[-1rem] md:left-[-2rem] top-[1.25rem] h-2 w-2 -translate-x-1/2 rounded-full bg-navy-tint"
 												/>
-												<time dateTime={dateKey} className="font-semibold text-navy dark:text-cyan-lifted">
+												<time dateTime={dateKey} className="font-semibold text-navy dark:text-navy-lifted">
 													{dateParts.primary}
 												</time>
 												{dateParts.secondary ? (
-													<span className="text-navy-tone dark:text-cyan-dim">{dateParts.secondary}</span>
+													<span className="text-navy-tone dark:text-navy-dim">{dateParts.secondary}</span>
 												) : null}
 											</h2>
 										)}
@@ -734,10 +734,10 @@ export default function EventsPageClient({
 									// signals "alternatives if Google Cal isn't your tool" without burying
 									// them so deep that RSS power-users can't find them.
 									const quietActionClass =
-										"inline-flex items-center gap-1.5 text-xs font-medium text-navy-tone hover:text-navy hover:underline underline-offset-4 dark:text-cyan-dim dark:hover:text-cyan-lifted transition-colors";
+										"inline-flex items-center gap-1.5 text-xs font-medium text-navy-tone hover:text-navy hover:underline underline-offset-4 dark:text-navy-dim dark:hover:text-navy-lifted transition-colors";
 
 									return (
-										<div className="pt-6 border-t border-navy-frame dark:border-cyan-glow/[0.12] space-y-8">
+										<div className="pt-6 border-t border-navy-frame dark:border-navy-edge space-y-8">
 											{/* Block 1: personal subscription. The primary affordance is
 										    "Add to Google Calendar" — calendars are where events live,
 										    one-click subscribe is the broadest UX win, and the
@@ -747,14 +747,14 @@ export default function EventsPageClient({
 										    for logged-out visitors). RSS / .ics / Copy URL stay as
 										    quiet text links below for the niche cases. */}
 											<div>
-												<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+												<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">
 													Subscribe to {scopeLabel}
 												</p>
 												<a
 													href={googleCalUrl}
 													target="_blank"
 													rel="noreferrer noopener"
-													className="mt-4 inline-flex items-center gap-2 rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:border-cyan-lifted dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06]"
+													className="mt-4 inline-flex items-center gap-2 rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
 												>
 													<CalendarDays className="h-4 w-4" aria-hidden="true" />
 													Add to Google Calendar
@@ -793,11 +793,11 @@ export default function EventsPageClient({
 										    Malik and a self-serve "how to add to Slack or Telegram"
 										    disclosure for the channel admins who want to set it up
 										    themselves without a 1:1 conversation. */}
-											<div className="pt-6 border-t border-navy-frame dark:border-cyan-glow/[0.12]">
-												<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-cyan-dim">
+											<div className="pt-6 border-t border-navy-frame dark:border-navy-edge">
+												<p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy-tone dark:text-navy-dim">
 													Run a community or building something?
 												</p>
-												<p className="mt-3 max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-navy-tone dark:text-cyan-dim">
+												<p className="mt-3 max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-navy-tone dark:text-navy-dim">
 													Add this feed to your Slack or Telegram channel and your members get curated {scopeLabel}{" "}
 													delivered to the channel — no extra work for you, just the relevant ones. Embedding on your
 													own site or want a custom feed? Send Malik a message.
@@ -806,26 +806,26 @@ export default function EventsPageClient({
 													href={whatsAppUrl}
 													target="_blank"
 													rel="noreferrer noopener"
-													className="-mx-2 -my-1 mt-2 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06]"
+													className="-mx-2 -my-1 mt-2 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
 												>
 													<MessageCircle className="h-4 w-4" aria-hidden="true" />
 													Message Malik on WhatsApp
 													<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />
 												</a>
 												<details className="mt-4 group">
-													<summary className="cursor-pointer text-sm text-navy-tone transition-colors hover:text-navy dark:text-cyan-dim dark:hover:text-cyan-lifted">
+													<summary className="cursor-pointer text-sm text-navy-tone transition-colors hover:text-navy dark:text-navy-dim dark:hover:text-navy-lifted">
 														How to add this feed to Slack or Telegram
 													</summary>
-													<div className="mt-3 space-y-3 text-sm leading-relaxed text-navy-tone dark:text-cyan-dim">
+													<div className="mt-3 space-y-3 text-sm leading-relaxed text-navy-tone dark:text-navy-dim">
 														<p>
-															<span className="font-semibold text-navy dark:text-cyan-lifted">In Slack —</span> type{" "}
+															<span className="font-semibold text-navy dark:text-navy-lifted">In Slack —</span> type{" "}
 															<button
 																type="button"
 																onClick={handleCopySlackCmd}
 																aria-label={
 																	copiedSlackCmd ? "Copied to clipboard" : "Click to copy Slack subscribe command"
 																}
-																className="inline-flex items-center gap-1.5 rounded bg-navy-veil/60 px-1.5 py-0.5 text-[0.85em] text-navy transition-colors hover:bg-navy-veil dark:bg-cyan-glow/[0.08] dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.14]"
+																className="inline-flex items-center gap-1.5 rounded bg-navy-veil/60 px-1.5 py-0.5 text-[0.85em] text-navy transition-colors hover:bg-navy-veil dark:bg-navy-tint/[0.08] dark:text-navy-lifted dark:hover:bg-navy-tint/[0.14]"
 															>
 																<code className="font-mono">{slackCommand}</code>
 																<span
@@ -842,7 +842,7 @@ export default function EventsPageClient({
 															in any channel and new events post automatically.
 														</p>
 														<p>
-															<span className="font-semibold text-navy dark:text-cyan-lifted">In Telegram —</span> add
+															<span className="font-semibold text-navy dark:text-navy-lifted">In Telegram —</span> add
 															an RSS bot (e.g. <em>@RssBot</em>, <em>@feedreaderbot</em>) to your channel, then
 															subscribe to the RSS URL above.
 														</p>
@@ -880,17 +880,17 @@ export default function EventsPageClient({
 						{lockedCategory ? (
 							<CategoryNewsletterCta categorySlug={lockedCategory} categoryName={formatCategoryLabel(lockedCategory)} />
 						) : (
-							<div className="rounded-md border border-navy-frame p-5 dark:border-cyan-glow/[0.18]">
-								<Mail className="h-6 w-6 text-navy dark:text-cyan-lifted" aria-hidden="true" />
-								<h2 className="mt-3 text-[1.0625rem] font-bold tracking-tight text-navy [text-wrap:balance] dark:text-cyan-lifted">
+							<div className="rounded-md border border-navy-frame p-5 dark:border-navy-edge">
+								<Mail className="h-6 w-6 text-navy dark:text-navy-lifted" aria-hidden="true" />
+								<h2 className="mt-3 text-[1.0625rem] font-bold tracking-tight text-navy [text-wrap:balance] dark:text-navy-lifted">
 									Never miss an event again
 								</h2>
-								<p className="mt-2 text-sm leading-relaxed text-navy-tone dark:text-cyan-dim">
+								<p className="mt-2 text-sm leading-relaxed text-navy-tone dark:text-navy-dim">
 									The events worth showing up to in Portugal. Sent weekly, in the topics you pick.
 								</p>
 								<Link
 									href="/subscribe"
-									className="-mx-2 -my-1 mt-4 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:text-cyan-lifted dark:hover:bg-cyan-glow/[0.06]"
+									className="-mx-2 -my-1 mt-4 inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
 								>
 									Get the picks
 									<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />

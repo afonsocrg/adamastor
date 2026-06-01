@@ -62,7 +62,7 @@ export function NavMain({ items, label, dividerTop = false }: NavMainProps) {
 	const isSubItemActive = (subItemUrl: string) => currentPathWithSearch === subItemUrl;
 
 	return (
-		<SidebarGroup className={cn("py-1", dividerTop && "border-t border-navy-frame mt-1 pt-2")}>
+		<SidebarGroup className={cn("py-1", dividerTop && "border-t border-navy-frame dark:border-navy-edge mt-1 pt-2")}>
 			{label ? (
 				<SidebarGroupLabel className="font-serif uppercase tracking-[0.18em] text-[10px] text-navy-tone">
 					{label}
@@ -82,7 +82,7 @@ export function NavMain({ items, label, dividerTop = false }: NavMainProps) {
 									className={cn(
 										"relative transition-colors duration-200 px-3 py-[18px]",
 										itemActive && "bg-navy-tint text-navy-shade font-medium hover:bg-navy-tint",
-										!itemActive && "hover:bg-navy-frame",
+										!itemActive && "hover:bg-navy-frame dark:hover:bg-navy-edge/40",
 									)}
 								>
 									<a href={item.url}>
@@ -109,7 +109,7 @@ export function NavMain({ items, label, dividerTop = false }: NavMainProps) {
 								</SidebarMenuButton>
 
 								{item.items?.length ? (
-									<SidebarMenuSub className="border-navy-frame">
+									<SidebarMenuSub className="border-navy-frame dark:border-navy-edge">
 										{item.items.map((subItem) => {
 											const subItemActive = isSubItemActive(subItem.url);
 											return (
@@ -119,7 +119,8 @@ export function NavMain({ items, label, dividerTop = false }: NavMainProps) {
 														className={cn(
 															"transition-colors duration-200 p-4",
 															subItemActive && "bg-navy-tint text-navy-shade hover:bg-navy-tint",
-															!subItemActive && "text-navy-shade/75 hover:text-navy-shade hover:bg-navy-frame",
+															!subItemActive &&
+												"text-navy-shade/75 hover:text-navy-shade hover:bg-navy-frame dark:text-navy-dim dark:hover:text-navy-lifted dark:hover:bg-navy-edge/40",
 														)}
 													>
 														<a href={subItem.url}>

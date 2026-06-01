@@ -13,11 +13,11 @@ export default function ReadNext({ posts }: ReadNextProps) {
 	if (posts.length === 0) return null;
 
 	return (
-		<section className="border-t border-navy-frame pt-10">
+		<section className="border-t border-navy-frame dark:border-navy-edge pt-10">
 			<p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-hue">
 				More opinion
 			</p>
-			<ul className="mt-6 divide-y divide-navy-frame">
+			<ul className="mt-6 divide-y divide-navy-frame dark:divide-navy-edge">
 				{posts.map((post) => (
 					<li key={post.id}>
 						<Link
@@ -30,15 +30,15 @@ export default function ReadNext({ posts }: ReadNextProps) {
 									alt={post.authors.name ?? "Author portrait"}
 									width={48}
 									height={48}
-									className="h-12 w-12 shrink-0 rounded-md border border-navy-frame object-cover"
+									className="h-12 w-12 shrink-0 rounded-md border border-navy-frame dark:border-navy-edge object-cover"
 									style={{ filter: "url(#duotone-navy-portrait)" }}
 								/>
 							) : null}
 							<div className="min-w-0 flex-1 space-y-1.5">
-								<h3 className="text-[1.1875rem] font-semibold leading-snug tracking-tight text-navy dark:text-cyan-lifted [text-wrap:balance] group-hover:underline md:text-xl">
+								<h3 className="text-[1.1875rem] font-semibold leading-snug tracking-tight text-navy dark:text-navy-lifted [text-wrap:balance] group-hover:underline md:text-xl">
 									{getDisplayTitle(post.title)}
 								</h3>
-								<p className="text-sm text-navy-tone dark:text-cyan-dim">
+								<p className="text-sm text-navy-tone dark:text-navy-dim">
 									{post.authors?.name ?? "Adamastor"}
 									<span aria-hidden="true"> · </span>
 									<time dateTime={post.created_at}>{formatDate(post.created_at)}</time>

@@ -7,12 +7,12 @@ import NavbarUserMenu from "./navbar-user-menu";
 const Navbar = () => {
 	return (
 		<>
-			<div className="bg-navy dark:bg-cyan-lifted w-full h-[5px]" />
+			<div className="bg-navy dark:bg-navy-lifted w-full h-[5px]" />
 
 			<div className="pt-4 pb-3 md:pb-8">
 				<div className="max-w-6xl mx-auto flex justify-between items-center gap-4 px-4 md:px-8">
 					<div className="order-2 w-auto max-w-[13rem] text-right text-sm leading-tight md:order-1 md:w-60 md:max-w-none md:text-left">
-						<p className="max-w-48 font-bold italic text-navy dark:text-cyan-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
+						<p className="max-w-48 font-bold italic text-navy dark:text-navy-lifted [font-family:var(--font-lora-bold)] [text-wrap:balance]">
 							A digital publication about all things startup in Portugal
 						</p>
 					</div>

@@ -363,7 +363,7 @@ export default function AddEventForm() {
 
 	return (
 		<main className={cn("container p-6 animate-fade-in")}>
-			<h2 className="text-xl font-semibold text-[#104357] dark:text-cyan-lifted flex gap-2 items-center mb-6">
+			<h2 className="text-xl font-semibold text-[#104357] dark:text-navy-lifted flex gap-2 items-center mb-6">
 				Add Event to the Agenda
 			</h2>
 
@@ -519,7 +519,7 @@ function EventDetailsForm({
 									{hasMeetupDatePattern && (
 										<button
 											type="button"
-											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
+											className="bg-navy-veil text-navy-bright dark:bg-navy-tint/[0.1] dark:text-navy-bright-dark p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
 											onClick={() => {
 												const cleanedValue = field.value.replace(meetupDatePattern, "").trim();
 												field.onChange(cleanedValue);
@@ -532,7 +532,7 @@ function EventDetailsForm({
 									{hasJustMeetup && (
 										<button
 											type="button"
-											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
+											className="bg-navy-veil text-navy-bright dark:bg-navy-tint/[0.1] dark:text-navy-bright-dark p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
 											onClick={() => {
 												const cleanedValue = field.value.replace(/\|\s*Meetup/g, "").trim();
 												field.onChange(cleanedValue);
@@ -566,7 +566,7 @@ function EventDetailsForm({
 								{field.value.includes("*") && (
 									<button
 										type="button"
-										className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
+										className="bg-navy-veil text-navy-bright dark:bg-navy-tint/[0.1] dark:text-navy-bright-dark p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer"
 										onClick={() => {
 											// Remove all asterisks from the value
 											const cleanedValue = field.value.replace(/\*/g, "");
@@ -690,7 +690,7 @@ function EventDetailsForm({
 									{showCityHelper && (
 										<button
 											type="button"
-											className="bg-[#DFF6F8] text-[#28AFB8] p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer mt-2"
+											className="bg-navy-veil text-navy-bright dark:bg-navy-tint/[0.1] dark:text-navy-bright-dark p-2 rounded-xl animate-in underline underline-offset-2 cursor-pointer mt-2"
 											onClick={() => {
 												field.onChange(detectedCity.value);
 											}}

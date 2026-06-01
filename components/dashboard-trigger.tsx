@@ -28,7 +28,7 @@ export function DashboardTrigger({ placement, className }: DashboardTriggerProps
 					size="icon"
 					aria-label={label}
 					className={cn(
-						"h-8 w-8 text-navy-tone hover:bg-navy-frame hover:text-navy-shade",
+						"h-8 w-8 text-navy-tone hover:bg-navy-frame hover:text-navy-shade dark:text-navy-dim dark:hover:bg-navy-edge/40 dark:hover:text-navy-lifted",
 						"transition-opacity duration-200 ease-out motion-reduce:transition-none",
 						placement === "sidebar" && [
 							"opacity-0",
@@ -51,7 +51,7 @@ export function DashboardTrigger({ placement, className }: DashboardTriggerProps
 				className="flex items-center gap-2"
 			>
 				<span>{label}</span>
-				<kbd className="inline-flex h-5 items-center rounded border border-navy-frame bg-navy-frame/40 px-1.5 font-mono text-[10px] text-navy-tone">
+				<kbd className="inline-flex h-5 items-center rounded border border-navy-frame dark:border-navy-edge bg-navy-frame/40 dark:bg-navy-edge/40 px-1.5 font-mono text-[10px] text-navy-tone dark:text-navy-dim">
 					⌘B
 				</kbd>
 			</TooltipContent>

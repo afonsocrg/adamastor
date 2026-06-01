@@ -118,14 +118,16 @@ Adamastor's primary color. Typography, structural framing, brand strip. **And** 
 
 **Why three atmospheric tiers in navy specifically.** The navy family has more atmospheric roles than the other families (76+ surfaces use one of these). A single token tries to serve borders, soft text backgrounds, AND visible hovers — and ends up wrong for at least one (the original `#D7F0FB` workhorse made borders too present and reduced readability behind text-containing soft fills). The three-tier split lets each surface pick the right pigment level for its job: invisible for frames, subtle for content backgrounds, visible for hover affordance. Other families don't need this split — their atmospheric roles are rarer and a single pigmented `*-wash` serves them well.
 
-#### Cyan — RESTRICTED (dark-mode anchor + rare brand moments)
+#### Cyan — RETIRED as the dark anchor (preserved only for category identity + rare brand moments)
 
-> ⚠️ **Cyan is restricted in light mode.** Use `navy.tint` for default interactive highlights instead. Cyan is reserved for:
-> - **Dark mode** anchoring — ⚠️ *being phased out.* Navy now anchors dark mode via `navy-lifted` / `navy-dim` / `navy-edge` (+ `navy-tint` at low opacity for highlight fills) — see the Navy table. The admin calendar (`/dashboard/calendar` + `calendar-custom.css`) is the **first migrated surface** (2026-05-31); other surfaces still on `cyan-lifted`/`glow`/`dim` will follow. New dark-mode code should use the navy roles, not cyan.
-> - **Rare brand-moment hues** — hero covers, the occasional big CTA punch (per the high-stim tier)
-> - The footer seal Easter-egg animation where intentional
+> ⚠️ **Cyan is no longer the dark-mode anchor.** Navy anchors dark mode across the **whole site** via `navy-lifted` / `navy-dim` / `navy-edge` (+ `navy-tint` at low opacity for highlight fills, `navy-bright-dark` for links) — see the Navy table. **Migration COMPLETE 2026-05-31** (started with the admin calendar, then swept every public + dashboard surface; ~270 `cyan-lifted`/`glow`/`dim` class tokens → navy). New dark-mode code uses the navy roles, never cyan.
 >
-> **Future direction**: we may deprecate cyan entirely. Don't reach for it as a default; if you want a highlight, `navy.tint`.
+> Cyan now survives in exactly three places:
+> - **Event-category identity** — the **Product Management** category is cyan (`--cat-product-*` fill/edge/ink/dot + the email's hex copy). This is a *category color*, unrelated to the dark-anchor phase-out, and is **preserved** — don't migrate it. (Categories: Design = peach · Engineering = JS-yellow · Startups = green · Product = cyan · AI = lavender.)
+> - **Rare brand-moment hues** — hero covers, the occasional big CTA punch (per the high-stim tier).
+> - The footer seal Easter-egg animation where intentional.
+>
+> Everywhere else (light-mode chrome highlights), use `navy.tint`. **Future direction**: the leftover dark-anchor cyan *tokens* (`cyan-glow`/`lifted`/`dim`) are now dead in app code — kept in `tailwind.config.ts` only for reference and may be deleted in a later cleanup.
 
 | Token | Hex | OKLCH (approx) | Role |
 |---|---|---|---|
@@ -133,10 +135,10 @@ Adamastor's primary color. Typography, structural framing, brand strip. **And** 
 | `cyan` *(DEFAULT = hue)* | `#04C9D8` | L=0.76 C=0.13 h=204 | Vivid brand cyan — rare brand-moment use only. |
 | `cyan-tint` | `#9DE8EF` | L=0.88 C=0.075 h=203 | ⚠️ Avoid in light-mode interactive accents. |
 | `cyan-wash` | `#D5F2F4` | L=0.94 C=0.03 h=203 | ⚠️ Avoid in light-mode backgrounds (use `navy-wash`). |
-| **Dark-mode anchors** | | | *(named for role, not painter's vocabulary)* |
-| `cyan-glow` | `#4CE4F0` | L=0.86 C=0.10 h=195 | Bright cyan borders + hover on dark surfaces. Use with opacity: `cyan-glow/[0.12]`. |
-| `cyan-lifted` | `#E3F2F7` | L=0.94 C=0.015 h=215 | Off-white body text in dark mode. |
-| `cyan-dim` | `#9ED2E1` | L=0.80 C=0.05 h=220 | Secondary text in dark mode. |
+| **Dark-mode anchors — RETIRED 2026-05-31** | | | *(dead in app code; replaced by the navy dark roles. Kept here + in config for reference only.)* |
+| `cyan-glow` | `#4CE4F0` | L=0.86 C=0.10 h=195 | ~~Bright cyan borders + hover on dark surfaces.~~ → borders `navy-edge`, links `navy-bright-dark`, fills `navy-tint/[α]`. |
+| `cyan-lifted` | `#E3F2F7` | L=0.94 C=0.015 h=215 | ~~Off-white body text in dark mode.~~ → `navy-lifted` `#CFE4EF`. |
+| `cyan-dim` | `#9ED2E1` | L=0.80 C=0.05 h=220 | ~~Secondary text in dark mode.~~ → `navy-dim` `#8FB3C2`. |
 
 #### Orange — editorial accent + arrow tips
 
@@ -185,7 +187,7 @@ Use Tailwind's built-in `gray-*` scale and the shadcn theme tokens (`bg-backgrou
 5. **Navy frames everything.** All page-level borders use `border-navy-frame`. Single border tone per page.
 6. **One hue moment per fold (high-stim reserve).** A surface in the mid-stim baseline can have ONE high-stim moment — usually the gold pill OR a brand-cyan "wow" beat, not both. Don't pile high-stim elements.
 7. **Don't mix orange + green** on the same screen unless content explicitly warrants both signals (content type + growth delta, for example).
-8. **Test in dark mode.** Each color needs a working dark-mode counterpart via the `cyan-lifted / glow / dim` system or per-usage `dark:` variants.
+8. **Test in dark mode.** Each color needs a working dark-mode counterpart via the navy dark roles (`navy-lifted` text · `navy-dim` secondary · `navy-edge` borders · `navy-tint/[α]` fills · `navy-bright-dark` links) or per-usage `dark:` variants. The app keeps a **flat** dark surface (page = card, separated by the navy-edge border — no layered ramp); the layered canvas/card/veil ramp is email-only. Verify in Chrome DevTools dark emulation by reading *computed* colors, not source.
 
 ### Migration: old token names → painter's vocabulary
 
@@ -203,7 +205,7 @@ For anyone reading older code or older versions of this doc:
 | `cyan` (DEFAULT) | `cyan` (DEFAULT — alias to `cyan.hue`) | No code change |
 | `cyan-pastel` | `cyan-tint` | ⚠️ avoid in light mode |
 | `cyan-faded` | `cyan-wash` | ⚠️ avoid in light mode |
-| `cyan-lifted`, `cyan-glow`, `cyan-dim` | unchanged | Dark-mode-specific roles |
+| `cyan-lifted`, `cyan-glow`, `cyan-dim` | `navy-lifted`, `navy-edge`/`navy-bright-dark`, `navy-dim` | **Retired 2026-05-31** — navy now anchors dark mode (see Cyan + Navy tables) |
 | `orange-dark` | `orange-shade` | |
 | `orange-main` | `orange-hue` | |
 | `orange-bright` | unchanged | Descriptive special role |
@@ -218,10 +220,12 @@ For anyone reading older code or older versions of this doc:
 | `green-pastel`, `green-faded` | unchanged (just added) | |
 
 Additional code-level migrations done in the same pass:
-- Hardcoded `dark:text-[#E3F2F7]` → `dark:text-cyan-lifted`
-- Hardcoded `dark:border-[rgba(76,228,240, α)]` etc. → `dark:border-cyan-glow/[α]`
-- Hardcoded `dark:text-[rgba(158,210,225, α)]` → `dark:text-cyan-dim/[α]`
+- Hardcoded `dark:text-[#E3F2F7]` → `dark:text-cyan-lifted` _(later → `dark:text-navy-lifted`, see below)_
+- Hardcoded `dark:border-[rgba(76,228,240, α)]` etc. → `dark:border-cyan-glow/[α]` _(later → `dark:border-navy-edge`)_
+- Hardcoded `dark:text-[rgba(158,210,225, α)]` → `dark:text-cyan-dim/[α]` _(later → `dark:text-navy-dim/[α]`)_
 - Hardcoded `text-[#24acb5]` (legacy teal) → `text-navy-tone` or `text-navy`
+
+**Dark-anchor cyan → navy migration (2026-05-31, whole site):** `dark:*-cyan-lifted` → `navy-lifted`; `dark:*-cyan-dim` → `navy-dim`; `dark:border-cyan-glow/[α]` → `dark:border-navy-edge` (solid, opacity dropped); `dark:text-cyan-glow` (links/kickers) → `dark:text-navy-bright-dark`; `dark:bg-cyan-glow/[α]` / `dark:bg-cyan/[α]` (fills) → `dark:bg-navy-tint/[α]`. Foundation: `globals.css` `.dark` shadcn vars repointed to the navy ramp; `prosemirror.css` article-prose repointed; `tailwind.config.ts` gained `navy.bright-dark` `#6DB7EA`. Active strong-ink states (city tabs, category chips) use `navy-lifted`, **not** the link blue. The pending-count badge moved from cyan to `orange-hue` (the notification-badge tier). Legacy `#04C9D8`/`#DFF6F8`/`#28AFB8` raw hexes (incl. the OG share-card) → navy.
 - `decoration-cyan` and `hover:text-cyan-shade` (formerly `cyan-darker`) → `decoration-navy-tint` and `hover:decoration-navy`
 - All light-mode `bg-cyan-wash text-cyan-shade` (active states) → `bg-navy-tint text-navy`
 
@@ -495,18 +499,20 @@ We aim for HIG 44pt on standalone CTAs (submit pills, MobileTabBar tabs) and acc
 ~28–36pt for inline editorial links where the surrounding text serves as a navigation
 context cue.
 
-### MobileTabBar palette — a worked example of the cyan rule
+### MobileTabBar palette — a worked example of the navy dark roles
 
-The mobile bottom tab bar is a worked example of the *cyan is dark-mode-only* rule
-(see *Color usage rules*). Two-tier styling, light vs dark:
+The mobile bottom tab bar is a worked example of the navy light/dark grammar.
+Two-tier styling, light vs dark (dark column migrated off cyan 2026-05-31 — the
+active state is the *lifted ink* `navy.lifted`, mirroring `navy.shade` in light):
 
 | Slot | Light mode | Dark mode |
 |---|---|---|
-| Bar background | `rgba(255, 255, 255, 0.92)` + `backdrop-blur(20px)` | `hsla(201, 72%, 8%, 0.92)` + `backdrop-blur(20px)` |
-| Inactive tab text/icon | `#4D7689` (navy.tone) | `rgba(158, 210, 225, 0.82)` (≈ cyan.dim) |
-| Active tab text/icon | `#104357` (navy.shade) | `#4CE4F0` (cyan.glow) |
-| Active pill background | `rgba(167, 225, 252, 0.55)` (navy.tint @ 55%) | `rgba(4, 201, 216, 0.18)` (cyan @ 18%) |
-| Active pill border | `rgba(16, 67, 87, 0.14)` (navy.shade @ 14%) | `rgba(76, 228, 240, 0.4)` (cyan.glow @ 40%) |
+| Bar background | `rgba(255, 255, 255, 0.92)` + `backdrop-blur(20px)` | `hsla(199, 58%, 9%, 0.92)` (navy canvas) + `backdrop-blur(20px)` |
+| Bar top border | `#E8F0F4` (navy.frame) | `#2C4F5E` (navy.edge) |
+| Inactive tab text/icon | `#4D7689` (navy.tone) | `rgba(143, 179, 194, 0.82)` (navy.dim @ 82%) |
+| Active tab text/icon | `#104357` (navy.shade) | `#CFE4EF` (navy.lifted) |
+| Active pill background | `rgba(167, 225, 252, 0.55)` (navy.tint @ 55%) | `rgba(167, 225, 252, 0.18)` (navy.tint @ 18%) |
+| Active pill border | `rgba(16, 67, 87, 0.14)` (navy.shade @ 14%) | `rgba(167, 225, 252, 0.4)` (navy.tint @ 40%) |
 
 The light-mode bar originally used `#04C9D8` (cyan.hue) for the active state — a direct
 violation of the "in light mode, use navy.tint for default highlights" rule documented

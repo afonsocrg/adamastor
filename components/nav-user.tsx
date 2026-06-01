@@ -37,11 +37,11 @@ export function NavUser({
 					<DropdownMenuTrigger asChild>
 						<SidebarMenuButton
 							size="lg"
-							className="data-[state=open]:bg-navy-frame hover:bg-navy-frame"
+							className="data-[state=open]:bg-navy-frame hover:bg-navy-frame dark:data-[state=open]:bg-navy-edge/50 dark:hover:bg-navy-edge/40"
 						>
 							<Avatar className="h-8 w-8 rounded-full">
 								{user.avatar ? <AvatarImage src={user.avatar} alt={displayName} /> : null}
-								<AvatarFallback className="rounded-full bg-navy-frame text-navy-shade text-xs font-medium">
+								<AvatarFallback className="rounded-full bg-navy-frame dark:bg-navy-edge text-navy-shade dark:text-navy-lifted text-xs font-medium">
 									{initials}
 								</AvatarFallback>
 							</Avatar>
@@ -62,7 +62,7 @@ export function NavUser({
 							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 								<Avatar className="h-8 w-8 rounded-full">
 									{user.avatar ? <AvatarImage src={user.avatar} alt={displayName} /> : null}
-									<AvatarFallback className="rounded-full bg-navy-frame text-navy-shade text-xs font-medium">
+									<AvatarFallback className="rounded-full bg-navy-frame dark:bg-navy-edge text-navy-shade dark:text-navy-lifted text-xs font-medium">
 										{initials}
 									</AvatarFallback>
 								</Avatar>
