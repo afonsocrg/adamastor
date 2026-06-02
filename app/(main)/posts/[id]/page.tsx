@@ -125,7 +125,7 @@ export default async function PostPage({ params }: PostPageProps) {
 		dateModified: post.updated_at ?? post.created_at,
 		// Use the same dynamic OG image as the social meta so the Article
 		// schema, OG card, and on-page social preview all stay aligned.
-		imageUrl: `https://adamastor.blog/api/og?title=${encodeURIComponent(cleanPostTitle)}`,
+		imageUrl: `https://adamastor.blog/og?title=${encodeURIComponent(cleanPostTitle)}`,
 		author: post.authors,
 	});
 
@@ -206,7 +206,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 	const contentPreview = extractPostContentPreview(post.content);
 	const cleanTitle = getDisplayTitle(post.title);
 	const postPathname = `/posts/${post.slug ?? post.id}`;
-	const ogImageUrl = `https://adamastor.blog/api/og?title=${encodeURIComponent(cleanTitle)}`;
+	const ogImageUrl = `https://adamastor.blog/og?title=${encodeURIComponent(cleanTitle)}`;
 
 	// SEO title strategy: use the cleaned title (no "| Week N" suffix — that's
 	// editorial chrome, not a query target) + brand suffix. Keeps SERP clean

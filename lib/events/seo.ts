@@ -30,7 +30,9 @@ export interface EventsRouteSeoInput {
 /**
  * Build the URL for the dynamic OG image of an events route. Relative on
  * purpose — Next resolves it against `metadataBase` (set in app/layout.tsx) for
- * both openGraph and twitter. The renderer lives at app/api/og/events/route.tsx.
+ * both openGraph and twitter. Served from /og/ (not /api/og/) so it sits
+ * outside the robots.txt `Disallow: /api/` and every social crawler can fetch
+ * it; a rewrite in next.config.js maps /og/* to the app/api/og/* renderer.
  */
 function buildEventsOgImageUrl({
 	title,
@@ -44,7 +46,7 @@ function buildEventsOgImageUrl({
 	const params = new URLSearchParams({ title });
 	if (category) params.set("category", category);
 	if (typeof count === "number" && Number.isFinite(count)) params.set("count", String(count));
-	return `/api/og/events?${params.toString()}`;
+	return `/og/events?${params.toString()}`;
 }
 
 /**

@@ -33,14 +33,14 @@ export const metadata: Metadata = {
 		type: "website",
 		siteName: "Adamastor",
 		images: [
-			{ url: "/api/og/events?title=Events+Calendar", width: 1200, height: 630, alt: "Adamastor Events Calendar" },
+			{ url: "/og/events?title=Events+Calendar", width: 1200, height: 630, alt: "Adamastor Events Calendar" },
 		],
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: "Events Calendar | Adamastor",
 		description: "Upcoming tech and startup events across Portugal, on one calendar. Filter by category.",
-		images: ["/api/og/events?title=Events+Calendar"],
+		images: ["/og/events?title=Events+Calendar"],
 	},
 };
 

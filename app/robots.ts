@@ -5,14 +5,17 @@ const SITE_URL = "https://adamastor.blog";
 const DISALLOWED_PATHS = ["/api/", "/dashboard/", "/login", "/events/*/edit"];
 
 /**
- * Paths crawlers are explicitly allowed to fetch. "/" opens the site; the
- * `/api/og/` carve-out is load-bearing: our Open Graph preview images are
- * served from `/api/og/...`, which would otherwise be blocked by the
- * `/api/` disallow above. Social crawlers (Twitterbot, LinkedIn, Facebook)
- * obey robots.txt and don't run JS, so a blocked OG route silently strips
- * the preview image — the card renders title + description but no picture.
- * `/api/og/` is a longer (more specific) match than `/api/`, so standards-
- * compliant crawlers let it through while the rest of `/api/` stays blocked.
+ * Paths crawlers are explicitly allowed to fetch. "/" opens the site.
+ *
+ * OG preview images are now served from /og/* (a next.config.js rewrite to the
+ * app/api/og/* handlers), which sits OUTSIDE the `/api/` disallow, so social
+ * crawlers fetch them with no exception needed. We keep the `/api/og/`
+ * carve-out as a transitional safety net: cards already cached by LinkedIn /
+ * Facebook still point at the old /api/og/* URLs, and this Allow keeps those
+ * working. `/api/og/` is a longer (more specific) match than `/api/`, so
+ * standards-compliant crawlers honor it while the rest of `/api/` stays
+ * blocked. (Twitter/X is the crawler that doesn't reliably honor this
+ * override — which is exactly why the canonical path moved to /og/.)
  */
 const ALLOWED_PATHS = ["/", "/api/og/"];
 

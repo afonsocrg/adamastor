@@ -16,6 +16,20 @@ const nextConfig = {
     );
     return config;
   },
+  rewrites: async () => {
+    return [
+      // Serve OG preview images from a public path that is NOT under /api/.
+      // The handlers live at app/api/og/* but robots.txt disallows /api/, and
+      // some social crawlers (notably Twitter/X) don't reliably honor an
+      // `Allow: /api/og/` override of that broader `Disallow: /api/`. Exposing
+      // the same handlers under /og/* sidesteps robots entirely for every
+      // crawler — /og/ isn't under any disallowed path. Query strings pass
+      // through automatically. The old /api/og/* URLs still work too, so
+      // already-cached social cards don't break.
+      { source: "/og", destination: "/api/og" },
+      { source: "/og/:path*", destination: "/api/og/:path*" },
+    ];
+  },
   redirects: async () => {
     return [
       {
