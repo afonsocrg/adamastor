@@ -48,12 +48,12 @@ import {
 	C_DARK,
 	DARK_MODE_CSS,
 	FONTS_HREF,
-	hairline,
-	kickerStyle,
-	primaryCtaStyle,
 	RESPONSIVE_CSS,
 	SANS,
 	SERIF,
+	hairline,
+	kickerStyle,
+	primaryCtaStyle,
 } from "./_theme";
 
 // Dark-mode overrides for the article body. The shared DARK_MODE_CSS remaps
@@ -174,19 +174,6 @@ function headlineSize(title: string): number {
 }
 
 /**
- * Formats a date for the day group header. Example: "Thursday, January 8"
- */
-function formatDayHeader(dateString: string): string {
-	const date = new Date(dateString);
-	return date.toLocaleDateString("en-US", {
-		weekday: "long",
-		month: "long",
-		day: "numeric",
-		timeZone: "Europe/Lisbon",
-	});
-}
-
-/**
  * Europe/Lisbon HH:MM (24-hour, locale-agnostic), matching the events-page
  * card. The events-page leads its metadata with time — most scannable for
  * "what's happening tonight".
@@ -222,175 +209,9 @@ function formatCity(city: string): string {
 	return city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
 }
 
-/**
- * Groups events by their date (ignoring time)
- * Returns an array of [dateKey, events[]] pairs, sorted chronologically
- *
- * We use en-CA locale because it produces YYYY-MM-DD format,
- * which sorts correctly as strings.
- */
-function groupEventsByDay(events: Event[]): [string, Event[]][] {
-	const grouped = new Map<string, Event[]>();
-
-	for (const event of events) {
-		const date = new Date(event.start_time);
-		const dateKey = date.toLocaleDateString("en-CA", {
-			timeZone: "Europe/Lisbon",
-		});
-
-		if (!grouped.has(dateKey)) {
-			grouped.set(dateKey, []);
-		}
-		grouped.get(dateKey)?.push(event);
-	}
-
-	return Array.from(grouped.entries()).sort(([a], [b]) => a.localeCompare(b));
-}
-
 // ============================================
 // Sub-components
 // ============================================
-
-/**
- * Individual event card with a navy-tint left accent.
- *
- * Uses a table layout for the left accent because CSS border-left
- * is unreliable across email clients (especially Outlook).
- */
-function EventItem({ event }: { event: Event }) {
-	return (
-		<Section className="mb-[16px]">
-			<table cellPadding="0" cellSpacing="0" border={0} style={{ width: "100%" }}>
-				<tbody>
-					<tr>
-						{/* Navy-tint left accent (matches list bullets / blockquote rule) */}
-						<td
-							style={{
-								width: "4px",
-								backgroundColor: C.tint,
-								borderRadius: "2px",
-							}}
-						/>
-						{/* Content */}
-						<td style={{ paddingLeft: "16px" }}>
-							<Link
-								href={withUtm(event.url, { medium: "email", campaign: "newsletter" })}
-								style={{
-									fontFamily: SANS,
-									fontSize: "16px",
-									fontWeight: 575,
-									color: C.navy,
-									textDecoration: "none",
-									lineHeight: "1.35",
-								}}
-							>
-								{event.title}
-							</Link>
-
-							{event.description && (
-								<Text
-									style={{
-										fontFamily: SANS,
-										fontSize: "14px",
-										color: C.tone,
-										margin: "4px 0 0 0",
-										lineHeight: "20px",
-									}}
-								>
-									{event.description.length > 120 ? `${event.description.substring(0, 120)}…` : event.description}
-								</Text>
-							)}
-
-							<Text
-								style={{
-									...kickerStyle(C.tone),
-									fontSize: "11px",
-									letterSpacing: "0.1em",
-									margin: "8px 0 0 0",
-								}}
-							>
-								{formatCity(event.city)}
-							</Text>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</Section>
-	);
-}
-
-/**
- * VARIANT (comparison) — an event styled after the new events-page card
- * (components/EventCard.tsx): no left accent bar, time-leads metadata, a bold
- * Inter title with a navy-tint hover underline, and scan-gray secondary text
- * (the events-listing register, not the email's navy-tone). Clean at rest,
- * navy-frame outline on hover. Applied to the first event only, for side-by-side
- * comparison against the current EventItem treatment.
- */
-function EventItemNew({ event }: { event: Event }) {
-	const scanGray = "#737373"; // events-page muted-foreground (scan register)
-	return (
-		<Section className="mb-[16px]">
-			<table
-				cellPadding="0"
-				cellSpacing="0"
-				border={0}
-				className="event-card-new"
-				style={{ width: "100%", borderRadius: "8px", border: "1px solid transparent" }}
-			>
-				<tbody>
-					<tr>
-						<td style={{ padding: "16px" }}>
-							<Link
-								href={withUtm(event.url, { medium: "email", campaign: "newsletter" })}
-								className="event-card-new-title"
-								style={{
-									fontFamily: SANS,
-									fontSize: "19px",
-									fontWeight: 700,
-									color: C.navy,
-									textDecoration: "none",
-									lineHeight: "1.3",
-								}}
-							>
-								{event.title}
-							</Link>
-
-							{/* Metadata strip — time leads (tabular-nums), then city */}
-							<Text
-								style={{
-									fontFamily: SANS,
-									fontSize: "14px",
-									color: scanGray,
-									margin: "6px 0 0 0",
-									lineHeight: "20px",
-								}}
-							>
-								<span style={{ fontVariantNumeric: "tabular-nums" }}>{formatTime(event.start_time)}</span>
-								{" · "}
-								{formatCity(event.city)}
-							</Text>
-
-							{event.description && (
-								<Text
-									style={{
-										fontFamily: SANS,
-										fontSize: "14px",
-										color: scanGray,
-										margin: "6px 0 0 0",
-										lineHeight: "20px",
-									}}
-								>
-									{event.description.length > 120 ? `${event.description.substring(0, 120)}…` : event.description}
-								</Text>
-							)}
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</Section>
-	);
-}
 
 /** A category chip — rounded pill, category-coloured (ported from the calendar's CategoryPill). */
 function CategoryChip({ slug }: { slug: string }) {
@@ -418,35 +239,38 @@ function CategoryChip({ slug }: { slug: string }) {
 }
 
 /**
- * VARIANT (comparison) — event styled after the admin react-big-calendar:
- * a calendar date-block (weekday over day-number) on the left, then title,
- * category chip(s), and city. Visualises the day of the week as a tile, the
- * way calendar UIs do, and surfaces the category system.
+ * Event row — the single event treatment for the digest. A date plaque on the
+ * left following the shared EventDateBadge grammar (components/EventDateBadge.tsx):
+ * a tracked navy-tone weekday cap over a Lora Bold day numeral on a navy-veil
+ * surface (52×68), then the title, a time · city strip (time leads, the
+ * events-page card register), category chips, and a short description.
  */
-function EventItemCalendar({ event }: { event: Event }) {
+function EventRow({ event }: { event: Event }) {
 	const cats = event.categorySlugs ?? [];
+	const description =
+		event.description && event.description.length > 120 ? `${event.description.substring(0, 120)}…` : event.description;
 	return (
-		<Section className="mb-[12px]">
+		<Section className="mb-[16px]">
 			<table cellPadding="0" cellSpacing="0" border={0} style={{ width: "100%" }}>
 				<tbody>
 					<tr>
-						{/* Date block — weekday over day-number */}
-						<td style={{ width: "56px", verticalAlign: "top" }}>
+						{/* Date plaque — the shared EventDateBadge grammar (weekday cap over a Lora Bold numeral on a navy-veil 52×68 tile). */}
+						<td style={{ width: "52px", verticalAlign: "top" }}>
 							<table
 								cellPadding="0"
 								cellSpacing="0"
 								border={0}
-								style={{ width: "56px", backgroundColor: C.veil, borderRadius: "8px" }}
+								style={{ width: "52px", height: "68px", backgroundColor: C.veil, borderRadius: "6px" }}
 							>
 								<tbody>
 									<tr>
-										<td style={{ textAlign: "center", padding: "8px 0 0 0" }}>
+										<td style={{ textAlign: "center", verticalAlign: "middle" }}>
 											<Text
 												style={{
 													fontFamily: SANS,
 													fontSize: "10px",
 													fontWeight: 600,
-													letterSpacing: "0.1em",
+													letterSpacing: "0.14em",
 													textTransform: "uppercase",
 													color: C.tone,
 													margin: "0",
@@ -455,18 +279,15 @@ function EventItemCalendar({ event }: { event: Event }) {
 											>
 												{formatWeekday(event.start_time)}
 											</Text>
-										</td>
-									</tr>
-									<tr>
-										<td style={{ textAlign: "center", padding: "2px 0 8px 0" }}>
 											<Text
 												style={{
-													fontFamily: SANS,
-													fontSize: "24px",
+													fontFamily: SERIF,
+													fontSize: "18px",
 													fontWeight: 700,
 													color: C.navy,
-													margin: "0",
-													lineHeight: "1.1",
+													fontVariantNumeric: "tabular-nums",
+													margin: "4px 0 0 0",
+													lineHeight: "1",
 												}}
 											>
 												{formatDayNum(event.start_time)}
@@ -477,66 +298,62 @@ function EventItemCalendar({ event }: { event: Event }) {
 							</table>
 						</td>
 
-						{/* Content — title, category chips, city */}
+						{/* Content — title, time · city, category chips, description */}
 						<td style={{ paddingLeft: "16px", verticalAlign: "top" }}>
 							<Link
 								href={withUtm(event.url, { medium: "email", campaign: "newsletter" })}
 								style={{
 									fontFamily: SANS,
-									fontSize: "16px",
-									fontWeight: 575,
+									fontSize: "17px",
+									fontWeight: 700,
 									color: C.navy,
 									textDecoration: "none",
-									lineHeight: "1.35",
+									lineHeight: "1.3",
 								}}
 							>
 								{event.title}
 							</Link>
 
+							{/* Metadata strip — time leads (tabular-nums), then city */}
+							<Text
+								style={{
+									fontFamily: SANS,
+									fontSize: "14px",
+									color: C.tone,
+									margin: "6px 0 0 0",
+									lineHeight: "20px",
+								}}
+							>
+								<span style={{ fontVariantNumeric: "tabular-nums" }}>{formatTime(event.start_time)}</span>
+								{" · "}
+								{formatCity(event.city)}
+							</Text>
+
 							{cats.length > 0 && (
-								<Text style={{ margin: "8px 0 0 0", lineHeight: "1.6" }}>
+								<Text style={{ margin: "8px 0 0 0", lineHeight: "1.8" }}>
 									{cats.map((slug) => (
 										<CategoryChip key={slug} slug={slug} />
 									))}
 								</Text>
 							)}
 
-							<Text style={{ fontFamily: SANS, fontSize: "13px", color: C.tone, margin: "6px 0 0 0" }}>
-								{formatCity(event.city)}
-							</Text>
+							{description && (
+								<Text
+									style={{
+										fontFamily: SANS,
+										fontSize: "14px",
+										color: C.tone,
+										margin: "6px 0 0 0",
+										lineHeight: "20px",
+									}}
+								>
+									{description}
+								</Text>
+							)}
 						</td>
 					</tr>
 				</tbody>
 			</table>
-		</Section>
-	);
-}
-
-/** A group of events for a single day. */
-function DayGroup({ events, groupIndex }: { dateKey: string; events: Event[]; groupIndex: number }) {
-	const headerDate = formatDayHeader(events[0].start_time);
-
-	return (
-		<Section className="mb-[24px]">
-			<Text
-				style={{
-					fontFamily: SANS,
-					fontSize: "14px",
-					fontWeight: 600,
-					color: C.navy,
-					margin: "0 0 12px 0",
-				}}
-			>
-				{headerDate}
-			</Text>
-
-			{events.map((event, i) =>
-				groupIndex === 0 && i === 0 ? (
-					<EventItemNew key={event.id} event={event} />
-				) : (
-					<EventItem key={event.id} event={event} />
-				),
-			)}
 		</Section>
 	);
 }
@@ -876,9 +693,11 @@ export const NewsletterTemplate = ({ events, article, category, preferencesUrl }
 
 							{eventCount > 0 ? (
 								<>
-									{groupEventsByDay(events).map(([dateKey, dayEvents], gi) => (
-										<DayGroup key={dateKey} dateKey={dateKey} events={dayEvents} groupIndex={gi} />
-									))}
+									{[...events]
+										.sort((a, b) => a.start_time.localeCompare(b.start_time))
+										.map((event) => (
+											<EventRow key={event.id} event={event} />
+										))}
 								</>
 							) : (
 								<Text
@@ -894,22 +713,6 @@ export const NewsletterTemplate = ({ events, article, category, preferencesUrl }
 								</Text>
 							)}
 						</Section>
-
-						{/* ============================================ */}
-						{/* Calendar-inspired section (comparison) — date blocks + category chips */}
-						{/* ============================================ */}
-						{eventCount > 0 && (
-							<>
-								<Hr style={hairline} />
-								<Section>
-									<Text style={kickerStyle(C.tone)}>On the calendar</Text>
-									<div style={{ height: "16px" }} />
-									{events.slice(0, 2).map((event) => (
-										<EventItemCalendar key={event.id} event={event} />
-									))}
-								</Section>
-							</>
-						)}
 
 						{/* Events CTA — solid button when primary, text link otherwise */}
 						<Section style={{ textAlign: "center", margin: "8px 0 4px 0" }}>
