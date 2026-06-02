@@ -39,12 +39,13 @@ export async function GET() {
 			throw new ForbiddenError("Admin access required");
 		}
 
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
-		// Only the next two weeks are featurable. The Weekly shouldn't promote
-		// events too far out to act on, and a tighter window keeps the picker
-		// focused on what's actually relevant to the upcoming issue.
-		const horizon = new Date(today);
+		// Lower bound is *now*, not the start of today — an event that already
+		// started earlier today is in the past and shouldn't be featurable.
+		const now = new Date();
+		// Upper bound: the next 14 days. The Weekly shouldn't promote events too
+		// far out to act on, and a tighter window keeps the picker focused.
+		const horizon = new Date(now);
+		horizon.setHours(0, 0, 0, 0);
 		horizon.setDate(horizon.getDate() + 14);
 		horizon.setHours(23, 59, 59, 999);
 
@@ -52,7 +53,7 @@ export async function GET() {
 			.from("events")
 			.select("id, title, start_time, city, submitter_email, event_category_assignments(category_slug)")
 			.eq("status", "approved")
-			.gte("start_time", today.toISOString())
+			.gte("start_time", now.toISOString())
 			.lte("start_time", horizon.toISOString())
 			.order("start_time", { ascending: true });
 
