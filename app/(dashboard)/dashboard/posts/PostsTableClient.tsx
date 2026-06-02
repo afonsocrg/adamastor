@@ -16,8 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tailwind/ui/tabs";
 import { FileText, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { PostActions } from "./PostAction";
+import { SendNewsletterDialog } from "./SendNewsletterDialog";
 
 // =============================================================================
 // TYPES
@@ -86,82 +86,8 @@ interface NewsletterSectionProps {
 }
 
 function NewsletterSection({ postId, postTitle }: NewsletterSectionProps) {
-	const [isLoading, setIsLoading] = useState(false);
 	const [testEmail, setTestEmail] = useState("malik@hey.com");
-	const [confirmText, setConfirmText] = useState("");
-
-	async function sendTestEmail() {
-		setIsLoading(true);
-
-		try {
-			const response = await fetch("/api/sendNewsletter", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					postId: postId,
-					testEmail: testEmail,
-					weekLabel: "This Week",
-				}),
-			});
-
-			const result = await response.json();
-
-			if (!response.ok) {
-				throw new Error(result.error || "Failed to send test email");
-			}
-
-			toast.success("Test email sent! 📧", {
-				description: `"${result.postTitle}" sent to ${result.sentTo} with ${result.eventCount} events`,
-			});
-		} catch (error) {
-			toast.error("Failed to send", {
-				description: error instanceof Error ? error.message : "Please try again.",
-			});
-		} finally {
-			setIsLoading(false);
-		}
-	}
-
-	async function sendBroadcast() {
-		if (confirmText !== "SEND") {
-			toast.error("Please type SEND to confirm");
-			return;
-		}
-
-		setIsLoading(true);
-
-		try {
-			const response = await fetch("/api/sendNewsletter", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					postId: postId,
-					weekLabel: "This Week",
-					broadcast: true,
-					confirmBroadcast: true,
-				}),
-			});
-
-			const result = await response.json();
-
-			if (!response.ok) {
-				throw new Error(result.error || "Failed to send broadcast");
-			}
-
-			toast.success("Broadcast sent! 🚀", {
-				description: `"${result.postTitle}" sent to all subscribers with ${result.eventCount} events`,
-			});
-
-			// Reset confirmation
-			setConfirmText("");
-		} catch (error) {
-			toast.error("Failed to send broadcast", {
-				description: error instanceof Error ? error.message : "Please try again.",
-			});
-		} finally {
-			setIsLoading(false);
-		}
-	}
+	const [dialogMode, setDialogMode] = useState<"test" | "broadcast" | null>(null);
 
 	return (
 		<div className="mt-6 pt-6">
@@ -190,15 +116,15 @@ function NewsletterSection({ postId, postTitle }: NewsletterSectionProps) {
 								onChange={(e) => setTestEmail(e.target.value)}
 								className="flex-1"
 							/>
-							<Button onClick={sendTestEmail} disabled={isLoading} variant="outline">
-								{isLoading ? "Sending..." : "Send Test"}
+							<Button onClick={() => setDialogMode("test")} variant="outline" disabled={!testEmail.trim()}>
+								Choose events &amp; send
 							</Button>
 						</div>
 					</div>
 
 					<p className="text-xs text-muted-foreground">
-						The test email will include this article and upcoming events from the next 10 days. Note: Unsubscribe link
-						won't work in test mode.
+						You'll pick up to 6 events to feature before the test sends. Note: the unsubscribe link won't work in test
+						mode.
 					</p>
 				</TabsContent>
 
@@ -206,32 +132,30 @@ function NewsletterSection({ postId, postTitle }: NewsletterSectionProps) {
 				<TabsContent value="broadcast" className="space-y-4 mt-4">
 					<div className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-3">
 						<p className="text-sm text-amber-800 dark:text-amber-200">
-							⚠️ This will send "{postTitle}" to <strong>all subscribers</strong>. This action cannot be undone.
+							⚠️ This will send "{postTitle}" to <strong>all subscribers</strong>. You'll choose the featured events and
+							confirm before anything goes out.
 						</p>
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor={`confirm-${postId}`}>Type SEND to confirm</Label>
-						<div className="flex gap-2">
-							<Input
-								id={`confirm-${postId}`}
-								type="text"
-								placeholder="SEND"
-								value={confirmText}
-								onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
-								className="flex-1"
-							/>
-							<Button
-								onClick={sendBroadcast}
-								className="inline-flex items-center px-4 py-2 text-white transition-all duration-200 rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90"
-								disabled={isLoading || confirmText !== "SEND"}
-							>
-								{isLoading ? "Sending..." : "Send Newsletter"}
-							</Button>
-						</div>
-					</div>
+					<Button
+						onClick={() => setDialogMode("broadcast")}
+						className="inline-flex items-center px-4 py-2 text-white transition-all duration-200 rounded-lg bg-[#d4a657] hover:bg-[#d4a657]/90"
+					>
+						Choose events &amp; send to everyone
+					</Button>
 				</TabsContent>
 			</Tabs>
+
+			<SendNewsletterDialog
+				postId={postId}
+				postTitle={postTitle}
+				mode={dialogMode ?? "test"}
+				testEmail={testEmail}
+				open={dialogMode !== null}
+				onOpenChange={(open) => {
+					if (!open) setDialogMode(null);
+				}}
+			/>
 		</div>
 	);
 }

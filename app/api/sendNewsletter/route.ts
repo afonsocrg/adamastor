@@ -32,9 +32,9 @@
 
 import { NewsletterTemplate } from "@/components/email/newsletter-template";
 import { EVENT_CATEGORIES, type EventCategorySlug, isEventCategorySlug } from "@/lib/events/categories";
+import { verifyInternalSecret } from "@/lib/newsletter/internal-auth";
 import { buildPreferencesUrl } from "@/lib/newsletter/preferences-url";
 import { getAllSubscribersSegmentId, getDigestSegmentId } from "@/lib/newsletter/segments";
-import { verifyInternalSecret } from "@/lib/newsletter/internal-auth";
 import { countActiveCategorySubscribers } from "@/lib/newsletter/subscriptions";
 import { getCategoryTopicEnvName, getCategoryTopicId } from "@/lib/newsletter/topics";
 import { capturePostHogEvent } from "@/lib/posthog-server";
@@ -56,6 +56,10 @@ const DEFAULT_TEST_POST_ID = "147";
 // and re-list the same events. (Was 10 days, which double-listed ~3 days of
 // events across back-to-back weekly emails.)
 const EVENTS_WINDOW_DAYS = 7;
+// Editorial cap on featured events in a manual digest. Mirrors the dashboard
+// picker (SendNewsletterDialog) — keeps the issue scannable. The route enforces
+// it too so an oversized payload can't slip past the UI.
+const MAX_FEATURED_EVENTS = 6;
 
 interface EventRow {
 	id: number | string;
@@ -66,6 +70,8 @@ interface EventRow {
 	url: string;
 	banner_url?: string | null;
 }
+
+type EventRowWithCats = EventRow & { event_category_assignments?: { category_slug: string }[] };
 
 export async function POST(request: NextRequest) {
 	// Auth gate. This route can broadcast to the entire subscriber list, so it
@@ -87,6 +93,7 @@ export async function POST(request: NextRequest) {
 			broadcast = false,
 			confirmBroadcast = false,
 			category: categoryInput,
+			eventIds,
 		} = body;
 
 		// ============================================
@@ -120,11 +127,7 @@ export async function POST(request: NextRequest) {
 		// Per-category broadcasts target the All Subscribers base segment and
 		// filter to opted-in contacts via the matching Topic. The digest still
 		// targets the Adamastor Weekly segment directly (no topic filter).
-		const targetSegmentId = broadcast
-			? category
-				? getAllSubscribersSegmentId()
-				: getDigestSegmentId()
-			: null;
+		const targetSegmentId = broadcast ? (category ? getAllSubscribersSegmentId() : getDigestSegmentId()) : null;
 		const targetTopicId = broadcast && category ? getCategoryTopicId(category.slug) : null;
 
 		if (broadcast && !targetSegmentId) {
@@ -152,14 +155,16 @@ export async function POST(request: NextRequest) {
 		// ============================================
 		// Fetch the post (digest mode only)
 		// ============================================
-		let article: {
-			id: string;
-			title: string;
-			htmlContent: string;
-			authorName: string;
-			url: string;
-			authorImageUrl?: string;
-		} | undefined;
+		let article:
+			| {
+					id: string;
+					title: string;
+					htmlContent: string;
+					authorName: string;
+					url: string;
+					authorImageUrl?: string;
+			  }
+			| undefined;
 		let postTitleForSubject: string | undefined;
 
 		if (!category) {
@@ -214,49 +219,84 @@ export async function POST(request: NextRequest) {
 				title: post.title,
 				htmlContent: articleHtml,
 				authorName: post.authors?.[0]?.name || "Carlos Resende",
-				url: post.slug
-					? `https://adamastor.blog/posts/${post.slug}`
-					: `https://adamastor.blog/posts/${post.id}`,
+				url: post.slug ? `https://adamastor.blog/posts/${post.slug}` : `https://adamastor.blog/posts/${post.id}`,
 				authorImageUrl,
 			};
 			postTitleForSubject = post.title;
 		}
 
 		// ============================================
-		// Fetch upcoming events (filtered by category if set)
+		// Resolve the events to feature
 		// ============================================
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
+		// Manual digest sends pass a curated `eventIds` array — Carlos hand-picks
+		// up to MAX_FEATURED_EVENTS in the dashboard (SendNewsletterDialog), and
+		// what he picks is exactly what sends (an empty array → no featured
+		// events). The per-category cron passes no `eventIds` at all and falls
+		// back to "all approved in the next window", filtered to the category.
+		const EVENTS_SELECT =
+			"id, title, description, start_time, city, url, banner_url, event_category_assignments(category_slug)";
+		const curatedIds: number[] | null = Array.isArray(eventIds)
+			? eventIds
+					.slice(0, MAX_FEATURED_EVENTS)
+					.map((id: unknown) => Number(id))
+					.filter((id: number) => Number.isFinite(id))
+			: null;
 
-		const futureDate = new Date(today);
-		futureDate.setDate(futureDate.getDate() + EVENTS_WINDOW_DAYS);
+		let rawEvents: EventRowWithCats[] | null;
+		let eventsError: { message: string } | null;
 
-		const { data: rawEvents, error: eventsError } = await supabase
-			.from("events")
-			.select("id, title, description, start_time, city, url, banner_url, event_category_assignments(category_slug)")
-			.eq("status", "approved")
-			.gte("start_time", today.toISOString())
-			.lte("start_time", futureDate.toISOString())
-			.order("start_time", { ascending: true });
+		if (curatedIds) {
+			// Curated: send exactly the picked events, in date order. No date
+			// window here — the picker (SendNewsletterDialog) already constrains
+			// selection to the next 14 days. An empty pick means an article-only
+			// issue (no events section).
+			if (curatedIds.length === 0) {
+				rawEvents = [];
+				eventsError = null;
+			} else {
+				const res = await supabase
+					.from("events")
+					.select(EVENTS_SELECT)
+					.in("id", curatedIds)
+					.eq("status", "approved")
+					.order("start_time", { ascending: true });
+				rawEvents = res.data as EventRowWithCats[] | null;
+				eventsError = res.error;
+			}
+		} else {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+			const futureDate = new Date(today);
+			futureDate.setDate(futureDate.getDate() + EVENTS_WINDOW_DAYS);
+
+			const res = await supabase
+				.from("events")
+				.select(EVENTS_SELECT)
+				.eq("status", "approved")
+				.gte("start_time", today.toISOString())
+				.lte("start_time", futureDate.toISOString())
+				.order("start_time", { ascending: true });
+			rawEvents = res.data as EventRowWithCats[] | null;
+			eventsError = res.error;
+		}
 
 		if (eventsError) {
 			console.error("Error fetching events:", eventsError);
 		}
 
-		const eventsAll = (rawEvents ?? []) as Array<
-			EventRow & { event_category_assignments?: { category_slug: string }[] }
-		>;
+		const eventsAll = (rawEvents ?? []) as EventRowWithCats[];
 
 		// Category filter in JS — Supabase doesn't filter on the join cleanly
-		// without a more complex query. The window is at most 10 days of events,
-		// so the in-memory filter is cheap.
-		const events: EventRow[] = category
+		// without a more complex query. The set is small, so this is cheap.
+		const events: EventRowWithCats[] = category
 			? eventsAll.filter((event) =>
 					(event.event_category_assignments ?? []).some((a) => a.category_slug === category.slug),
 				)
 			: eventsAll;
 
-		console.log(`📅 ${events.length} events for ${category ? category.slug : "digest"}`);
+		console.log(
+			`📅 ${events.length} events for ${category ? category.slug : "digest"}${curatedIds ? " (curated)" : ""}`,
+		);
 
 		// ============================================
 		// Render template + send (test or broadcast)
@@ -271,6 +311,7 @@ export async function POST(request: NextRequest) {
 				city: e.city,
 				url: e.url,
 				banner_url: e.banner_url ?? undefined,
+				categorySlugs: (e.event_category_assignments ?? []).map((a) => a.category_slug),
 			})),
 			article,
 			category: category ?? undefined,
