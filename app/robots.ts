@@ -5,6 +5,18 @@ const SITE_URL = "https://adamastor.blog";
 const DISALLOWED_PATHS = ["/api/", "/dashboard/", "/login", "/events/*/edit"];
 
 /**
+ * Paths crawlers are explicitly allowed to fetch. "/" opens the site; the
+ * `/api/og/` carve-out is load-bearing: our Open Graph preview images are
+ * served from `/api/og/...`, which would otherwise be blocked by the
+ * `/api/` disallow above. Social crawlers (Twitterbot, LinkedIn, Facebook)
+ * obey robots.txt and don't run JS, so a blocked OG route silently strips
+ * the preview image — the card renders title + description but no picture.
+ * `/api/og/` is a longer (more specific) match than `/api/`, so standards-
+ * compliant crawlers let it through while the rest of `/api/` stays blocked.
+ */
+const ALLOWED_PATHS = ["/", "/api/og/"];
+
+/**
  * AI search/citation crawlers we explicitly want to allow. The wildcard
  * `User-Agent: *` rule below already permits them by default — listing them
  * separately is intentional documentation so future contributors don't
@@ -29,12 +41,12 @@ export default function robots(): MetadataRoute.Robots {
 		rules: [
 			{
 				userAgent: "*",
-				allow: "/",
+				allow: ALLOWED_PATHS,
 				disallow: DISALLOWED_PATHS,
 			},
 			...AI_CRAWLERS.map((userAgent) => ({
 				userAgent,
-				allow: "/",
+				allow: ALLOWED_PATHS,
 				disallow: DISALLOWED_PATHS,
 			})),
 		],

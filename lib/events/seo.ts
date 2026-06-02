@@ -119,7 +119,7 @@ export function getEventsRouteIntro({
 	return BASE_INTRO;
 }
 
-const PUBLICATION_ATTRIBUTION = "Curated by Adamastor — a digital publication for all things startup in Portugal.";
+const PUBLICATION_ATTRIBUTION = "Curated by Adamastor, a digital publication for all things startup in Portugal.";
 
 /**
  * Compute the core human-readable title + description for any /events route
