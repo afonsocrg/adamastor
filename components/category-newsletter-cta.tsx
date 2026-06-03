@@ -113,7 +113,7 @@ export function CategoryNewsletterCta({ categorySlug, categoryName }: CategoryNe
 				<button
 					type="submit"
 					disabled={!canSubmit}
-					className="inline-flex items-center gap-2 self-start rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-white disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-navy dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-lifted dark:hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					className="inline-flex items-center gap-2 self-start rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-[color,background-color,border-color,transform] duration-150 ease-out hover:bg-navy hover:text-white active:scale-[0.97] disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-navy disabled:active:scale-100 motion-reduce:transition-none motion-reduce:active:scale-100 dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-lifted dark:hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 				>
 					Subscribe
 					<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />

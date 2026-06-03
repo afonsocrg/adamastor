@@ -14,6 +14,7 @@ import {
 	Fragment,
 	type MouseEvent as ReactMouseEvent,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -148,6 +149,15 @@ function formatCategoryLabel(categorySlug: EventCategorySlug) {
 	return EVENT_CATEGORIES.find((category) => category.slug === categorySlug)?.name ?? categorySlug;
 }
 
+// Remembered across the keyed remount that every /events filter navigation
+// triggers (EventsLayoutShell re-keys the page body by pathname). A freshly
+// mounted route reads this to animate its header FROM the previous route's
+// header height TO its own — so the chip row and list below slide to their new
+// position instead of snapping when the per-category intro/title length
+// changes (≈2–5 lines apart). Module-level on purpose: the component unmounts
+// on each navigation, so component state/refs can't carry the value across.
+let lastEventsHeaderHeight: number | null = null;
+
 export default function EventsPageClient({
 	initialEvents,
 	categoryFilteringEnabled,
@@ -160,6 +170,44 @@ export default function EventsPageClient({
 	const [hasClickedEvent, setHasClickedEvent] = useState(false);
 	const [hasHydrated, setHasHydrated] = useState(false);
 	const router = useRouter();
+
+	// Height-morph the page header across filter navigations. The intro/title
+	// length differs per category, so without this the chip row + list below
+	// snap to a new vertical position on every switch (the "jarring flash").
+	// We pin the new header at the previous route's height, then ease it to its
+	// natural height so everything below slides (ease-in-out — an on-screen
+	// morph, per the motion playbook). The header has no sticky descendants, so
+	// clipping it mid-tween is safe — the body itself can't be clipped (its day
+	// headers and desktop sidebar are sticky). No-ops on first paint and under
+	// prefers-reduced-motion.
+	const headerRef = useRef<HTMLElement>(null);
+	useLayoutEffect(() => {
+		const el = headerRef.current;
+		if (!el) return;
+		// Natural height of THIS route's header (no inline height is ever set —
+		// the Web Animations API drives the tween and reverts to auto when done,
+		// so this read is always the true height, even under React Strict Mode's
+		// dev double-invoke).
+		const next = el.offsetHeight;
+		const previous = lastEventsHeaderHeight;
+		lastEventsHeaderHeight = next;
+		if (previous === null || previous === next) return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+		// Clip during the tween so the taller intro doesn't spill while the box
+		// grows; the body itself can't be clipped (sticky day-headers + sidebar).
+		el.style.overflow = "hidden";
+		const animation = el.animate(
+			[{ height: `${previous}px` }, { height: `${next}px` }],
+			{ duration: 260, easing: "cubic-bezier(0.77, 0, 0.175, 1)" },
+		);
+		const clear = () => {
+			el.style.overflow = "";
+		};
+		animation.onfinish = clear;
+		animation.oncancel = clear;
+		return () => animation.cancel();
+	}, []);
 
 	const lockedCity = lockedFilter?.city ?? null;
 	const lockedCategory = lockedFilter?.category ?? null;
@@ -373,7 +421,7 @@ export default function EventsPageClient({
 	// get the contextual email-capture CTA; the base route links to /subscribe.
 	const renderSubscribe = (visibilityClass?: string) =>
 		lockedCategory ? (
-			<div className={visibilityClass}>
+			<div className={cn("events-subscribe-card", visibilityClass)}>
 				<CategoryNewsletterCta categorySlug={lockedCategory} categoryName={formatCategoryLabel(lockedCategory)} />
 			</div>
 		) : (
@@ -383,6 +431,13 @@ export default function EventsPageClient({
 					// outlined calendar + event cards is what makes the eye land here. p-6
 					// + text-lg are deliberate weight — generous space reads as "important."
 					"rounded-md bg-navy-veil p-6 dark:bg-navy-tint/[0.06] dark:ring-1 dark:ring-navy-edge",
+					// Marks this slot so it blur-settles when its content swaps between
+					// the generic card and the category CTA on a filter navigation —
+					// the swap is a route remount, so a blur-IN masks the content change
+					// (the body fade is opacity-only). Gated to navigations via the
+					// `.events-body-enter` ancestor selector in globals.css, so it never
+					// fires on first paint.
+					"events-subscribe-card",
 					visibilityClass,
 				)}
 			>
@@ -399,10 +454,13 @@ export default function EventsPageClient({
 				    pill). Matches the coda's "Add to Google Calendar" secondary button. */}
 				<Link
 					href="/subscribe"
-					className="mt-4 inline-flex items-center gap-2 rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-white dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-lifted dark:hover:text-navy"
+					className="group mt-4 inline-flex items-center gap-2 rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-[color,background-color,border-color,transform] duration-150 ease-out hover:bg-navy hover:text-white active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-lifted dark:hover:text-navy"
 				>
 					Get the picks
-					<ArrowRightIcon className="h-4 w-4 text-orange-hue" aria-hidden="true" />
+					<ArrowRightIcon
+						className="h-4 w-4 text-orange-hue transition-transform duration-150 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none"
+						aria-hidden="true"
+					/>
 				</Link>
 			</div>
 		);
@@ -428,7 +486,7 @@ export default function EventsPageClient({
 					    event lives in the editorial coda at the end of the
 					    list. Keeping the header pure lets the H1 actually
 					    act as a page title. */}
-				<header className="space-y-3 pb-2 pt-2">
+				<header ref={headerRef} className="space-y-3 pb-2 pt-2">
 					<h1 className="text-xl md:text-2xl font-bold tracking-tight leading-tight text-navy [text-wrap:balance] dark:text-navy-lifted [font-family:var(--font-lora-bold)]">
 						{selectedDate
 							? `Events for ${formatEventDate(selectedDate, hasHydrated)}`
@@ -445,8 +503,20 @@ export default function EventsPageClient({
 										: "Events"}
 					</h1>
 
-					{intro && !selectedDate ? (
-						<p className="max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-navy-tone [text-wrap:pretty] dark:text-navy-dim">
+					{intro ? (
+						// Keep the intro's box in layout (visibility, not display) when a
+						// date is selected. Removing it outright collapsed the header by
+						// ~70px, which yanked the mobile date strip — the element being
+						// tapped — up under the user's finger. The intro's CTA ("Filter…
+						// below") doesn't fit a filtered view, so we reserve the space but
+						// hide the words rather than show them. (Desktop is unaffected: its
+						// calendar sits in the side rail, not above the list.)
+						<p
+							className={cn(
+								"max-w-[60ch] text-sm md:text-base leading-snug md:leading-relaxed text-navy-tone [text-wrap:pretty] dark:text-navy-dim",
+								selectedDate && "invisible",
+							)}
+						>
 							{intro}
 						</p>
 					) : null}
@@ -704,11 +774,14 @@ export default function EventsPageClient({
 												href={googleCalUrl}
 												target="_blank"
 												rel="noreferrer noopener"
-												className="mt-4 inline-flex items-center gap-2 rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy-veil/40 dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
+												className="group mt-4 inline-flex items-center gap-2 rounded-full border border-navy px-5 py-2 text-sm font-semibold text-navy transition-[color,background-color,border-color,transform] duration-150 ease-out hover:bg-navy-veil/40 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 dark:border-navy-lifted dark:text-navy-lifted dark:hover:bg-navy-tint/[0.06]"
 											>
 												<CalendarDays className="h-4 w-4" aria-hidden="true" />
 												Add to Google Calendar
-												<ArrowRightIcon className="h-3.5 w-3.5" aria-hidden="true" />
+												<ArrowRightIcon
+													className="h-3.5 w-3.5 transition-transform duration-150 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none"
+													aria-hidden="true"
+												/>
 											</a>
 											<div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
 												<Link href={rssHref} className={quietActionClass}>

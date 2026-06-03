@@ -295,6 +295,59 @@ pre {
 	}
 }
 
+/* /events filter-swap body crossfade. Like routeContentEnter but starts at
+   half opacity rather than 0: switching city/category remounts the body, and a
+   fade FROM 0 leaves a blank frame (the "flash") because the outgoing content
+   has already unmounted. Starting at 0.5 keeps the new content legible from
+   the first frame so the swap reads as a settle, not a blink. Opacity-only on
+   purpose — the body can be a tall events list, and a full-surface blur there
+   is expensive (Safari especially). The header's height morph (see
+   EventsPageClient) handles the positional half of the smoothness. */
+@keyframes eventsBodyEnter {
+	from {
+		opacity: 0.5;
+	}
+	to {
+		opacity: 1;
+	}
+}
+.events-body-enter {
+	animation: eventsBodyEnter 190ms cubic-bezier(0.215, 0.61, 0.355, 1) both;
+	will-change: opacity;
+}
+
+/* Subscribe slot blur-bridge. The slot swaps between two genuinely different
+   states — the generic "Never miss an event again" card and the per-category
+   CTA — when you switch category. That swap rides a route remount, so we can't
+   crossfade the old out as the new comes in; instead the incoming card settles
+   in from a slight blur, which masks the content change the same way Emil
+   Kowalski's blur-bridge does for in-place two-state toggles (cf. our
+   `.state-crossfade` copy buttons). Scoped to `.events-body-enter` so it fires
+   ONLY on filter navigations, never on first paint. Opacity is left to the
+   body's own fade — this adds only the blur — so the two don't compound. Blur
+   stays small and on one card (not the full body), per the perf guidance. */
+@keyframes eventsCardEnter {
+	from {
+		filter: blur(6px);
+		transform: scale(0.99);
+	}
+	to {
+		filter: blur(0);
+		transform: scale(1);
+	}
+}
+.events-body-enter .events-subscribe-card {
+	/* ease-IN-OUT, not ease-out. A blur reads as "sharp" the instant it drops
+	   under ~1px, so a front-loaded ease-out clears it in the first ~70ms and the
+	   content snaps into focus — that's the "abrupt" feel. ease-in-out holds the
+	   blur for a beat, then resolves it gradually across the full duration, so it
+	   reads as a focus-pull. Longer (360ms) + a 1% scale settle for the same
+	   reason; this is an occasional interaction, so a more deliberate, cinematic
+	   settle is appropriate. will-change keeps the blur on the compositor. */
+	animation: eventsCardEnter 360ms cubic-bezier(0.65, 0, 0.35, 1) both;
+	will-change: filter, transform;
+}
+
 /* Microtransition: crossfade a SMALL element between two states (e.g. a button
    swapping "Copy" → "Copied"). The 2px blur bridges the visual gap so the eye
    reads one smooth transition instead of two distinct frames (Emil Kowalski,
@@ -396,6 +449,8 @@ pre {
 	.animate-pulse,
 	.animate-in,
 	.route-content-enter,
+	.events-body-enter,
+	.events-body-enter .events-subscribe-card,
 	.dashboard-content-in,
 	.state-crossfade,
 	.cal-nav-enter,

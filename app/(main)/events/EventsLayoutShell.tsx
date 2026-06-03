@@ -201,10 +201,13 @@ export default function EventsLayoutShell({ children }: { children: ReactNode })
 
 			{/* The page body still remounts on navigation (it carries the per-route
 			    SSR content + events data) — that's the legitimate content change.
-			    Key it by pathname and crossfade each swap with the shared route-
-			    enter animation so the change settles instead of hard-cutting. The
+			    Key it by pathname and crossfade each swap with `events-body-enter`
+			    (a fade from half-opacity, so there's no blank "flash" frame) so the
+			    change settles instead of hard-cutting. The page header animates its
+			    own height across the swap (see EventsPageClient) so the chip row +
+			    list slide rather than snap when the intro length changes. The
 			    persistent city row above never enters this fade. */}
-			<div key={pathname} className={hasNavigated.current ? "route-content-enter" : undefined}>
+			<div key={pathname} className={hasNavigated.current ? "events-body-enter" : undefined}>
 				{children}
 			</div>
 		</div>
