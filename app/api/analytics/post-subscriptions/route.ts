@@ -1,3 +1,4 @@
+import { buildPostPathnameSql, parsePostRefsParam } from "@/lib/analytics/post-pathnames";
 import { type NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -8,23 +9,23 @@ export const revalidate = 300;
  *
  * Fetches subscription counts per post from PostHog using the Query API.
  *
- * This queries the "subscribed_newsletter" custom event that you capture
- * in your /api/subscribe route. Each subscription includes:
- * - page_url: The pathname where the user subscribed (e.g., "/posts/147")
+ * This queries the "subscribed_newsletter" custom event captured in
+ * /api/subscribe, which records `page_url` as the pathname the user subscribed
+ * from (e.g. "/posts/147" or "/posts/my-post").
  *
  * Query Parameters:
- * - ids: Comma-separated list of post IDs (e.g., "147,148,149")
+ * - posts: Comma-separated `id:slug` pairs (slug optional), e.g.
+ *   "147:my-post,148:another-post,149". Falls back to the legacy bare-id
+ *   `ids` param ("147,148,149") when `posts` is absent.
  *
- * Example:
- * GET /api/analytics/post-subscriptions?ids=147,148,149
+ * Why both id and slug: a post is linked as `/posts/{slug ?? id}`, so
+ * subscriptions land under BOTH `/posts/147` and `/posts/my-post`. We match
+ * both and sum per post, otherwise the count misses whichever form readers
+ * actually used.
  *
  * Returns:
  * {
- *   subscriptions: {
- *     "147": 5,
- *     "148": 2,
- *     "149": 0
- *   }
+ *   subscriptions: { "147": 5, "148": 2, "149": 0 }
  * }
  */
 
@@ -46,44 +47,43 @@ export async function GET(request: NextRequest) {
 		// 2. PARSE REQUEST PARAMETERS
 		// -------------------------------------------------------------------------
 		const { searchParams } = new URL(request.url);
-		const idsParam = searchParams.get("ids");
+		const refs = parsePostRefsParam(searchParams.get("posts") ?? searchParams.get("ids"));
 
-		if (!idsParam) {
-			return NextResponse.json({ error: "Missing 'ids' query parameter" }, { status: 400 });
+		if (refs.length === 0) {
+			return NextResponse.json({ error: "Missing or invalid 'posts' query parameter" }, { status: 400 });
 		}
-
-		// Parse comma-separated IDs and build pathname patterns
-		// e.g., "147,148" → ["/posts/147", "/posts/148"]
-		const postIds = idsParam.split(",").map((id) => id.trim());
-		const pathnames = postIds.map((id) => `/posts/${id}`);
-
-		// Build the IN clause with properly escaped strings
-		// e.g., "'/posts/147', '/posts/148'"
-		const pathnamesList = pathnames.map((p) => `'${p}'`).join(", ");
 
 		// -------------------------------------------------------------------------
 		// 3. BUILD HOGQL QUERY
 		// -------------------------------------------------------------------------
 		/**
-		 * HogQL Query for Subscription Counts
-		 *
 		 * Key differences from the views query:
-		 * - event = 'subscribed_newsletter' (your custom event, not '$pageview')
-		 * - properties.page_url (the property you set, not $pathname)
-		 * - COUNT(*) because each subscription event is unique
+		 * - event = 'subscribed_newsletter' (custom event, not '$pageview')
+		 * - properties.page_url (the property we set, not $pathname)
+		 * - COUNT(*) — each subscription event is a distinct signup
 		 *
-		 * Note: Your /api/subscribe route captures:
-		 *   page_url: window.location.pathname (e.g., "/posts/147")
+		 * `postIdExpr` maps each matched page_url (numeric id OR slug) to its post
+		 * id so subscriptions on either URL form sum into the same post.
 		 */
+		const sql = buildPostPathnameSql(refs, "page_url");
+		if (!sql) {
+			return NextResponse.json({ subscriptions: {} });
+		}
+
 		const hogqlQuery = `
 			SELECT
-				properties.page_url AS page_url,
+				post_id,
 				COUNT(*) AS subscription_count
-			FROM events
-			WHERE
-				event = 'subscribed_newsletter'
-				AND properties.page_url IN (${pathnamesList})
-			GROUP BY properties.page_url
+			FROM (
+				SELECT
+					${sql.postIdExpr} AS post_id
+				FROM events
+				WHERE
+					event = 'subscribed_newsletter'
+					AND properties.page_url IN (${sql.inClause})
+			)
+			WHERE post_id IS NOT NULL
+			GROUP BY post_id
 		`;
 
 		// -------------------------------------------------------------------------
@@ -115,40 +115,19 @@ export async function GET(request: NextRequest) {
 		// 5. TRANSFORM RESPONSE
 		// -------------------------------------------------------------------------
 		/**
-		 * PostHog returns results like:
-		 * {
-		 *   results: [
-		 *     ["/posts/147", 5],
-		 *     ["/posts/148", 2]
-		 *   ]
-		 * }
-		 *
-		 * We transform this to:
-		 * {
-		 *   subscriptions: {
-		 *     "147": 5,
-		 *     "148": 2,
-		 *     "149": 0  // Posts with no subscriptions get 0
-		 *   }
-		 * }
+		 * PostHog returns rows of [post_id, subscription_count]. We seed every
+		 * requested id with 0 so posts with no subscriptions are still present.
 		 */
 		const subscriptions: Record<string, number> = {};
-
-		// Initialize all requested IDs with 0
-		for (const id of postIds) {
-			subscriptions[id] = 0;
+		for (const ref of refs) {
+			subscriptions[ref.id] = 0;
 		}
 
-		// Fill in actual subscription counts from results
 		if (data.results && Array.isArray(data.results)) {
 			for (const row of data.results) {
-				const pageUrl = row[0] as string;
+				const postId = row[0] as string;
 				const count = row[1] as number;
-
-				// Extract post ID from page_url (e.g., "/posts/147" → "147")
-				const match = pageUrl.match(/\/posts\/(.+)/);
-				if (match) {
-					const postId = match[1];
+				if (postId != null) {
 					subscriptions[postId] = count;
 				}
 			}

@@ -1,3 +1,4 @@
+import { buildPostPathnameSql, parsePostRefsParam } from "@/lib/analytics/post-pathnames";
 import { type NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -7,18 +8,19 @@ export const revalidate = 300;
  * Fetches unique view counts for posts from PostHog using the Query API.
  *
  * Query Parameters:
- * - ids: Comma-separated list of post IDs (e.g., "147,148,149")
+ * - posts: Comma-separated `id:slug` pairs (slug optional), e.g.
+ *   "147:my-post,148:another-post,149". Falls back to the legacy bare-id
+ *   `ids` param ("147,148,149") when `posts` is absent.
  *
- * Example:
- * GET /api/analytics/post-views?ids=147,148,149
+ * Why both id and slug: posts are linked across the site as `/posts/{slug ?? id}`,
+ * so a post accrues views under BOTH `/posts/147` and `/posts/my-post`. We match
+ * both pathnames and dedupe unique viewers per post (a reader who hit both URLs
+ * counts once), otherwise recent posts — whose traffic is mostly on the slug —
+ * read near zero.
  *
  * Returns:
  * {
- *   views: {
- *     "147": 42,
- *     "148": 18,
- *     "149": 7
- *   }
+ *   views: { "147": 42, "148": 18, "149": 0 }
  * }
  */
 
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest) {
 		// -------------------------------------------------------------------------
 		const apiKey = process.env.POSTHOG_PERSONAL_API_KEY;
 		const projectId = process.env.POSTHOG_PROJECT_ID;
-		const host = process.env.POSTHOG_API_HOST || "https://app.posthog.com";
+		const host = process.env.POSTHOG_API_HOST || "https://eu.posthog.com";
 
 		if (!apiKey || !projectId) {
 			console.error("Missing PostHog credentials");
@@ -40,29 +42,37 @@ export async function GET(request: NextRequest) {
 		// 2. PARSE REQUEST PARAMETERS
 		// -------------------------------------------------------------------------
 		const { searchParams } = new URL(request.url);
-		const idsParam = searchParams.get("ids");
+		const refs = parsePostRefsParam(searchParams.get("posts") ?? searchParams.get("ids"));
 
-		if (!idsParam) {
-			return NextResponse.json({ error: "Missing 'ids' query parameter" }, { status: 400 });
+		if (refs.length === 0) {
+			return NextResponse.json({ error: "Missing or invalid 'posts' query parameter" }, { status: 400 });
 		}
 
-		// Parse comma-separated IDs and build pathname patterns
-		// e.g., "147,148" → ["/posts/147", "/posts/148"]
-		const postIds = idsParam.split(",").map((id) => id.trim());
-		const pathnames = postIds.map((id) => `/posts/${id}`);
-
-		// Build the IN clause with properly escaped strings
-		const pathnamesList = pathnames.map((p) => `'${p}'`).join(", ");
+		// -------------------------------------------------------------------------
+		// 3. BUILD HOGQL QUERY
+		// -------------------------------------------------------------------------
+		// `postIdExpr` maps each matched pathname (numeric id OR slug) back to its
+		// post id; the outer query then dedupes unique viewers per post.
+		const sql = buildPostPathnameSql(refs, "$pathname");
+		if (!sql) {
+			return NextResponse.json({ views: {} });
+		}
 
 		const hogqlQuery = `
     SELECT
-        properties.$pathname AS pathname,
+        post_id,
         count(DISTINCT distinct_id) AS unique_views
-    FROM events
-    WHERE
-        event = '$pageview'
-        AND properties.$pathname IN (${pathnamesList})
-    GROUP BY properties.$pathname
+    FROM (
+        SELECT
+            distinct_id,
+            ${sql.postIdExpr} AS post_id
+        FROM events
+        WHERE
+            event = '$pageview'
+            AND properties.$pathname IN (${sql.inClause})
+    )
+    WHERE post_id IS NOT NULL
+    GROUP BY post_id
 `;
 
 		// -------------------------------------------------------------------------
@@ -96,40 +106,19 @@ export async function GET(request: NextRequest) {
 		// 5. TRANSFORM RESPONSE
 		// -------------------------------------------------------------------------
 		/**
-		 * PostHog Query API returns data in this format:
-		 * {
-		 *   results: [
-		 *     ["/posts/147", 42],
-		 *     ["/posts/148", 18],
-		 *   ],
-		 *   columns: ["pathname", "unique_views"]
-		 * }
-		 *
-		 * We transform it to a more usable format:
-		 * {
-		 *   views: {
-		 *     "147": 42,
-		 *     "148": 18
-		 *   }
-		 * }
+		 * PostHog returns rows of [post_id, unique_views]. We seed every requested
+		 * id with 0 so posts with no views are still present in the response.
 		 */
 		const views: Record<string, number> = {};
-
-		// Initialize all requested IDs with 0 (in case some have no views)
-		for (const id of postIds) {
-			views[id] = 0;
+		for (const ref of refs) {
+			views[ref.id] = 0;
 		}
 
-		// Fill in actual view counts from results
 		if (data.results && Array.isArray(data.results)) {
 			for (const row of data.results) {
-				const pathname = row[0] as string; // e.g., "/posts/147"
-				const count = row[1] as number; // e.g., 42
-
-				// Extract post ID from pathname
-				const match = pathname.match(/\/posts\/(\d+)/);
-				if (match) {
-					const postId = match[1];
+				const postId = row[0] as string;
+				const count = row[1] as number;
+				if (postId != null) {
 					views[postId] = count;
 				}
 			}

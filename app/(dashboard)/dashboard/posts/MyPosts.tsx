@@ -1,70 +1,9 @@
+import { fetchPostSubscriptionCounts, fetchPostViewCounts } from "@/lib/analytics/post-metrics";
 import { createClient } from "@/lib/supabase/server";
 import { PostsTableClient } from "./PostsTableClient";
 
 interface MyPostsProps {
 	userId: string;
-}
-
-/**
- * Fetches view counts from PostHog for a list of post IDs.
- *
- * @param postIds - Array of post IDs to fetch views for
- * @returns Object mapping post ID to view count, e.g., { "147": 42, "148": 18 }
- */
-async function fetchViewCounts(postIds: string[]): Promise<Record<string, number>> {
-	if (postIds.length === 0) return {};
-
-	try {
-		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-		const url = `${baseUrl}/api/analytics/post-views?ids=${postIds.join(",")}`;
-
-		const response = await fetch(url, {
-			next: { revalidate: 300 },
-		});
-
-		if (!response.ok) {
-			console.error("Failed to fetch view counts:", response.status);
-			return {};
-		}
-
-		const data = await response.json();
-		return data.views || {};
-	} catch (error) {
-		console.error("Error fetching view counts:", error);
-		return {};
-	}
-}
-
-/**
- * Fetches subscription counts from PostHog for a list of post IDs.
- *
- * Queries the "subscribed_newsletter" custom event, grouped by page_url.
- *
- * @param postIds - Array of post IDs to fetch subscriptions for
- * @returns Object mapping post ID to subscription count
- */
-async function fetchSubscriptionCounts(postIds: string[]): Promise<Record<string, number>> {
-	if (postIds.length === 0) return {};
-
-	try {
-		const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-		const url = `${baseUrl}/api/analytics/post-subscriptions?ids=${postIds.join(",")}`;
-
-		const response = await fetch(url, {
-			next: { revalidate: 300 },
-		});
-
-		if (!response.ok) {
-			console.error("Failed to fetch subscription counts:", response.status);
-			return {};
-		}
-
-		const data = await response.json();
-		return data.subscriptions || {};
-	} catch (error) {
-		console.error("Error fetching subscription counts:", error);
-		return {};
-	}
 }
 
 /**
@@ -92,18 +31,14 @@ export async function MyPosts({ userId }: MyPostsProps) {
 	// -------------------------------------------------------------------------
 	// 2. FETCH ANALYTICS FROM POSTHOG (IN PARALLEL)
 	// -------------------------------------------------------------------------
-	/**
-	 * Using Promise.all to fetch views and subscriptions concurrently.
-	 *
-	 * Why this matters:
-	 * - Sequential: 200ms + 200ms = 400ms total
-	 * - Parallel:   max(200ms, 200ms) = 200ms total
-	 */
-	const postIds = posts?.map((post) => String(post.id)) || [];
+	// Pass id + slug so PostHog matches both URL forms a post is viewed under
+	// (`/posts/{id}` and `/posts/{slug}`). Promise.all keeps the two reads
+	// concurrent: max(views, subs) instead of their sum.
+	const refs = (posts ?? []).map((post) => ({ id: String(post.id), slug: post.slug as string | null }));
 
 	const [viewCounts, subscriptionCounts] = await Promise.all([
-		fetchViewCounts(postIds),
-		fetchSubscriptionCounts(postIds),
+		fetchPostViewCounts(refs),
+		fetchPostSubscriptionCounts(refs),
 	]);
 
 	// -------------------------------------------------------------------------
