@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { CalendarRange, CalendarX2, Check, Loader2, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { sendNewsletter } from "./actions";
 
 // The Weekly features a hand-picked, finite set of events — not a 7-day dump.
 // Six is the editorial cap (keeps the issue scannable and the inbox light).
@@ -170,18 +171,14 @@ export function SendNewsletterDialog({
 
 		setIsSending(true);
 		try {
-			const response = await fetch("/api/sendNewsletter", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					postId,
-					eventIds: selectedIds,
-					...(isBroadcast ? { broadcast: true, confirmBroadcast: true } : { testEmail }),
-				}),
+			// Goes through a server action (./actions) rather than a direct fetch:
+			// the send engine is secret-gated and the secret is server-only, so the
+			// action attaches it server-side before delegating.
+			const result = await sendNewsletter({
+				postId,
+				eventIds: selectedIds,
+				...(isBroadcast ? { broadcast: true } : { testEmail }),
 			});
-
-			const result = await response.json();
-			if (!response.ok) throw new Error(result.error || "Failed to send");
 
 			toast.success(isBroadcast ? "Newsletter sent 🚀" : "Test email sent 📧", {
 				description: isBroadcast
