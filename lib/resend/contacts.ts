@@ -44,3 +44,28 @@ export async function listAllContacts(resend: Resend, { segmentId }: ListContact
 export function countActiveSubscribers(contacts: Contact[]) {
 	return contacts.filter((contact) => !contact.unsubscribed).length;
 }
+
+/**
+ * Total active subscribers across several segments, deduped by email — the
+ * genuine "how many people do we have" number. Pass the All Subscribers segment
+ * (the universe every contact is added to) plus the legacy digest segment so
+ * legacy-only contacts still count; a person in both segments is counted once.
+ *
+ * Mirrors the dashboard's headline total (see app/api/emailSubscribers/route.ts)
+ * so the team-notification count never diverges from what the dashboard reports.
+ * Null/undefined segment IDs (unset env vars) are skipped.
+ */
+export async function countTotalActiveSubscribers(
+	resend: Resend,
+	{ segmentIds }: { segmentIds: Array<string | null | undefined> },
+) {
+	const ids = segmentIds.filter((id): id is string => Boolean(id));
+	const lists = await Promise.all(ids.map((segmentId) => listAllContacts(resend, { segmentId })));
+
+	const byEmail = new Map<string, Contact>();
+	for (const contact of lists.flat()) {
+		byEmail.set(contact.email.toLowerCase(), contact);
+	}
+
+	return countActiveSubscribers([...byEmail.values()]);
+}

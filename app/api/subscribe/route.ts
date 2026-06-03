@@ -3,17 +3,16 @@ import { EmailTemplate } from "@/components/email/email-template";
 import { SubscribeEmailAlertTemplate } from "@/components/email/team/subscribe-alert";
 import { EVENT_CATEGORIES, sanitizeEventCategorySlugs } from "@/lib/events/categories";
 import { buildPreferencesUrl } from "@/lib/newsletter/preferences-url";
+import { getAllSubscribersSegmentId, getDigestSegmentId } from "@/lib/newsletter/segments";
 import { upsertSubscription } from "@/lib/newsletter/subscriptions";
 import { syncResendPreferences } from "@/lib/newsletter/sync";
 import { capturePostHogEvent } from "@/lib/posthog-server";
-import { countActiveSubscribers, listAllContacts } from "@/lib/resend/contacts";
-import { getNewsletterSegmentId } from "@/lib/resend/segment";
+import { countTotalActiveSubscribers } from "@/lib/resend/contacts";
 import { waitUntil } from "@vercel/functions";
 import type { NextRequest } from "next/server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const digestSegmentId = getNewsletterSegmentId();
 
 const TEAM_EMAILS = ["malik@hey.com", "afonso.crg@gmail.com", "carlosjoseresende@gmail.com"];
 
@@ -142,8 +141,12 @@ export async function POST(request: NextRequest) {
 					try {
 						await delay(500);
 
-						const contacts = await listAllContacts(resend, { segmentId: digestSegmentId });
-						const totalSubscribers = countActiveSubscribers(contacts);
+						// Count everyone, not just the digest list — All Subscribers is the
+						// universe every contact lands in; union the legacy digest segment so
+						// pre-migration subscribers still count. Matches the dashboard total.
+						const totalSubscribers = await countTotalActiveSubscribers(resend, {
+							segmentIds: [getAllSubscribersSegmentId(), getDigestSegmentId()],
+						});
 
 						await delay(500);
 
