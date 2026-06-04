@@ -100,7 +100,14 @@ export default function CalendarWithSkeleton({ initialEvents, user, serverNow }:
 	const liveIsVisible = phase === "crossfade" || phase === "done";
 
 	return (
-		<div className="grid">
+		// grid-cols-1 (== minmax(0, 1fr)) is load-bearing: a bare `grid` gives the
+		// single implicit column `auto` sizing, which grows to the calendar's
+		// max-content (card padding + rbc intrinsic width ≈ 363px) and overflows
+		// the container on narrow phones (~4px of horizontal page scroll). The
+		// explicit minmax(0, 1fr) track clamps both stacked children to the
+		// container width so the calendar reflows to fit instead. No-op on desktop
+		// where the column already fills the width.
+		<div className="grid grid-cols-1">
 			{phase !== "done" && (
 				<div
 					className={`relative z-20 col-start-1 row-start-1 transition-opacity duration-300 motion-reduce:transition-none ${
