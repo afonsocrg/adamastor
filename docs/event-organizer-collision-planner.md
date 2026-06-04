@@ -15,6 +15,18 @@ The core job is not only "show me events." It is:
 
 The calendar should make collision awareness obvious without making the page feel punitive or over-engineered.
 
+## Status — shipped so far (2026-06-04)
+
+The public planner lives at `/events/calendar` (`app/(main)/events/calendar/`). What's live:
+
+- **Month calendar** (read-only reuse of the dashboard's react-big-calendar) + **category filter** chips.
+- **City scoping** — the primary fix. The calendar is scoped to one city at a time, defaulting to **Lisboa** (the dominant market) rather than a mixed all-Portugal view, since collision-checking only makes sense per city. "Everywhere" is kept as a non-default escape hatch. The chosen city is shareable via `?city=` and remembered in `localStorage`. Curated city list = `SELECTABLE_CITIES` in `lib/events/route-slugs.ts`, shared with the listing tab row.
+- **Online events excluded entirely** — an online event has no geographic clash with a physical meetup, so it's noise on a collision planner. (The listing routes and the `.ics` feed still carry online events.)
+- **Organiser framing** — H1 "Find a date when your audience is free", and a "Got your date? Now fill the room." section that closes the **plan → promote loop** with a CTA to `/events/submit` (the submit page already links back here). Copy grounded in real offerings (per-category newsletters, personal review by the three founders); no fabricated reach numbers.
+- Filtering is a pure, unit-tested helper: `lib/events/calendar-filter.ts`.
+
+Still **deferred** from the ideas below: Planning Mode, Compare Mode, day-density heat, the per-day conflict panel, suggested nearby dates, and any scoring model.
+
 ## Target Users
 
 - community builders planning meetups, dinners, workshops, talks, or recurring gatherings

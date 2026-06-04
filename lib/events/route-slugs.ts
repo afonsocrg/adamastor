@@ -9,6 +9,26 @@ export const KNOWN_CITY_SLUGS: readonly string[] = Object.keys(CITY_MAPPINGS);
 const KNOWN_CITY_SLUG_SET = new Set<string>(KNOWN_CITY_SLUGS);
 
 /**
+ * Curated, ordered subset of cities surfaced as selectable scopes in the UI —
+ * the persistent /events tab row (EventsLayoutShell) and the public calendar's
+ * city filter both render exactly these. The routes still accept every entry in
+ * KNOWN_CITY_SLUGS; these are just the ones we actively promote. Single source
+ * of truth so the two surfaces never drift apart.
+ */
+export const SELECTABLE_CITIES = ["lisboa", "porto", "braga", "coimbra", "algarve", "online"] as const;
+export type SelectableCity = (typeof SELECTABLE_CITIES)[number];
+const SELECTABLE_CITY_SET = new Set<string>(SELECTABLE_CITIES);
+
+export function isSelectableCity(slug: string): slug is SelectableCity {
+	return SELECTABLE_CITY_SET.has(slug);
+}
+
+/** Title-case a city slug for display ("lisboa" -> "Lisboa"). */
+export function formatCityLabel(city: string): string {
+	return city.charAt(0).toUpperCase() + city.slice(1);
+}
+
+/**
  * Set of category slugs that the public events routes accept as the second
  * path segment (or as a category-only route via /events/[slug]).
  */

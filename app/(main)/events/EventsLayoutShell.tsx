@@ -13,7 +13,13 @@
 // edit screen), so it renders the filter chrome only on genuine filter routes
 // (isEventsFilterRoute) and passes siblings through untouched.
 
-import { buildEventsRoutePath, isEventsFilterRoute, parseEventsSegments } from "@/lib/events/route-slugs";
+import {
+	SELECTABLE_CITIES,
+	buildEventsRoutePath,
+	formatCityLabel,
+	isEventsFilterRoute,
+	parseEventsSegments,
+} from "@/lib/events/route-slugs";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter, useSelectedLayoutSegments } from "next/navigation";
@@ -28,14 +34,6 @@ import {
 	useState,
 	useTransition,
 } from "react";
-
-// Curated city order shown in the tab row (a subset/ordering of the
-// KNOWN_CITY_SLUGS the routes accept).
-const SELECTABLE_CITIES = ["lisboa", "porto", "braga", "coimbra", "algarve", "online"] as const;
-
-function formatCityLabel(city: string) {
-	return city.charAt(0).toUpperCase() + city.slice(1);
-}
 
 export default function EventsLayoutShell({ children }: { children: ReactNode }) {
 	const router = useRouter();
