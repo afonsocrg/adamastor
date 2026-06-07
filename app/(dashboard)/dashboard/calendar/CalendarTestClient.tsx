@@ -80,6 +80,11 @@ interface CalendarEvent {
 	city?: string;
 	url?: string;
 	categorySlugs?: string[];
+	// A fixed national marker (a World Cup fixture) rather than a community
+	// submission — rendered in the gold ⚽ register. See world-cup-fixtures.ts.
+	external?: boolean;
+	// Venue context for fixtures ("Houston", "New York"), surfaced in agenda view.
+	venue?: string;
 }
 
 // Define props for the component
@@ -203,12 +208,25 @@ const calendarComponents = {
 					className={`rbc-month-event-row rbc-month-event-row--${kind} flex w-full min-w-0 items-center gap-1.5 overflow-hidden text-xs`}
 					aria-hidden={kind === "preview"}
 				>
-					<span className={`rbc-month-event-dot h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} aria-hidden="true" />
+					{/* A World Cup fixture swaps the category dot for a ⚽ — the gold
+					    chip fill is stripped in month view, so the emoji is what
+					    flags a match day at a scan. */}
+					{event.external ? (
+						<span className="rbc-month-event-dot shrink-0 text-[0.8125rem] leading-none" aria-hidden="true">
+							⚽
+						</span>
+					) : (
+						<span className={`rbc-month-event-dot h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} aria-hidden="true" />
+					)}
 					<span className="rbc-month-event-time shrink-0 text-muted-foreground">{time}</span>
 					{/* min-w-0 is the load-bearing bit: without it the title's
 					    flex min-width defaults to its content width (=full
 					    string), so truncate can't kick in. */}
-					<span className="rbc-month-event-title min-w-0 flex-1 truncate font-medium text-navy dark:text-navy-lifted">
+					<span
+						className={`rbc-month-event-title min-w-0 flex-1 truncate text-navy dark:text-navy-lifted ${
+							event.external ? "font-semibold" : "font-medium"
+						}`}
+					>
 						{event.title}
 					</span>
 				</span>
@@ -383,7 +401,9 @@ export default function CalendarTestClient({ initialEvents = [], user, initialDa
 	// snaps to the faded state once CSS loads.
 	const eventPropGetter = useCallback((event: CalendarEvent) => {
 		const slug = event.categorySlugs?.[0];
-		const category = slug && isEventCategorySlug(slug) ? `cat-${slug}` : "cat-none";
+		// A World Cup fixture takes the gold register regardless of category
+		// (it carries none); community events colour by their primary category.
+		const category = event.external ? "cat-worldcup" : slug && isEventCategorySlug(slug) ? `cat-${slug}` : "cat-none";
 		const edge = moment(event.start).isoWeekday() === 7 ? " rbc-event--edge-right" : "";
 		const isPast = event.end.getTime() < Date.now();
 		if (!isPast) return { className: `${category}${edge}` };

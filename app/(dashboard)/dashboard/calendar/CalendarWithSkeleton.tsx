@@ -40,6 +40,8 @@ interface CalendarEventLike {
 	city?: string;
 	url?: string;
 	categorySlugs?: string[];
+	external?: boolean;
+	venue?: string;
 }
 
 interface CalendarWithSkeletonProps {

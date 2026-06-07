@@ -12,6 +12,10 @@ interface AgendaEvent {
 	city?: string;
 	url?: string;
 	categorySlugs?: string[];
+	// A fixed national marker (a World Cup fixture), not a community submission.
+	external?: boolean;
+	// Venue context for fixtures ("Houston", "New York").
+	venue?: string;
 }
 
 interface AgendaListProps {
@@ -42,6 +46,17 @@ function CategoryPill({ slug }: { slug: string }) {
 			className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider ${chip}`}
 		>
 			{label}
+		</span>
+	);
+}
+
+// The gold marker for a World Cup fixture in the agenda list — the agenda's
+// counterpart to the calendar grid's gold ⚽ chip. Uses the same `--wc-*` tokens
+// as the grid via bg-[var(--wc-fill)] / text-[var(--wc-ink)].
+function WorldCupPill() {
+	return (
+		<span className="inline-flex items-center gap-1 rounded-full bg-[var(--wc-fill)] px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-[var(--wc-ink)]">
+			<span aria-hidden="true">⚽</span> World Cup
 		</span>
 	);
 }
@@ -117,20 +132,31 @@ export default function AgendaList({ events, date, length = DEFAULT_LENGTH_DAYS 
 												) : (
 													<span className="text-sm font-medium text-navy dark:text-navy-lifted">{ev.title}</span>
 												)}
-												<a
-													href={`/events/${ev.id}/edit`}
-													className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-navy-wash hover:text-navy group-hover:opacity-100 focus:opacity-100 dark:hover:bg-navy-tint/[0.12] dark:hover:text-navy-lifted"
-													title="Edit"
-													aria-label={`Edit ${ev.title}`}
-												>
-													<Pencil className="h-3.5 w-3.5" />
-												</a>
+												{/* Fixtures are a static overlay with no edit page — only
+												    community events get the pencil. */}
+												{!ev.external && (
+													<a
+														href={`/events/${ev.id}/edit`}
+														className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-navy-wash hover:text-navy group-hover:opacity-100 focus:opacity-100 dark:hover:bg-navy-tint/[0.12] dark:hover:text-navy-lifted"
+														title="Edit"
+														aria-label={`Edit ${ev.title}`}
+													>
+														<Pencil className="h-3.5 w-3.5" />
+													</a>
+												)}
 											</div>
-											{(primaryCategory || ev.city) && (
+											{ev.external ? (
 												<div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
-													{primaryCategory && <CategoryPill slug={primaryCategory} />}
-													{ev.city && <span>{ev.city}</span>}
+													<WorldCupPill />
+													{ev.venue && <span>{ev.venue}</span>}
 												</div>
+											) : (
+												(primaryCategory || ev.city) && (
+													<div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+														{primaryCategory && <CategoryPill slug={primaryCategory} />}
+														{ev.city && <span>{ev.city}</span>}
+													</div>
+												)
 											)}
 										</div>
 									</li>

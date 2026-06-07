@@ -10,6 +10,7 @@
 import "@/app/(dashboard)/dashboard/calendar/calendar-custom.css";
 
 import { createPublicClient } from "@/lib/supabase/public";
+import { getWorldCupFixtureEvents } from "@/lib/events/world-cup-fixtures";
 import { ArrowRightIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -88,6 +89,14 @@ export default async function PublicEventsCalendarPage() {
 			};
 		});
 
+	// Portugal's World Cup games + the final, as a fixed gold ⚽ overlay. These
+	// are external reference markers (not community events — they never touch the
+	// DB), shown so an organiser doesn't book a room against a national kickoff.
+	// Windowed to the same range as the query so they self-retire once the
+	// tournament is ~a month past. The client merges them in after city/category
+	// filtering, so they show in every scope.
+	const fixtureEvents = getWorldCupFixtureEvents(windowStart, windowEnd);
+
 	return (
 		<div className="space-y-8 py-2">
 			<header className="space-y-2">
@@ -108,7 +117,7 @@ export default async function PublicEventsCalendarPage() {
 			    window.location after mount), so it server-renders here — shipping
 			    the calendar skeleton in the static HTML so it holds its height and
 			    doesn't shift the footer on hydration (the cold-load CLS fix). */}
-			<PublicEventsCalendar initialEvents={calendarEvents} serverNow={now} />
+			<PublicEventsCalendar initialEvents={calendarEvents} fixtureEvents={fixtureEvents} serverNow={now} />
 
 			{/* Plan -> promote. The calendar above is the free planning tool; this is
 			    the natural next step once an organiser has a clear date. It mirrors

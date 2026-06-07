@@ -550,6 +550,26 @@
 	@apply text-navy-dim;
 }
 
+/* World Cup fixtures — the gold reference register for the fixed national
+   markers (Portugal's games + the final). Applied via the `cat-worldcup`
+   className from `eventPropGetter`; colours come from the `--wc-*` custom
+   properties (light + dark, styles/globals.css). The chip fill shows in the
+   time-grid (week/day) views; month view strips all fills (the ⚽ marker in
+   the custom month-event row carries the signal there). See
+   lib/events/world-cup-fixtures.ts. */
+.rbc-event.cat-worldcup {
+	background-color: var(--wc-fill);
+	border-color: var(--wc-edge);
+	color: var(--wc-ink);
+}
+
+/* The ⚽ signature on the week/day chip. Month view renders its own ⚽ marker
+   in the custom event row; agenda renders a gold ⚽ pill — so this only needs
+   to cover the time-grid chips, whose title rbc renders for us. */
+.rbc-calendar .rbc-time-view .rbc-event.cat-worldcup .rbc-event-content::before {
+	content: "⚽ ";
+}
+
 /* ============================================
    6. TOOLBAR STYLES
    ============================================ */

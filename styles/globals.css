@@ -82,6 +82,18 @@
 		--cat-ai-edge: #b6a8ff;
 		--cat-ai-ink: #4a3c9e;
 		--cat-ai-dot: #8470e8;
+
+		/* World Cup fixtures (light) — a gold register reserved for the fixed
+		   national markers on the events calendar (Portugal's games + the final),
+		   deliberately *outside* the 5 category tints so a match never reads as a
+		   community category. Gold = the brand's CTA/atmospheric warmth; here it's
+		   a pale gold-wash surface with deep gold-brown ink (not navy-on-gold — the
+		   CTA-pill rule is about saturated gold-hue fills, not this tint surface).
+		   See lib/events/world-cup-fixtures.ts. */
+		--wc-fill: #f5ead5;
+		--wc-edge: #e6cd97;
+		--wc-ink: #6e5214;
+		--wc-dot: #d4a657;
 	}
 
 	.dark {
@@ -107,6 +119,13 @@
 		--cat-ai-edge: rgba(182, 168, 255, 0.45);
 		--cat-ai-ink: #cfe4ef;
 		--cat-ai-dot: #b6a8ff;
+
+		/* World Cup fixtures (dark) — same pattern as the categories: gold @ 18%
+		   fill, @ 45% edge, navy-lifted ink, full-strength gold dot. */
+		--wc-fill: rgba(212, 166, 87, 0.18);
+		--wc-edge: rgba(212, 166, 87, 0.45);
+		--wc-ink: #cfe4ef;
+		--wc-dot: #d4a657;
 
 		/* Dark mode = navy (2026-05-31 migration off the cyan anchor). Values are
 		   the email C_DARK ramp, HSL-encoded for shadcn's hsl(var(--…)). Surfaces

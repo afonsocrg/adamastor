@@ -20,6 +20,7 @@ import CalendarWithSkeleton from "@/app/(dashboard)/dashboard/calendar/CalendarW
 import { filterCalendarEvents } from "@/lib/events/calendar-filter";
 import { EVENT_CATEGORIES, EVENT_CATEGORY_COLORS, type EventCategorySlug, isEventCategorySlug } from "@/lib/events/categories";
 import { SELECTABLE_CITIES, formatCityLabel } from "@/lib/events/route-slugs";
+import type { WorldCupCalendarEvent } from "@/lib/events/world-cup-fixtures";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import posthog from "posthog-js";
@@ -37,6 +38,9 @@ interface PublicCalendarEvent {
 
 interface PublicEventsCalendarProps {
 	initialEvents: PublicCalendarEvent[];
+	// Portugal's World Cup games + the final — a fixed gold ⚽ overlay merged in
+	// after city/category filtering, so a national kickoff shows in every scope.
+	fixtureEvents: WorldCupCalendarEvent[];
 	serverNow: Date;
 }
 
@@ -72,7 +76,7 @@ const CITY_TAB_ACTIVE = "font-semibold text-navy dark:text-navy-lifted border-na
 const CITY_TAB_INACTIVE =
 	"text-navy-tone hover:text-navy dark:text-navy-dim/[0.7] dark:hover:text-navy-lifted border-transparent";
 
-export default function PublicEventsCalendar({ initialEvents, serverNow }: PublicEventsCalendarProps) {
+export default function PublicEventsCalendar({ initialEvents, fixtureEvents, serverNow }: PublicEventsCalendarProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 
@@ -126,6 +130,14 @@ export default function PublicEventsCalendar({ initialEvents, serverNow }: Publi
 		() => filterCalendarEvents(initialEvents, { city, category }),
 		[city, category, initialEvents],
 	);
+
+	// World Cup fixtures are national context, not community competition: they
+	// bypass the city + category filters entirely (merged here, after filtering)
+	// so a Porto organiser scoping to Porto, or anyone filtering to "AI", still
+	// sees the kickoffs they need to plan around. The "Showing N events" count
+	// below stays community-only — fixtures are an always-on overlay, not part
+	// of what's competing for the audience.
+	const calendarEvents = useMemo(() => [...fixtureEvents, ...filtered], [fixtureEvents, filtered]);
 
 	// Keep the URL shareable (?city=porto&category=design) without a full
 	// navigation, and remember the city so a returning organiser lands back on
@@ -246,10 +258,21 @@ export default function PublicEventsCalendar({ initialEvents, serverNow }: Publi
 						} ${scopeLabel}.`}
 			</p>
 
+			{/* Legend for the gold overlay — only while fixtures are in the window,
+			    so it disappears once the tournament is past. Explains the markers an
+			    organiser is about to see across every city + category. */}
+			{fixtureEvents.length > 0 && (
+				<p className="text-xs text-muted-foreground">
+					<span aria-hidden="true">⚽</span>{" "}
+					<span className="font-semibold text-navy dark:text-navy-lifted">Portugal's World Cup</span> games and the final
+					are marked in gold. The whole country watches, so plan around kickoff.
+				</p>
+			)}
+
 			{/* key forces a clean re-init of the big calendar's internal event state
 			    whenever the scope changes. */}
 			<div key={`${city ?? EVERYWHERE}:${category ?? "all"}`}>
-				<CalendarWithSkeleton initialEvents={filtered} serverNow={serverNow} />
+				<CalendarWithSkeleton initialEvents={calendarEvents} serverNow={serverNow} />
 			</div>
 		</div>
 	);
