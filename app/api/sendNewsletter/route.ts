@@ -353,6 +353,12 @@ export async function POST(request: NextRequest) {
 				replyTo: "carlos@adamastor.blog",
 				subject,
 				html: emailHtml,
+				// Internal-only label shown in the Resend dashboard's broadcast list.
+				// Recipients never see this — they see `subject`. Omitting it makes
+				// Resend default the label to "Untitled", which makes past sends
+				// impossible to tell apart at a glance. The Created column already
+				// carries the date, so the name only needs to say which send it was.
+				name: category ? `${category.name} events` : "Adamastor Weekly",
 			});
 
 			if (createError) {
