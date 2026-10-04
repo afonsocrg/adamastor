@@ -56,6 +56,19 @@ export async function syncResendPreferences({ resend, email, previous, next }: S
 		skipped: [],
 	};
 
+	// 0. An explicit opt-in (subscribe form, preferences save) overrides an
+	// earlier Resend-side unsubscribe. Without this the contact stays flagged
+	// `unsubscribed` in Resend: broadcasts skip them, and the per-send
+	// reconcile (lib/newsletter/reconcile-unsubscribes.ts) would flip their
+	// fresh Supabase choice straight back to unsubscribed.
+	if (next.categories.length > 0 || next.digestSubscribed) {
+		const { error } = await resend.contacts.update({ email, unsubscribed: false });
+		if (error) {
+			console.error("[newsletter:sync] Clearing Resend unsubscribe failed:", error);
+			result.skipped.push({ what: "resubscribe", reason: error.message });
+		}
+	}
+
 	// 1. Ensure contact is in the All Subscribers base segment. Resend treats
 	// adding an already-present contact as a benign error ("already in segment")
 	// so we swallow that case but surface anything else.
