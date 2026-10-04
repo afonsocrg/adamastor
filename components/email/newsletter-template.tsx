@@ -132,10 +132,23 @@ interface CategoryContext {
 	name: string;
 }
 
+/**
+ * When set, the template renders the personalised weekly events email: one
+ * email per reader covering every category they follow (see
+ * lib/newsletter/events-weekly.ts). Events-only, like per-category mode.
+ */
+interface PersonalContext {
+	/** Display names of the reader's categories that had events this week. */
+	categoryNames: string[];
+	/** Matching events this week that didn't fit under the per-email cap. */
+	moreCount: number;
+}
+
 interface NewsletterTemplateProps {
 	events: Event[];
 	article?: Article;
 	category?: CategoryContext;
+	personal?: PersonalContext;
 	/**
 	 * Page where subscribers can manage which newsletters they receive.
 	 * Bare URL (no per-recipient token) because Resend broadcasts can't
@@ -143,6 +156,12 @@ interface NewsletterTemplateProps {
 	 * a tokenized link.
 	 */
 	preferencesUrl?: string;
+	/**
+	 * Per-recipient unsubscribe link. Only per-recipient sends can set this;
+	 * broadcasts leave it unset and fall back to Resend's merge tag, which
+	 * Resend only fills in for broadcasts.
+	 */
+	unsubscribeUrl?: string;
 }
 
 // ============================================
@@ -207,6 +226,12 @@ function formatDayNum(dateString: string): string {
  */
 function formatCity(city: string): string {
 	return city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
+}
+
+/** "AI" · "AI and Design" · "AI, Design and Product Management" */
+function joinNames(names: string[]): string {
+	if (names.length <= 1) return names[0] ?? "";
+	return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
 // ============================================
@@ -468,24 +493,48 @@ function ArticleSection({ article }: { article: Article }) {
 // Main Template
 // ============================================
 
-export const NewsletterTemplate = ({ events, article, category, preferencesUrl }: NewsletterTemplateProps) => {
+export const NewsletterTemplate = ({
+	events,
+	article,
+	category,
+	personal,
+	preferencesUrl,
+	unsubscribeUrl,
+}: NewsletterTemplateProps) => {
 	const eventCount = events.length;
-	// Per-category sends are events-only — the article slot is hidden even if
-	// one is passed by accident, so the email matches what the subscriber
-	// opted in to receive.
-	const showArticle = !!article && !category;
-	const eventsHeading = category ? `Upcoming ${category.name} Events` : "Upcoming Events";
+	// Per-category and personalised sends are events-only — the article slot
+	// is hidden even if one is passed by accident, so the email matches what
+	// the subscriber opted in to receive.
+	const showArticle = !!article && !category && !personal;
+	const followedTopics = personal ? joinNames(personal.categoryNames) : "";
+	const eventsHeading = personal
+		? "Your events this week"
+		: category
+			? `Upcoming ${category.name} Events`
+			: "Upcoming Events";
 	const eventsCtaUrl = category ? `https://adamastor.blog/events/${category.slug}` : "https://adamastor.blog/events";
-	const eventsCtaLabel = category ? `View all ${category.name} events` : "View all events";
+	const eventsCtaLabel =
+		personal && personal.moreCount > 0
+			? `See ${personal.moreCount} more this week`
+			: category
+				? `View all ${category.name} events`
+				: "View all events";
 	// When there's no article above, the events CTA is the email's primary
 	// action and earns the solid button; otherwise it's a quieter text link.
 	const eventsCtaIsPrimary = !showArticle;
 
-	const previewText = category
-		? `${eventCount} upcoming ${category.name.toLowerCase()} events in Portugal`
-		: article
-			? `${splitTitle(article.title).title} + ${eventCount} upcoming events`
-			: `${eventCount} upcoming events in Portugal’s startup scene`;
+	const previewText = personal
+		? (() => {
+				// Lead with the week's first event: concrete beats a generic teaser.
+				const first = [...events].sort((x, y) => x.start_time.localeCompare(y.start_time))[0];
+				const others = eventCount - 1 + personal.moreCount;
+				return others > 0 ? `${first?.title}, plus ${others} more this week` : `${first?.title} this week`;
+			})()
+		: category
+			? `${eventCount} upcoming ${category.name.toLowerCase()} events in Portugal`
+			: article
+				? `${splitTitle(article.title).title} + ${eventCount} upcoming events`
+				: `${eventCount} upcoming events in Portugal’s startup scene`;
 
 	return (
 		<Html lang="en" dir="ltr">
@@ -675,7 +724,7 @@ export const NewsletterTemplate = ({ events, article, category, preferencesUrl }
 
 							{/* Context line for per-category sends — reduces spam-flagging
 							    and reminds recipients why they're getting this. */}
-							{category ? (
+							{personal || category ? (
 								<Text
 									style={{
 										fontFamily: SANS,
@@ -685,7 +734,9 @@ export const NewsletterTemplate = ({ events, article, category, preferencesUrl }
 										lineHeight: "18px",
 									}}
 								>
-									You’re getting this because you subscribed to {category.name} events on adamastor.blog.
+									{personal
+										? `Events in ${followedTopics}, the topics you follow on adamastor.blog.`
+										: `You’re getting this because you subscribed to ${category?.name} events on adamastor.blog.`}
 								</Text>
 							) : (
 								<div style={{ height: "16px" }} />
@@ -791,7 +842,10 @@ export const NewsletterTemplate = ({ events, article, category, preferencesUrl }
 									</>
 								)}
 								{" · "}
-								<Link href="{{{RESEND_UNSUBSCRIBE_URL}}}" style={{ color: C.tone, textDecoration: "underline" }}>
+								<Link
+									href={unsubscribeUrl ?? "{{{RESEND_UNSUBSCRIBE_URL}}}"}
+									style={{ color: C.tone, textDecoration: "underline" }}
+								>
 									Unsubscribe
 								</Link>
 							</Text>

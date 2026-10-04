@@ -6,3 +6,13 @@ export function buildPreferencesUrl(token?: string): string {
 	const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://adamastor.blog";
 	return token ? `${base}/preferences?token=${encodeURIComponent(token)}` : `${base}/preferences`;
 }
+
+/**
+ * RFC 8058 one-click unsubscribe target for per-recipient sends (the
+ * `List-Unsubscribe` header). POST-only on the receiving end — see
+ * app/api/unsubscribe/route.ts.
+ */
+export function buildOneClickUnsubscribeUrl(token: string): string {
+	const base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://adamastor.blog";
+	return `${base}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+}

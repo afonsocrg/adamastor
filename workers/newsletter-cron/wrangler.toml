@@ -16,6 +16,12 @@ crons = ["0 8 * * MON"]
 # Non-secret config. Base URL of the deployed Next app.
 APP_URL = "https://adamastor.blog"
 
+# What each run sends. "events-weekly" = one personalised email per reader
+# (covers every category they follow). "per-category" = legacy rollback: one
+# broadcast per slug below, so a reader on N categories gets N emails.
+NEWSLETTER_PRODUCT = "events-weekly"
+
+# Only used when NEWSLETTER_PRODUCT = "per-category".
 # Comma-separated category slugs to broadcast each run. One email per slug.
 # Leave empty and the worker sends NOTHING — the weekly digest is sent manually
 # by Carlos and the endpoint refuses a no-category (digest) call.

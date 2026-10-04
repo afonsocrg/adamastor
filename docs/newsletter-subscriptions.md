@@ -2,6 +2,11 @@
 
 Source-of-truth model for "what does this email address want to receive?", plus the per-category broadcast pipeline that drops out of it.
 
+> **2026-10: the Monday cron no longer sends per-category broadcasts.** Readers follow 1.85 categories on average (82% of category subscribers follow 2+), so one broadcast per category meant several emails per reader in the same minute, with multi-category events repeated. It now sends **one personalised email per reader** covering all their categories (`product: "events-weekly"`, see [`lib/newsletter/send-events-weekly.ts`](../lib/newsletter/send-events-weekly.ts)), rendered per recipient and sent via Resend's batch API. Consequences:
+> - Recipients come from Supabase, filtered to subscribed Resend contacts. Resend-side unsubscribes (the Weekly's `{{{RESEND_UNSUBSCRIBE_URL}}}`) are copied into Supabase before each live run ([`reconcile-unsubscribes.ts`](../lib/newsletter/reconcile-unsubscribes.ts)); an explicit re-subscribe clears the Resend flag ([`sync.ts`](../lib/newsletter/sync.ts)).
+> - Unsubscribe is ours: a tokenised preferences link in the footer, plus RFC 8058 `List-Unsubscribe` headers pointing at POST-only [`/api/unsubscribe`](../app/api/unsubscribe/route.ts) (drops event categories, keeps the Weekly).
+> - Topics are still written on every preference change and the per-category broadcast path below still works, so the worker can roll back via `NEWSLETTER_PRODUCT=per-category`.
+
 ## Why it exists
 
 Adamastor has the weekly editorial digest *and* five category-specific event newsletters (AI, Software Engineering, Design, Product, Startups & Fundraising). The category newsletters are a distribution channel for organiser acquisition — see [`memory/project_event_categories.md`](../.claude/projects/-Users-malik-Code-Adamastor-adamastor-backup/memory/project_event_categories.md).
