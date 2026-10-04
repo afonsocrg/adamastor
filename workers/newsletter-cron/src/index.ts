@@ -2,8 +2,14 @@
  * Adamastor newsletter cron worker.
  *
  * On its cron schedule (see wrangler.toml), this calls the app's secured
- * /api/cron/send-newsletter endpoint once per configured category, passing the
- * shared secret. The endpoint owns all the actual send logic and safety gates;
+ * /api/cron/send-newsletter endpoint, passing the shared secret.
+ *
+ * NEWSLETTER_PRODUCT picks what it sends:
+ *   "events-weekly" (default) → ONE call; the app sends each reader a single
+ *                               email covering every category they follow.
+ *   "per-category"            → legacy: one call (= one broadcast) per slug in
+ *                               NEWSLETTER_CATEGORIES. A reader on five categories
+ *                               got five emails. Kept only as a rollback switch. The endpoint owns all the actual send logic and safety gates;
  * this worker is just the scheduler + authenticated caller.
  *
  * Nothing is sent until BOTH:
@@ -17,6 +23,7 @@
 
 export interface Env {
 	APP_URL: string;
+	NEWSLETTER_PRODUCT?: string;
 	NEWSLETTER_CATEGORIES: string;
 	NEWSLETTER_CRON_SECRET: string;
 }
@@ -31,7 +38,18 @@ function parseCategories(raw: string | undefined): string[] {
 		.filter(Boolean);
 }
 
-async function triggerSend(env: Env, category: string): Promise<void> {
+type SendBody = { product: "events-weekly" } | { category: string };
+
+/** The request bodies this run should POST, one per send. */
+function plannedSends(env: Env): SendBody[] {
+	if ((env.NEWSLETTER_PRODUCT ?? "events-weekly") === "events-weekly") {
+		return [{ product: "events-weekly" }];
+	}
+	return parseCategories(env.NEWSLETTER_CATEGORIES).map((category) => ({ category }));
+}
+
+async function triggerSend(env: Env, sendBody: SendBody): Promise<void> {
+	const label = "product" in sendBody ? sendBody.product : sendBody.category;
 	const endpoint = new URL("/api/cron/send-newsletter", env.APP_URL).toString();
 	try {
 		const res = await fetch(endpoint, {
@@ -40,25 +58,25 @@ async function triggerSend(env: Env, category: string): Promise<void> {
 				"Content-Type": "application/json",
 				Authorization: `Bearer ${env.NEWSLETTER_CRON_SECRET}`,
 			},
-			body: JSON.stringify({ category }),
+			body: JSON.stringify(sendBody),
 		});
 		const text = await res.text();
-		console.log(`[newsletter-cron] ${category} → ${res.status} ${text}`);
+		console.log(`[newsletter-cron] ${label} → ${res.status} ${text}`);
 	} catch (error) {
-		console.error(`[newsletter-cron] ${category} failed`, error);
+		console.error(`[newsletter-cron] ${label} failed`, error);
 	}
 }
 
 export default {
 	// Scheduled (cron) entry point.
 	async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-		const categories = parseCategories(env.NEWSLETTER_CATEGORIES);
-		if (categories.length === 0) {
+		const sends = plannedSends(env);
+		if (sends.length === 0) {
 			console.warn("[newsletter-cron] NEWSLETTER_CATEGORIES is empty — nothing to send (digest is manual).");
 			return;
 		}
-		for (const category of categories) {
-			ctx.waitUntil(triggerSend(env, category));
+		for (const sendBody of sends) {
+			ctx.waitUntil(triggerSend(env, sendBody));
 		}
 	},
 
@@ -71,13 +89,14 @@ export default {
 		if (url.searchParams.get("key") !== env.NEWSLETTER_CRON_SECRET) {
 			return new Response("Unauthorized", { status: 401 });
 		}
-		const categories = parseCategories(env.NEWSLETTER_CATEGORIES);
-		if (categories.length === 0) {
+		const sends = plannedSends(env);
+		if (sends.length === 0) {
 			return new Response("No categories configured — nothing to send (digest is manual).\n", { status: 200 });
 		}
-		for (const category of categories) {
-			ctx.waitUntil(triggerSend(env, category));
+		for (const sendBody of sends) {
+			ctx.waitUntil(triggerSend(env, sendBody));
 		}
-		return new Response(`Triggered: ${categories.join(", ")}\n`, { status: 202 });
+		const labels = sends.map((b) => ("product" in b ? b.product : b.category));
+		return new Response(`Triggered: ${labels.join(", ")}\n`, { status: 202 });
 	},
 };

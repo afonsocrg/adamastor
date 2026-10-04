@@ -11,6 +11,12 @@
  *    All Subscribers segment with a Topic filter — see
  *    lib/newsletter/topics.ts for the slug → topic ID mapping.
  *
+ * 3. PERSONALISED EVENTS WEEKLY  (`product: "events-weekly"`)
+ *    One email per reader covering every category they follow, replacing the
+ *    per-category broadcasts for the Monday cron. Lives in
+ *    lib/newsletter/send-events-weekly.ts; this route just authenticates and
+ *    picks the mode (`dryRun: true` | test | broadcast).
+ *
  * Each product has a TEST mode (default — sends to one address; defaults
  * to delivered@resend.dev so an accidental call doesn't surprise anyone)
  * and a BROADCAST mode (`broadcast: true, confirmBroadcast: true` — sends
@@ -28,6 +34,12 @@
  *
  *   POST /api/sendNewsletter
  *     { "category": "design", "broadcast": true, "confirmBroadcast": true }
+ *
+ *   POST /api/sendNewsletter
+ *     { "product": "events-weekly", "dryRun": true }
+ *
+ *   POST /api/sendNewsletter
+ *     { "product": "events-weekly", "testEmail": "you@real-inbox", "previewAs": "reader@…" }
  */
 
 import { NewsletterTemplate } from "@/components/email/newsletter-template";
@@ -35,6 +47,7 @@ import { EVENT_CATEGORIES, type EventCategorySlug, isEventCategorySlug } from "@
 import { verifyInternalSecret } from "@/lib/newsletter/internal-auth";
 import { buildPreferencesUrl } from "@/lib/newsletter/preferences-url";
 import { getAllSubscribersSegmentId, getDigestSegmentId } from "@/lib/newsletter/segments";
+import { EVENTS_WINDOW_DAYS, sendEventsWeekly } from "@/lib/newsletter/send-events-weekly";
 import { countActiveCategorySubscribers } from "@/lib/newsletter/subscriptions";
 import { getCategoryTopicEnvName, getCategoryTopicId } from "@/lib/newsletter/topics";
 import { capturePostHogEvent } from "@/lib/posthog-server";
@@ -52,10 +65,9 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // when you actually want the email in front of human eyes.
 const DEFAULT_TEST_EMAIL = "delivered@resend.dev";
 const DEFAULT_TEST_POST_ID = "147";
-// One week. Matches the weekly send cadence so consecutive issues don't overlap
-// and re-list the same events. (Was 10 days, which double-listed ~3 days of
-// events across back-to-back weekly emails.)
-const EVENTS_WINDOW_DAYS = 7;
+// EVENTS_WINDOW_DAYS (one week) is shared with the personalised events send.
+// Matches the weekly cadence so consecutive issues don't re-list the same
+// events. (Was 10 days, which double-listed ~3 days across issues.)
 // Editorial cap on featured events in a manual digest. Mirrors the dashboard
 // picker (SendNewsletterDialog) — keeps the issue scannable. The route enforces
 // it too so an oversized payload can't slip past the UI.
@@ -94,7 +106,27 @@ export async function POST(request: NextRequest) {
 			confirmBroadcast = false,
 			category: categoryInput,
 			eventIds,
+			product,
 		} = body;
+
+		// ============================================
+		// Personalised events weekly (one email per reader)
+		// ============================================
+		if (product === "events-weekly") {
+			if (broadcast && !confirmBroadcast) {
+				return Response.json({ error: "Broadcast mode requires confirmBroadcast: true" }, { status: 400 });
+			}
+			const result = await sendEventsWeekly(
+				resend,
+				body.dryRun === true
+					? { kind: "dry-run" }
+					: broadcast
+						? { kind: "live" }
+						: { kind: "test", testEmail, previewAs: typeof body.previewAs === "string" ? body.previewAs : undefined },
+			);
+			const failed = "failures" in result && result.failures.length > 0;
+			return Response.json({ success: !failed, ...result }, { status: failed ? 502 : 200 });
+		}
 
 		// ============================================
 		// Resolve category context (per-category mode)

@@ -1,13 +1,12 @@
 # Newsletter cron worker
 
-A Cloudflare Worker on a cron trigger that fires Adamastor's **per-category
-events newsletters** on a schedule. It does no sending itself — it calls the
+A Cloudflare Worker on a cron trigger that fires Adamastor's **weekly events
+email** on a schedule. It does no sending itself — it calls the
 app's secured `POST /api/cron/send-newsletter` endpoint, which delegates to the
 existing `/api/sendNewsletter` broadcast pipeline.
 
-> ⚠️ **Not deployed yet.** These files are staged for review. Deploying + the
-> two safety flags below are the only steps left to make automated sends live.
-> Nothing sends until you do them.
+> Deployed as `adamastor-newsletter-cron` (Mondays 08:00 UTC). After any
+> change, redeploy with `npx wrangler deploy` and run the dry-run below.
 
 ## Architecture
 
@@ -16,9 +15,21 @@ Cloudflare cron  ──Bearer secret──▶  /api/cron/send-newsletter  ──
  (this worker)                        (auth + safety gates)            (existing send logic)
 ```
 
-Per-category only: the worker triggers one send per slug in
-`NEWSLETTER_CATEGORIES`. The **weekly digest** is intentionally left manual —
-it needs a human to pick the editorial post — so don't drive it from cron.
+`NEWSLETTER_PRODUCT` (in `wrangler.toml`) picks what a run sends:
+
+- **`events-weekly`** (default): **one** call. The app sends each reader a single
+  personalised email covering every category they follow
+  (`lib/newsletter/send-events-weekly.ts`).
+- **`per-category`**: legacy rollback. One call (= one Resend broadcast) per
+  slug in `NEWSLETTER_CATEGORIES`, so a reader on five categories gets five
+  emails. Switch back and redeploy the worker only if events-weekly misbehaves;
+  the app still supports both.
+
+The **weekly digest** is intentionally left manual (it needs a human to pick
+the editorial post), so don't drive it from cron.
+
+**Deploy order:** ship the app first, then the worker. An old worker against a
+new app keeps sending per-category; a new worker against an old app gets a 400.
 
 ## Two safety gates (both required to actually send)
 
@@ -58,15 +69,20 @@ npx wrangler dev
 curl "http://localhost:8787/?key=YOUR_SECRET"
 ```
 
-You should see `dryRun: true` results per category. You can also dry-run the
-endpoint directly against production safely:
+You can also dry-run the endpoint directly against production safely. For
+events-weekly the dry run calls the real send engine in dry-run mode, so the
+response lists every recipient (masked), their subject line, and how many
+emails the old per-category setup would have sent (`legacyEmailCount`):
 
 ```bash
 curl -X POST https://adamastor.blog/api/cron/send-newsletter \
   -H "Authorization: Bearer YOUR_SECRET" \
   -H "Content-Type: application/json" \
-  -d '{"category":"design","dryRun":true}'
+  -d '{"product":"events-weekly","dryRun":true}'
 ```
+
+Locally, `scripts/preview-events-weekly.ts` prints the same summary and writes
+one reader's rendered HTML to `scripts/.preview/` (never sends, never writes).
 
 ## Deploy
 
@@ -84,12 +100,16 @@ app to arm real sends. Watch a run with `npx wrangler tail`.
   `1 = Sunday`, `2 = Monday` … `7 = Saturday` — **not** standard Unix cron
   (`1 = Monday`). `0 8 * * 1` fires **Sunday**. Always use the three-letter
   abbreviation (`MON`, `TUE`, …) in `wrangler.toml` to avoid the off-by-one.
-- **Per-category only.** The endpoint *rejects* a no-category (digest) call with
-  a 400 — the weekly Adamastor digest is sent manually by Carlos. The worker
-  also sends nothing if `NEWSLETTER_CATEGORIES` is empty.
-- A category send is **skipped** server-side if that category has **no events**
-  in the window or **no opted-in subscribers** — so empty/pointless emails never
-  go out. (Returns `{ skipped: true, reason }`.)
+- **Never the digest.** The endpoint *rejects* a call with neither `product`
+  nor `category` (400). The weekly Adamastor digest is sent manually by Carlos.
+- **events-weekly** skips readers with no events in their categories this week,
+  and only emails readers who are active in Supabase **and** a subscribed
+  Resend contact (same audience the broadcasts reached). Before each live run it
+  copies Resend-side unsubscribes into Supabase. Sends go through the batch API
+  with per-day idempotency keys, so a retried run can't double-send. Batch
+  emails count toward Resend's **transactional** quota, not broadcast billing.
+- A legacy category send is **skipped** server-side if that category has **no
+  events** in the window or **no opted-in subscribers**.
 - `/api/sendNewsletter` is now **secret-gated** too (`NEWSLETTER_SEND_SECRET`,
   separate from the cron secret) and fails closed. You must set
   `NEWSLETTER_SEND_SECRET` on the app — the cron route forwards it when it
